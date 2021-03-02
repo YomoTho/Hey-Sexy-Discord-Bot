@@ -22,6 +22,11 @@ async def on_ready():
     await check_members_roles()
 
 
+@client.command()
+async def ping(ctx):
+    await ctx.send(f'ping {round(client.latency * 1000)}ms')
+
+
 async def check_members_roles():
     guild = client.get_guild(347364869357436940)
     boys_role = discord.utils.get(guild.roles, id=boys_role_id)
@@ -134,4 +139,4 @@ async def add_react(ctx, channel, *, reaction_ctx):
             json.dump(real_reactions_data, f, indent=2)
 
 keep_alive()
-client.run('MY_SEXY_TOKEN')
+client.run(os.getenv('MY_SEXY_TOKEN'))
