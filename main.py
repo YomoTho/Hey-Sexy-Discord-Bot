@@ -1,6 +1,7 @@
 import discord
 import json
 import os
+from random import randint
 from keep_alive import keep_alive
 from discord.ext import commands
 
@@ -10,10 +11,21 @@ client = commands.Bot(command_prefix='$', intents=intents)
 
 reactions_data_file_name = 'reactions_data.json'
 
+leaving_list = [
+    'Aaa, that sexy **{}** left this server :(', 
+    '**{}** left this server.', 
+    'Oh ya! That ugly **{}** left this server!', 
+    'Uhhhh, why did **{}** left this server?!? Tell me why!?',
+    'Sooo guys... **{}** has left this server.',
+    'Somebody please ask **{}** why he left this server.',
+    "It's so disappointing to see that **{}** left this server."
+]
+
 girls_role_id = 814994777987874847
 gamerGrills_role_id = 814998584645910540
 boys_role_id = 814994952785362974
 gamer_role_id = 815001323799183391
+noobs_role_id = 814994515312115732
 
 
 @client.event
@@ -22,9 +34,51 @@ async def on_ready():
     await check_members_roles()
 
 
+@client.event
+async def on_member_join(member):
+    if not member.bot:
+        noobs_role = discord.utils.get(member.guild.roles, id=noobs_role_id)
+        await member.add_roles(noobs_role)
+    else:
+        bot_role = discord.utils.get(member.guild.roles, id=814995403115724800)
+        await member.add_roles(bot_role) 
+    print(f"{member} has joined the {member.guild}.")
+
+    reaction_roles = client.get_channel(815002661526962237)
+    welcome_channel = client.get_channel(815178446949842955)
+    owner = client.get_user(275192642101313536)
+    embed = discord.Embed(
+        title=f"Welcome {member} to {member.guild}",
+        description=f"To able to do more in this server you need to react in {reaction_roles.mention}",
+        color=discord.Color.blue()
+    )
+    embed.set_footer(text=f'{member.guild} • owner: {owner}')
+    embed.set_thumbnail(url=member.avatar_url)
+    await welcome_channel.send(member.mention, embed=embed)
+
+
+@client.event
+async def on_member_remove(member):
+    general = client.get_channel(347364869357436941)
+    await general.send(leaving_list[randint(0, len(leaving_list) - 1)].format(member))
+
+
 @client.command()
 async def ping(ctx):
     await ctx.send(f'ping {round(client.latency * 1000)}ms')
+
+
+@client.command()
+async def embed(ctx):
+    reaction_roles = client.get_channel(815002661526962237)
+    embed = discord.Embed(
+        title=f"Welcome {ctx.author} to {ctx.author.guild}",
+        description=f"To able to do more in this server you need to react in {reaction_roles.mention}",
+        color=discord.Color.blue()
+    )
+    embed.set_footer(text=f'{ctx.guild} • owner: {ctx.author}')
+    embed.set_thumbnail(url=ctx.guild.icon_url)
+    await ctx.send(ctx.author.mention, embed=embed)
 
 
 async def check_members_roles():
@@ -71,6 +125,11 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                 else:
                     print('Payload.member return {}.'.format(payload.member))
         await check_members_roles()
+        noobs_role = discord.utils.get(guild.roles, id=noobs_role_id)
+        for role in payload.member.roles:
+            if role == noobs_role:
+                await payload.member.remove_roles(noobs_role)
+                break
 
 
 @client.event
