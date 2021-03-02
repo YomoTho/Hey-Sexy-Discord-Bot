@@ -1,15 +1,12 @@
 import discord
 import json
 import os
-import time
+from keep_alive import keep_alive
 from discord.ext import commands
 
-os.system('clear')
 
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix='$', intents=intents)
-
-os.chdir('/home/yomoto/Documents/Python/Discord Bots/Hey Sexy Discord Bot/')
 
 reactions_data_file_name = 'reactions_data.json'
 
@@ -136,5 +133,5 @@ async def add_react(ctx, channel, *, reaction_ctx):
         with open(reactions_data_file_name, 'w') as f:
             json.dump(real_reactions_data, f, indent=2)
 
-
-client.run('ODE1OTkxMTk3MzY5NjMwNzMw.YD0dBQ.EW9JmRamlCG0rL32pdqKbJ855ak')
+keep_alive()
+client.run('MY_SEXY_TOKEN')
