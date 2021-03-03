@@ -3,7 +3,7 @@ import json
 import os
 from random import randint
 from keep_alive import keep_alive
-from discord.ext import commands
+from discord.ext import tasks, commands
 
 
 intents = discord.Intents().all()
@@ -32,6 +32,12 @@ noobs_role_id = 814994515312115732
 async def on_ready():
     print(f'{client.user} is online.')
     await check_members_roles()
+    await bot_status_loop.start()
+
+
+@client.event
+async def on_member_update(before, after):
+    await bot_status()
 
 
 @client.event
@@ -68,7 +74,120 @@ async def ping(ctx):
     await ctx.send(f'ping {round(client.latency * 1000)}ms')
 
 
+@tasks.loop(minutes=10.0)
+async def bot_status_loop():
+    await bot_status()
+
+
+async def bot_status():
+    guild = client.get_guild(347364869357436940)
+    def server_members():
+        return [member for member in guild.members]
+
+    def get_roles(user):
+        return [role for role in user.roles]
+
+    async def display_status(text):
+        await client.change_presence(activity=discord.Game(name=text))
+        
+    async def online_humans():
+        online_users = 0
+        for member in server_members():
+            if str(member.status) == 'online' or str(member.status) == 'idle' or str(member.status) == 'dnd':
+                if not member.bot:
+                    online_users += 1
+        else:
+            await display_status(f"{online_users} online humans")
+
+    async def online_bots():
+        online_users = 0
+        for member in server_members():
+            if str(member.status) == 'online' or str(member.status) == 'idle' or str(member.status) == 'dnd':
+                if member.bot:
+                    online_users += 1
+        else:
+            await display_status(f"{online_users} online bots")
+
+    async def total_humans():
+        await display_status(f"{len([human for human in server_members() if not human.bot])} total humans")
+    
+    async def total_members():
+        await display_status(f"{len([member for member in server_members()])} total members")
+
+    async def total_bots():
+        await display_status(f"{len([_bot for _bot in server_members() if _bot.bot])} total bots")
+    
+    async def total_males():
+        males = 0
+        male_role = discord.utils.get(guild.roles, id=boys_role_id)
+        for member in server_members():
+            for role in get_roles(member):
+                if role == male_role:
+                    males += 1
+                    break
+        await display_status(f"{males} total male's")
+
+    async def total_females():
+        females = 0
+        female_role = discord.utils.get(guild.roles, id=girls_role_id)
+        for member in server_members():
+            for role in get_roles(member):
+                if role == female_role:
+                    females += 1
+                    break
+        await display_status(f"{females} total female's")
+    
+    async def total_gamers():
+        gamers = 0
+        gamer_role = discord.utils.get(guild.roles, id=gamer_role_id)
+        for member in server_members():
+            for role in get_roles(member):
+                if role == gamer_role:
+                    gamers += 1
+                    break
+        await display_status(f"{gamers} total gamers")
+
+    async def total_horny_people():
+        horny_people = 0
+        naughty_people_role = discord.utils.get(guild.roles, id=814996086690545695)
+        for member in server_members():
+            for role in get_roles(member):
+                if role == naughty_people_role:
+                    horny_people += 1
+                    break
+        await display_status(f"{horny_people} total horny people")
+
+    async def total_nerds():
+        nerds = 0
+        nerd_role = discord.utils.get(guild.roles, id=814995649690206209)
+        for member in server_members():
+            for role in get_roles(member):
+                if role == nerd_role:
+                    nerds += 1
+                    break
+        await display_status(f"{nerds} total nerds")
+
+    async def total_afk_users():
+        await display_status(f"{len([member for member in server_members() if str(member.status) == 'idle'])} total afk people")
+
+    rand_choose = {
+        "1": online_humans,
+        "2": online_bots,
+        "3": total_humans,
+        "4": total_members,
+        "5": total_bots,
+        "6": total_males,
+        "7": total_females,
+        "8": total_gamers,
+        "9": total_horny_people,
+        "10": total_nerds,
+        "11": total_afk_users 
+    }
+    await rand_choose[str(randint(1, 10))]()
+
+
 @client.command()
+@commands.has_permissions(administrator=True)
 async def embed(ctx):
     reaction_roles = client.get_channel(815002661526962237)
     embed = discord.Embed(
@@ -151,6 +270,7 @@ async def on_raw_reaction_remove(payload : discord.RawReactionActionEvent):
 
 
 @client.command()
+@commands.has_permissions(administrator=True)
 async def add_react(ctx, channel, *, reaction_ctx):
     to_send = client.get_channel(int(channel))
     reactions = reaction_ctx.split(' / ')
