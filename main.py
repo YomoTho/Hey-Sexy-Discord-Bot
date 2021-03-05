@@ -1,6 +1,7 @@
 import discord
 import json
 import os
+from os import getenv
 from random import randint
 from keep_alive import keep_alive
 from discord.ext import tasks, commands
@@ -12,8 +13,9 @@ intents = discord.Intents().all()
 client = commands.Bot(command_prefix=command_prefix, intents=intents)
 
 reactions_data_file_name = 'reactions_data.json'
+warnings_file_name = 'warnings.json'
 
-leaving_list = [
+leaving_says = [
     'Aaa, that sexy **{}** left this server :(', 
     '**{}** left this server.', 
     'Oh ya! That ugly **{}** left this server!', 
@@ -23,13 +25,20 @@ leaving_list = [
     "It's so disappointing to see that **{}** left this server."
 ]
 
-girls_role_id = 814994777987874847
-gamerGrills_role_id = 814998584645910540
-boys_role_id = 814994952785362974
-gamer_role_id = 815001323799183391
-noobs_role_id = 814994515312115732
-yomotho_id = 275192642101313536
+# Getting a bunch of IDs in my discord server 
+female_role_id = int(getenv("FEMALE_ROLE_ID"))
+gamerGrills_role_id = int(getenv("GAMER_GRILL_ROLE_ID"))
+male_role_id = int(getenv("MALE_ROLE_ID"))
+gamer_role_id = int(getenv("GAMER_ROLE_ID"))
+noobs_role_id = int(getenv("NOOBS_ROLE_ID"))
+yomotho_id = int(getenv("YOMOTHO_ID"))
+bot_role_id = int(getenv("BOT_ROLE_ID"))
+nerd_role_id = int(getenv("NERD_ROLE_ID"))
+naughty_people_role_id = int(getenv("NAUGHTY_PEOPLE_ROLE_ID"))
+server_id = int(getenv("SERVER_ID"))
 
+
+status_number = 0
 
 @client.event
 async def on_ready():
@@ -79,7 +88,17 @@ async def on_member_join(member):
 @client.event
 async def on_member_remove(member):
     general = client.get_channel(347364869357436941)
-    await general.send(leaving_list[randint(0, len(leaving_list) - 1)].format(member))
+    await general.send(leaving_says[randint(0, len(leaving_says) - 1)].format(member))
+
+
+@client.event
+async def on_member_update(before, after):
+    global status_number
+    if str(after.status) == 'online' or str(after.status) == 'offline' or str(after.status) == 'idle':
+        if int(status_number) == 1:
+            await bot_status(set_status=1)
+        elif int(status_number) == 11:
+            await bot_status(set_status=11)
 
 
 @client.command()
@@ -92,14 +111,14 @@ async def bot_status_loop():
     await bot_status()
 
 
-@client.command()
-async def new_stat(ctx):
+@client.command(aliases=['new_stat', 'next_status', 'chgstat', 'guild_stats'])
+async def new_status(ctx):
     await bot_status()
     await ctx.message.delete()
 
 
 def return_warnings(user : discord.Member, users=False, r_count=False):
-    with open('warnings.json') as f:
+    with open(warnings_file_name) as f:
         warnings = json.load(f)
     if users:
         return warnings
@@ -107,9 +126,9 @@ def return_warnings(user : discord.Member, users=False, r_count=False):
         return len([warning for warning in warnings[str(user.id)]]) if not warnings == {} else 0
 
 
-@client.command()
+@client.command(aliases=['warns'])
 @commands.has_permissions(administrator=True)
-async def warns(ctx, member : discord.Member=None):
+async def warnings(ctx, member : discord.Member=None):
     warnings = return_warnings(member, users=True)
     embed = discord.Embed(
         title=f"Warnings list",
@@ -131,13 +150,13 @@ async def warns(ctx, member : discord.Member=None):
 @client.command()
 @commands.has_permissions(kick_members=True)
 async def warn(ctx, user : discord.Member, *, reason=None):
-    with open('warnings.json') as f:
+    with open(warnings_file_name) as f:
         warnings = json.load(f)
     
     if not str(user.id) in warnings:
         warnings[str(user.id)] = {}
         warnings[str(user.id)]['reason'] = reason
-        with open('warnings.json', 'w') as f:
+        with open(warnings_file_name, 'w') as f:
             json.dump(warnings, f, indent=2)
     else:
         warnings[str(user.id)][f'reason{return_warnings(user)}'] = reason
@@ -154,28 +173,54 @@ async def warn(ctx, user : discord.Member, *, reason=None):
     await user.send(embed=embed)
     await ctx.send("Warning send.")
 
-    with open('warnings.json', 'w') as f:
+    with open(warnings_file_name, 'w') as f:
         json.dump(warnings, f, indent=2)
 
 
 @client.command()
 @commands.has_permissions(administrator=True)
 async def del_warn(ctx, user : discord.Member):
-    with open('warnings.json') as f:
+    with open(warnings_file_name) as f:
         warnings = json.load(f)
 
     del warnings[str(user.id)]
 
-    with open('warnings.json', 'w') as f:
+    with open(warnings_file_name, 'w') as f:
         json.dump(warnings, f, indent=2)
     
 
-@client.command()
+@client.command(aliases=['cls_dm'])
 async def cls_ur_msg(ctx, amount=0):
     messages = await ctx.history(limit=amount).flatten()
     for msg in messages:
         if msg.author == client.user:
             await msg.delete()
+
+
+@client.command(aliases=['dm_hist'])
+async def dm_history(ctx, user : discord.Member, *, limit=10):
+    messages_from_user = await user.history(limit=limit).flatten()
+    embed = discord.Embed(
+        title='DM History',
+        color=discord.Color.blue()
+    )
+    embed.set_author(name=user, icon_url=user.avatar_url)
+    messages_dict = dict()
+    for message in messages_from_user:
+        messages_dict[message.id] = {}
+        messages_dict[message.id]['content'] = message.content
+        messages_dict[message.id]['author'] = message.author
+    else:
+        messages_author = list()
+        messages_content = list()
+        for message in messages_dict:
+            messages_author.append(messages_dict[message]['author'])
+            messages_content.append(messages_dict[message]['content'])
+        else:
+            messages_author = messages_author[::-1]; messages_content = messages_content[::-1]
+            for index, message in enumerate(messages_content):
+                embed.add_field(name=messages_author[index], value=message, inline=False)
+            await ctx.send(embed=embed)
 
 
 @client.command()
@@ -194,8 +239,8 @@ async def dm_error(ctx, error):
 
 
 @client.command()
-async def set_status(ctx, status_number):
-    await bot_status(set_status=status_number)
+async def set_status(ctx, status_num):
+    await bot_status(set_status=status_num)
 
 
 @client.command()
@@ -216,7 +261,7 @@ async def status_settings(ctx, agru): # TODO: Make status settings, make it so i
 
 
 async def bot_status(set_status=None, all_status=False):
-    guild = client.get_guild(347364869357436940)
+    guild = client.get_guild(server_id)
     def server_members():
         return [member for member in guild.members]
 
@@ -255,7 +300,7 @@ async def bot_status(set_status=None, all_status=False):
     
     async def total_males():
         males = 0
-        male_role = discord.utils.get(guild.roles, id=boys_role_id)
+        male_role = discord.utils.get(guild.roles, id=male_role_id)
         for member in server_members():
             for role in get_roles(member):
                 if role == male_role:
@@ -265,7 +310,7 @@ async def bot_status(set_status=None, all_status=False):
 
     async def total_females():
         females = 0
-        female_role = discord.utils.get(guild.roles, id=girls_role_id)
+        female_role = discord.utils.get(guild.roles, id=female_role_id)
         for member in server_members():
             for role in get_roles(member):
                 if role == female_role:
@@ -285,7 +330,7 @@ async def bot_status(set_status=None, all_status=False):
 
     async def total_horny_people():
         horny_people = 0
-        naughty_people_role = discord.utils.get(guild.roles, id=814996086690545695)
+        naughty_people_role = discord.utils.get(guild.roles, id=naughty_people_role_id)
         for member in server_members():
             for role in get_roles(member):
                 if role == naughty_people_role:
@@ -295,7 +340,7 @@ async def bot_status(set_status=None, all_status=False):
 
     async def total_nerds():
         nerds = 0
-        nerd_role = discord.utils.get(guild.roles, id=814995649690206209)
+        nerd_role = discord.utils.get(guild.roles, id=nerd_role_id)
         for member in server_members():
             for role in get_roles(member):
                 if role == nerd_role:
@@ -319,8 +364,12 @@ async def bot_status(set_status=None, all_status=False):
         "10": total_nerds,
         "11": total_afk_users 
     }
+    global status_number
+    if set_status == None:
+        status_number = randint(1, 11)
+    else: status_number = set_status
     if not all_status:
-        await rand_choose[str(randint(1, 11)) if set_status == None else str(set_status)]()
+        await rand_choose[str(status_number)]()
     else:
         all_s = list()
         for s in rand_choose:
@@ -354,9 +403,9 @@ async def on_command_error(ctx, error):
 
 
 async def check_members_roles():
-    guild = client.get_guild(347364869357436940)
-    boys_role = discord.utils.get(guild.roles, id=boys_role_id)
-    girls_role = discord.utils.get(guild.roles, id=girls_role_id)
+    guild = client.get_guild(server_id)
+    boys_role = discord.utils.get(guild.roles, id=male_role_id)
+    girls_role = discord.utils.get(guild.roles, id=female_role_id)
     gamerGrills_role = discord.utils.get(guild.roles, id=gamerGrills_role_id)
     gamer_role = discord.utils.get(guild.roles, id=gamer_role_id)
     for member in guild.members:
