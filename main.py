@@ -6,8 +6,10 @@ from keep_alive import keep_alive
 from discord.ext import tasks, commands
 
 
+command_prefix = "$"
+
 intents = discord.Intents().all()
-client = commands.Bot(command_prefix='$', intents=intents)
+client = commands.Bot(command_prefix=command_prefix, intents=intents)
 
 reactions_data_file_name = 'reactions_data.json'
 
@@ -26,6 +28,7 @@ gamerGrills_role_id = 814998584645910540
 boys_role_id = 814994952785362974
 gamer_role_id = 815001323799183391
 noobs_role_id = 814994515312115732
+yomotho_id = 275192642101313536
 
 
 @client.event
@@ -36,8 +39,18 @@ async def on_ready():
 
 
 @client.event
-async def on_member_update(before, after):
-    await bot_status()
+async def on_message(message):
+    if isinstance(message.channel, discord.DMChannel) and not message.author == client.user:
+        if message.content.startswith(command_prefix) and message.author.id == yomotho_id: 
+            await client.process_commands(message)
+            return
+        yomotho = client.get_user(yomotho_id)
+        embed = discord.Embed(title=message.content, color=discord.Color.blue())
+        embed.set_footer(text=message.author.id)
+        embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+        await yomotho.send(embed=embed)
+
+    await client.process_commands(message)
 
 
 @client.event
@@ -55,7 +68,7 @@ async def on_member_join(member):
     owner = client.get_user(275192642101313536)
     embed = discord.Embed(
         title=f"Welcome {member} to {member.guild}",
-        description=f"To able to do more in this server you need to react in {reaction_roles.mention}",
+        description=f"To able to do more in this server you need to react in {reaction_roles.mention}" if not member.bot else "This is a bot.",
         color=discord.Color.blue()
     )
     embed.set_footer(text=f'{member.guild} • owner: {owner}')
@@ -74,12 +87,135 @@ async def ping(ctx):
     await ctx.send(f'ping {round(client.latency * 1000)}ms')
 
 
-@tasks.loop(minutes=10.0)
+@tasks.loop(minutes=1.0)
 async def bot_status_loop():
     await bot_status()
 
 
-async def bot_status():
+@client.command()
+async def new_stat(ctx):
+    await bot_status()
+    await ctx.message.delete()
+
+
+def return_warnings(user : discord.Member, users=False, r_count=False):
+    with open('warnings.json') as f:
+        warnings = json.load(f)
+    if users:
+        return warnings
+    else:
+        return len([warning for warning in warnings[str(user.id)]]) if not warnings == {} else 0
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def warns(ctx, member : discord.Member=None):
+    warnings = return_warnings(member, users=True)
+    embed = discord.Embed(
+        title=f"Warnings list",
+        color=discord.Color.red()
+    )
+    for warning in warnings:
+        reasons_list = list()
+        for r_list in warnings[warning]:
+            reasons_list.append(str(warnings[warning][r_list]))
+        reasons = str(); reasons = '\n• '.join(reasons_list)
+        user = client.get_user(int(warning))
+        warnings_user = f"**{user}**"
+        warning_reason = f"{len(reasons_list)} Reason(s):\n• {reasons}"
+        embed.add_field(name=warnings_user, value=warning_reason, inline=False)
+    
+    await ctx.send(embed=embed)
+    
+
+@client.command()
+@commands.has_permissions(kick_members=True)
+async def warn(ctx, user : discord.Member, *, reason=None):
+    with open('warnings.json') as f:
+        warnings = json.load(f)
+    
+    if not str(user.id) in warnings:
+        warnings[str(user.id)] = {}
+        warnings[str(user.id)]['reason'] = reason
+        with open('warnings.json', 'w') as f:
+            json.dump(warnings, f, indent=2)
+    else:
+        warnings[str(user.id)][f'reason{return_warnings(user)}'] = reason
+
+    warning_count_text = f"This is your {return_warnings(user) + 1}th warning"
+    reason_text = f"Reason: **{reason}**" if not reason == None else f"Reason: {reason}"
+    
+    embed = discord.Embed(
+        title=f"**⚠️ !!! YOU HAVE BEEN WARN !!!** ⚠️",
+        description=f"{reason_text}\n{warning_count_text}" if not return_warnings(user) == 1 else reason_text,
+        color=discord.Color.red()
+    )
+    embed.set_footer(text=f'{ctx.guild} • owner: {ctx.author}')
+    await user.send(embed=embed)
+    await ctx.send("Warning send.")
+
+    with open('warnings.json', 'w') as f:
+        json.dump(warnings, f, indent=2)
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def del_warn(ctx, user : discord.Member):
+    with open('warnings.json') as f:
+        warnings = json.load(f)
+
+    del warnings[str(user.id)]
+
+    with open('warnings.json', 'w') as f:
+        json.dump(warnings, f, indent=2)
+    
+
+@client.command()
+async def cls_ur_msg(ctx, amount=0):
+    messages = await ctx.history(limit=amount).flatten()
+    for msg in messages:
+        if msg.author == client.user:
+            await msg.delete()
+
+
+@client.command()
+async def dm(ctx, user : discord.Member, *, message):
+    if ctx.author.id == yomotho_id:
+        await user.send(message)
+        await ctx.send("Message send.")
+
+
+@dm.error
+async def dm_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Missing required argument.")
+    else:
+        await ctx.send(error)
+
+
+@client.command()
+async def set_status(ctx, status_number):
+    await bot_status(set_status=status_number)
+
+
+@client.command()
+async def all_status(ctx):
+    await ctx.send(await bot_status(all_status=True))
+
+
+@client.command()
+async def status_settings(ctx, agru): # TODO: Make status settings, make it so it can disable/enable status, stay, loop time, etc
+    if agru.startswith('hold='):
+        agru = agru.split('=')
+        if agru[1] == 'True':
+            await bot_status_loop.cancel()
+            await ctx.send("Loop: Stoped")
+        else:
+            await bot_status_loop.start()
+            await ctx.send("Loop: Start")
+
+
+async def bot_status(set_status=None, all_status=False):
     guild = client.get_guild(347364869357436940)
     def server_members():
         return [member for member in guild.members]
@@ -183,21 +319,38 @@ async def bot_status():
         "10": total_nerds,
         "11": total_afk_users 
     }
-    await rand_choose[str(randint(1, 10))]()
+    if not all_status:
+        await rand_choose[str(randint(1, 11)) if set_status == None else str(set_status)]()
+    else:
+        all_s = list()
+        for s in rand_choose:
+            func = str(rand_choose[str(s)])
+            func = func.split("<function bot_status.<locals>.")
+            func = func[1].split(' ')
+            all_s.append(f"{s} {func[0]}")
+        all_s = '\n'.join(all_s)
+        return all_s 
 
 
 @client.command()
 @commands.has_permissions(administrator=True)
 async def embed(ctx):
-    reaction_roles = client.get_channel(815002661526962237)
     embed = discord.Embed(
-        title=f"Welcome {ctx.author} to {ctx.author.guild}",
-        description=f"To able to do more in this server you need to react in {reaction_roles.mention}",
-        color=discord.Color.blue()
+        title=f"**⚠️ !!! YOU HAVE BEEN WARN !!!** ⚠️",
+        description=f"Reason: **Testing**",
+        color=discord.Color.red()
     )
     embed.set_footer(text=f'{ctx.guild} • owner: {ctx.author}')
-    embed.set_thumbnail(url=ctx.guild.icon_url)
-    await ctx.send(ctx.author.mention, embed=embed)
+    await ctx.send(embed=embed)
+
+
+@client.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingPermissions):
+        embe=discord.Embed(title="<:redcross:781952086454960138>Error", description="**Insufficient permissions!**", color=0x7289da)
+        await ctx.send(embed=embe)
+    else:
+        print(error)
 
 
 async def check_members_roles():
@@ -249,6 +402,10 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
             if role == noobs_role:
                 await payload.member.remove_roles(noobs_role)
                 break
+    elif payload.channel_id == 735637767131889704: # Rules channel ID
+        print(f"{payload.member} reacted in rules: {payload.emoji}")
+    else:
+        print(f"{payload.member} has reacted ", payload.channel_id)
 
 
 @client.event
@@ -267,6 +424,10 @@ async def on_raw_reaction_remove(payload : discord.RawReactionActionEvent):
                         print(f"{member} has removed react: {role}")
                         break
         await check_members_roles()
+    elif payload.channel_id == 735637767131889704: # Rules channel ID
+        print(f"{payload.member} removed reaction in rules: {payload.emoji}")
+    else:
+        print(f"{payload.member} has removed reacted ", payload.channel_id)
 
 
 @client.command()
@@ -290,7 +451,6 @@ async def add_react(ctx, channel, *, reaction_ctx):
             description = ' '.join(description)
         else:
             description = ''
-        #print(f'emoji={emoji} : role_id={role_id} : description={description}')
         reactions_data[emoji] = {}
         reactions_data[emoji]['role'] = {}
         reactions_data[emoji]['role']['id'] = role_id.id
