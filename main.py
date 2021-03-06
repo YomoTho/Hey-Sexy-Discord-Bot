@@ -7,6 +7,15 @@ from keep_alive import keep_alive
 from discord.ext import tasks, commands
 
 
+#TODO: Make leveling system:
+    # How higher level they are, they unlock stuff like: roles, and mybe other stuff
+    # How to get exp? texting ALOT, invite people, be more active in this server
+
+
+#TODO: Clean up this python file, make it easy to read
+
+#TODO: Use classes
+
 command_prefix = "$"
 
 intents = discord.Intents().all()
@@ -36,8 +45,9 @@ bot_role_id = int(getenv("BOT_ROLE_ID"))
 nerd_role_id = int(getenv("NERD_ROLE_ID"))
 naughty_people_role_id = int(getenv("NAUGHTY_PEOPLE_ROLE_ID"))
 server_id = int(getenv("SERVER_ID"))
+mute_role_id = int(getenv("MUTE_ROLE_ID"))
 
-
+guild = client.get_guild(server_id)
 status_number = 0
 
 @client.event
@@ -68,13 +78,13 @@ async def on_member_join(member):
         noobs_role = discord.utils.get(member.guild.roles, id=noobs_role_id)
         await member.add_roles(noobs_role)
     else:
-        bot_role = discord.utils.get(member.guild.roles, id=814995403115724800)
+        bot_role = discord.utils.get(member.guild.roles, id=bot_role_id)
         await member.add_roles(bot_role) 
     print(f"{member} has joined the {member.guild}.")
 
     reaction_roles = client.get_channel(815002661526962237)
     welcome_channel = client.get_channel(815178446949842955)
-    owner = client.get_user(275192642101313536)
+    owner = client.get_user(yomotho_id)
     embed = discord.Embed(
         title=f"Welcome {member} to {member.guild}",
         description=f"To able to do more in this server you need to react in {reaction_roles.mention}" if not member.bot else "This is a bot.",
@@ -178,6 +188,23 @@ async def warn(ctx, user : discord.Member, *, reason=None):
 
 
 @client.command()
+@commands.has_permissions(kick_members=True)
+async def mute(ctx, user : discord.Member):
+    mute_role = discord.utils.get(user.guild.roles, id=mute_role_id)
+    await user.add_roles(mute_role)
+
+
+@client.command()
+@commands.has_permissions(kick_members=True)
+async def unmute(ctx, user : discord.Member):
+    mute_role = discord.utils.get(user.guild.roles, id=mute_role_id)
+    for role in user.roles:
+        if role == mute_role:
+            await user.remove_roles(mute_role)
+            break
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
 async def del_warn(ctx, user : discord.Member):
     with open(warnings_file_name) as f:
@@ -227,7 +254,7 @@ async def dm_history(ctx, user : discord.Member, *, limit=10):
 async def dm(ctx, user : discord.Member, *, message):
     if ctx.author.id == yomotho_id:
         await user.send(message)
-        await ctx.send("Message send.")
+        await ctx.send("Message send to {}.".format(user))
 
 
 @dm.error
@@ -383,7 +410,7 @@ async def bot_status(set_status=None, all_status=False):
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def embed(ctx):
+async def embed(ctx):                           # Here I test my embed message's
     embed = discord.Embed(
         title=f"**⚠️ !!! YOU HAVE BEEN WARN !!!** ⚠️",
         description=f"Reason: **Testing**",
@@ -408,8 +435,10 @@ async def check_members_roles():
     girls_role = discord.utils.get(guild.roles, id=female_role_id)
     gamerGrills_role = discord.utils.get(guild.roles, id=gamerGrills_role_id)
     gamer_role = discord.utils.get(guild.roles, id=gamer_role_id)
+    naughty_girl_role = discord.utils.get(guild.roles, id=817503056580444180)
+    naughty_people_role = discord.utils.get(guild.roles, id=814996086690545695)
     for member in guild.members:
-        is_male, is_female, is_gamer, is_gamer_grill = False, False, False, False
+        is_male, is_female, is_gamer, is_gamer_grill, is_naughty = False, False, False, False, False
         for role in member.roles:
             if role == boys_role:
                 is_male = True
@@ -419,6 +448,8 @@ async def check_members_roles():
                 is_gamer = True
             if role == gamerGrills_role:
                 is_gamer_grill = True
+            if role == naughty_people_role:
+                is_naughty = True
         else:
             if is_female and is_male:
                 print(f"{member} is a fe man!")
@@ -428,10 +459,14 @@ async def check_members_roles():
                 await member.add_roles(gamerGrills_role)
             if is_male and is_gamer_grill:
                 await member.remove_roles(gamerGrills_role)
+            if is_female and is_naughty:
+                print(f'{member} is a naughty girl')
+                await member.add_roles(naughty_girl_role)
             
 
 @client.event
 async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
+    global guild
     if payload.channel_id == 815002661526962237:
         with open(reactions_data_file_name) as f:
             reaction_data = json.load(f)
@@ -507,7 +542,7 @@ async def add_react(ctx, channel, *, reaction_ctx):
         reactions_data[emoji]['description'] = description
     reaction_msg_list = list()
     for line in reactions_data:
-        reaction_msg_line = f"{line} {reactions_data[line]['role']['mention']} {reactions_data[line]['description']}"
+        reaction_msg_line = f"{line} {reactions_data[line]['description']}"
         reaction_msg_list.append(reaction_msg_line)
         reaction_msg = '\n'.join(reaction_msg_list)
     else:
@@ -523,8 +558,9 @@ async def add_react(ctx, channel, *, reaction_ctx):
             await msg.add_reaction(_emoji)
         msg_id = msg.id
         real_reactions_data[msg_id] = reactions_data
-        with open(reactions_data_file_name, 'w') as f:
-            json.dump(real_reactions_data, f, indent=2)
+        if int(channel) == 815002661526962237:
+            with open(reactions_data_file_name, 'w') as f:
+                json.dump(real_reactions_data, f, indent=2)
 
 keep_alive()
 client.run(os.getenv('MY_SEXY_TOKEN'))
