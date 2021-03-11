@@ -1,0 +1,34 @@
+{
+  "818503710602428427": {
+    "name": "Sexy People",
+    "owner": {
+      "id": 275192642101313536
+    },
+    "channels": {
+      "818503710602428430": {
+        "name": "welcome\ud83c\udf89",
+        "cname": "w"
+      },
+      "818588345508560983": {
+        "name": "shop",
+        "cname": "sh"
+      },
+      "818560379117895740": {
+        "name": "\ud83d\udce3server-announcement",
+        "cname": "sa"
+      },
+      "818563821425524776": {
+        "name": "\u2620noobs-that-left\ud83d\ude31",
+        "cname": "ntl"
+      },
+      "818563784103690271": {
+        "name": "\ud83d\udccaserver-stats\ud83d\udcc8",
+        "cname": "ss"
+      },
+      "818559741437542410": {
+        "name": "\ud83d\udee1-level-ups",
+        "cname": "lu"
+      }
+    }
+  }
+}

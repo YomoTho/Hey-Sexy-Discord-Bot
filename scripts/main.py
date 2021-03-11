@@ -50,6 +50,16 @@ mute_role_id = int(getenv("MUTE_ROLE_ID"))
 guild = client.get_guild(server_id)
 status_number = 0
 
+
+#class Bot:
+ #   def __init__(self, client):
+  #      self.client = client
+
+   # async def on_ready(self):
+    #    print(f"{self.client.user} is online.")
+
+
+
 @client.event
 async def on_ready():
     print(f'{client.user} is online.')
@@ -299,13 +309,15 @@ async def bot_status(set_status=None, all_status=False):
         await client.change_presence(activity=discord.Game(name=text))
         
     async def online_humans():
-        online_users = 0
+        online_users, afk_users = 0, 0
         for member in server_members():
-            if str(member.status) == 'online' or str(member.status) == 'idle' or str(member.status) == 'dnd':
+            if str(member.status) == 'online' or str(member.status) == 'dnd':
                 if not member.bot:
                     online_users += 1
+            elif str(member.status) == 'idle' and not member.bot:
+                afk_users += 1
         else:
-            await display_status(f"{online_users} online humans")
+            await display_status(f"{online_users} online humans" if afk_users == 0 else f"{online_users} online humans, {afk_users} afk")
 
     async def online_bots():
         online_users = 0
