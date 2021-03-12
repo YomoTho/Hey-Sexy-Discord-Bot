@@ -17,51 +17,53 @@ data_folder = '../data/'
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
 class Data:
-    def __init__(self, client, server_id=None, server_owner_id=None):
-        self.client = client
+    def __init__(self, server_id, server_owner_id):
         self.server_id = server_id
         self.server_owner_id = server_owner_id
+        self.server_data = self.get_server_data()
+        self.channels_id = self.get_channels_id()
 
-    def get_channels(self):
-        server_data = self.get_server_data()
-        return [channel for channel in server_data[str(self.get_server(get_id=True))]['channels']]
+    def get_channels_id(self):
+        return [channel for channel in self.server_data[str(self.get_server(get_id=True))]['channels']]
 
     def get_server_data(self):
         with open(f'{data_folder}data.json') as f:
-            server_data = json.load(f)
-        return server_data
+            return json.load(f)
 
     def get_useful_channel(self, cname):
-        channels = self.get_server_data()[str(self.get_server(get_id=True))]['channels']
-        for channel in channels:
-            if channels[str(channel)]['cname'] == cname:
-                return self.client.get_channel(int(channel))
-
+        return client.get_channel(int([channel_id for channel_id in self.channels_id if self.server_data[str(self.server_id)]['channels'][channel_id]['cname'] == cname][0]))
+        
     def get_server(self, get_id=False):
-        return self.client.get_guild(self.server_id) if get_id == False else self.server_id
+        return client.get_guild(self.server_id) if get_id == False else self.server_id
 
     def get_owner(self, get_id=False):
-        return self.client.get_user(self.server_owner_id) if get_id == False else self.server_owner_id
+        return client.get_user(self.server_owner_id) if get_id == False else self.server_owner_id
 
 
 class Send_Message(Data):
-    def __init__(self, cname, msg):
-        global data
+    def __init__(self, msg):
         self.server_id = data.server_id
-        self.client = data.client
-        self.channel = self.get_useful_channel(cname)
         self.msg = msg
-
-    async def send(self):
-        await self.channel.send(self.msg)
+        self.channels_id = data.channels_id; self.server_data = data.server_data
+        
+    async def dm(self, to : discord.Member):
+        await to.send(self.msg)
+        
+    async def text_channel(self, cname=None, _channel_id=None):
+        if not cname == None:
+            to = self.get_useful_channel(cname)
+            await to.send(self.msg)
+        elif not _channel_id == None:
+            to = client.get_channel(int(_channel_id))
+            await to.send(self.msg)
+        else:
+            raise Exception
 
 
 
 # Global variables
 
-data = Data(client)
-server_owner = None
-server = None
+data = None
 status_number = 0
 
 
@@ -75,13 +77,13 @@ def store_data():
             server_owner_id = guild.owner.id
         break
     global server_owner, server, data
-    data.server_id = server_id; data.server_owner_id = server_owner_id
+    data = Data(server_id, server_owner_id)
+    #data.server_id = server_id; data.server_owner_id = server_owner_id
     server_owner = data.get_owner()
     server = data.get_server()
 
 
 async def bot_status(set_status=None, all_status=False):
-    global data
     guild = client.get_guild(int(data.server_id))
     def server_members():
         return [member for member in guild.members]
@@ -177,13 +179,12 @@ async def on_message(message):
             await server_owner.send(embed=embed)
     else:
         if not message.author.bot:
-            global data
             user_rank_data = Leveling_System(message.author) # This is doing the leveling system thing
-            leveled_up = user_rank_data.add_msg_exp(message.content)
+            leveled_up = user_rank_data + int(len(message.content) / 1.5)
             if leveled_up[0]:
                 leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 10 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
-                lu_msg = Send_Message('lu', leveled_up_msg)
-                await lu_msg.send()
+                lu_msg = Send_Message(leveled_up_msg)
+                await lu_msg.text_channel(cname='lu')
 
             await client.process_commands(message)
 
@@ -252,6 +253,21 @@ async def new_status(ctx):
     await ctx.message.delete()
 
 
+@client.command()
+async def dm(ctx, user : discord.Member, *, msg):
+    msg_cmd = ctx.message
+    if ctx.author.id == data.server_owner_id:
+        to = Send_Message(msg); await to.dm(user)
+        await msg_cmd.add_reaction('✅')
+    else:
+        await msg_cmd.add_reaction('⛔')
+
+@dm.error
+async def dm_error(ctx, error):
+    await ctx.message.add_reaction('❌')
+    await ctx.send(error)
+
+
 @client.command(aliases=['cls_dm'])
 async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
     if ctx.author.id == server_owner.id:
@@ -267,17 +283,29 @@ async def rank(ctx, member : discord.Member=None):
         member = ctx.author
     if not member.bot:
         leveling_System = Leveling_System(member)
-        msg = leveling_System.rank()
-
-        embed = discord.Embed(
-            title=str(member),
-            description=f'{msg[1]}  {msg[2]}',
-            color=discord.Color.blue()
-        )
-        embed.add_field(name=msg[3], value=msg[0])
-        await ctx.send(embed=embed)
+        try:
+            msg = leveling_System.rank()
+        except Exception as e:
+            error_embed = discord.Embed(description=f"❗{str(e)}❗", color=discord.Color.from_rgb(255, 0, 0))
+            await ctx.send(embed=error_embed)
+        else:
+            embed = discord.Embed(
+                title=str(member),
+                description=f'{msg[1]}  {msg[2]}',
+                color=discord.Color.blue()
+            )
+            embed.add_field(name=msg[3], value=msg[0])
+            await ctx.send(embed=embed)
     else:
         await ctx.send(f"Bots don't have a rank.")
+
+
+@rank.error
+async def rank_error(ctx, error):
+    if isinstance(error, commands.MemberNotFound):
+        await ctx.message.add_reaction('⁉')
+    else:
+        print(error)
 
 
 @client.command()

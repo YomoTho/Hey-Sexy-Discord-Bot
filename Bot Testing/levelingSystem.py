@@ -9,16 +9,16 @@ class Leveling_System:
         self.member = member
         self.users = self.load_leveling_json()
 
-    def add_msg_exp(self, msg_content):
-        self.msg = msg_content
-        #self.users = self.load_leveling_json() # Loading leveling.json file and store in it 'self.users'
-        self.add_user()
-        self.add_exp(int(len(self.msg) / 1.5))
+    def __add__(self, exp): # This will add exp to the user, and then return True or False if the user leveled up
+        self.add_user() # It checks if user id exist in the json file, if not then it add the user 
+        self.add_exp(exp)
         
-        lvl_up_return = self.lvl_up()
+        print(f'{self.member} + {exp} exp')
+        
+        lvl_up_return = self.lvl_up() # What it return is: {True or False}, {The user (self.member) or 0}, {The user old level or 0}, {The user new level}, {The user exp}
 
-        self.users[str(self.member.id)]['exp'] = lvl_up_return[4]
-        self.users[str(self.member.id)]['lvl'] = lvl_up_return[3]
+        self.users[str(self.member.id)]['exp'] = lvl_up_return[4] # Index 4 is exp
+        self.users[str(self.member.id)]['lvl'] = lvl_up_return[3] # Index 3 is lvl
 
         self.dump_leveling_json(self.users)
 
@@ -29,26 +29,25 @@ class Leveling_System:
         try:
             self.user_rank_data = self.load_leveling_json()[str(self.member.id)]
         except KeyError:
-            return None
+            raise Exception(f"**Error!** Could not find **{self.member}**")
+        else:
+            self.exp = self.user_rank_data['exp']
+            self.lvl = self.user_rank_data['lvl']
+            self.total_exp = self.user_rank_data['total_exp']
 
-        self.exp = self.user_rank_data['exp']
-        self.lvl = self.user_rank_data['lvl']
-        self.total_exp = self.user_rank_data['total_exp']
+            rank_data = self.cal_rank()
+            full_bar = rank_data[0]; empty_bar = rank_data[1]; p = rank_data[2]; end_lvl = rank_data[3] # P is for %
 
-        rank_data = self.cal_rank()
-        full_bar = rank_data[0]; empty_bar = rank_data[1]; p = rank_data[2]; end_lvl = rank_data[3] # P is for %
+            rank_message_1 = f"Exp: **{self.exp}**/{end_lvl}"
+            rank_message_2 = f"Level: **{self.lvl}**"
+            rank_message_3 = f"Total exp: **{self.total_exp}**"
+            rank_exp_bar = f"[**{full_bar}**{empty_bar}] {p}%"
 
-        rank_message_1 = f"Exp: **{self.exp}**/{end_lvl}"
-        rank_message_2 = f"Level: **{self.lvl}**"
-        rank_message_3 = f"Total exp: **{self.total_exp}**"
-        rank_exp_bar = f"[**{full_bar}**{empty_bar}] {p}%"
-
-        return rank_message_1, rank_message_2, rank_message_3, rank_exp_bar
+            return rank_message_1, rank_message_2, rank_message_3, rank_exp_bar
         
         
-    def cal_rank(self):
-        def per(y, x):
-            return int((y / x) * 100)
+    def cal_rank(self):        
+        per = lambda x,y: int((x / y) * 100)
 
         def round(x):
             rem = x % 10
@@ -135,3 +134,26 @@ class Leveling_System:
             # 1 = False | It returns False bc the user didn't level up
             # 2 = 0 | It does not need to return member
             # 3 = 0 | It does not need to return the user previous level
+
+
+
+class Money(Leveling_System): # Money cold: "Sexy Coin"
+    def __init__(self, total_exp):
+        self.total_exp = total_exp
+        
+    def bank(self, member):
+        pass #TODO: make money system and this will be the bank, the bank should do: return how much money they have and stuff like that
+    
+    def buy(self):
+        pass
+    
+    def sell(self):
+        pass
+    
+    def add_money(self):
+        pass
+    
+    def remove_money(self):
+        pass
+    
+    # ETC
