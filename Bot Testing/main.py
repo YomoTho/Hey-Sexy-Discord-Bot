@@ -1,9 +1,10 @@
 import discord
 import json
 import os
+import requests
 from discord.ext import tasks, commands
 from levelingSystem import Leveling_System
-from random import randint
+from random import randint, choice
 
 
 command_prefix = ";"
@@ -16,6 +17,7 @@ data_folder = '../data/'
 
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
+
 class Data:
     def __init__(self, server_id, server_owner_id):
         self.server_id = server_id
@@ -265,7 +267,39 @@ async def dm(ctx, user : discord.Member, *, msg):
 @dm.error
 async def dm_error(ctx, error):
     await ctx.message.add_reaction('❌')
-    await ctx.send(error)
+
+
+@client.command(aliases=['dm_hist'])
+async def dm_history(ctx, user : discord.Member, *, limit=10):
+    messages_from_user = await user.history(limit=limit).flatten()
+    embed = discord.Embed(
+        title='DM History',
+        color=discord.Color.blue()
+    )
+    embed.set_author(name=user, icon_url=user.avatar_url)
+    messages_dict = dict()
+    for message in messages_from_user:
+        messages_dict[message.id] = {}
+        messages_dict[message.id]['content'] = message.content
+        messages_dict[message.id]['author'] = message.author
+    else:
+        messages_author = list()
+        messages_content = list()
+        for message in messages_dict:
+            messages_author.append(messages_dict[message]['author'])
+            messages_content.append(messages_dict[message]['content'])
+        else:
+            messages_author = messages_author[::-1]; messages_content = messages_content[::-1]
+            for index, message in enumerate(messages_content):
+                embed.add_field(name=messages_author[index], value=message, inline=False)
+            await ctx.send(embed=embed)
+
+@dm_history.error
+async def dm_hist_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send("Please specify the user.")
+    else:
+        await ctx.send(error)
 
 
 @client.command(aliases=['cls_dm'])
@@ -282,8 +316,8 @@ async def rank(ctx, member : discord.Member=None):
     if member == None:
         member = ctx.author
     if not member.bot:
-        leveling_System = Leveling_System(member)
         try:
+            leveling_System = Leveling_System(member)
             msg = leveling_System.rank()
         except Exception as e:
             error_embed = discord.Embed(description=f"❗{str(e)}❗", color=discord.Color.from_rgb(255, 0, 0))
@@ -299,7 +333,6 @@ async def rank(ctx, member : discord.Member=None):
     else:
         await ctx.send(f"Bots don't have a rank.")
 
-
 @rank.error
 async def rank_error(ctx, error):
     if isinstance(error, commands.MemberNotFound):
@@ -314,7 +347,6 @@ async def clear(ctx, amount : int):
     amount += 1
     await ctx.channel.purge(limit=amount)
 
-# 'clear' command error
 @clear.error 
 async def clear_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
@@ -325,38 +357,59 @@ async def clear_error(ctx, error):
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member : discord.Member, *, reason=None):
     await member.kick(reason=reason)
-    await ctx.send(f'{member} got kicked.')
+    await ctx.message.add_reaction('🦶🏽')
+    await ctx.send(f'**{member}** kicked!')
+
+@kick.error
+async def kick_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MemberNotFound):
+        await ctx.message.add_reaction('❓')
+        await ctx.send(f"Huh, Who?")
 
 
 @client.command()
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member : discord.Member, *, reason=None):
+    bans_says = ['**{}** is banned from this server.', 'Yes! That poes **{}** is banned from this server!']
     await member.ban(reason=reason)
-    await ctx.send(f'{member} is banned from this server.')
+    await ctx.message.add_reaction('✅')
+    await ctx.send(choice(bans_says).format(member))
+
+@ban.error
+async def ban_error(ctx, error):
+    if isinstance(error, discord.ext.commands.MemberNotFound):
+        await ctx.message.add_reaction('❓')
+        await ctx.send(f"Huh, Who?")
 
 
 @client.command()
 async def bans(ctx):
     banned_users = await ctx.guild.bans()
     if len(banned_users) > 0:
+        embed = discord.Embed(title=f'{len(banned_users)} Banned Member(s)', color=discord.Color.red())
         for ban_usr in banned_users:
-            await ctx.send(ban_usr)
+            embed.add_field(name=f'{ban_usr.user}  [ ID: {ban_usr.user.id} ]', value=f'Reason: **{ban_usr.reason}**')
+        else:
+            await ctx.send(embed=embed)
     else:
         await ctx.send('There are nobody banned from this server.')
 
 
 @client.command()
 @commands.has_permissions(ban_members=True)
-async def unban(ctx, *, member):
-    banned_users = await ctx.guild.bans()
-    member_name, member_discriminator = member.split('#')
+async def unban(ctx, id : int):
+    try:
+        user = await client.fetch_user(id)
+        await ctx.guild.unban(user)
+    except discord.errors.NotFound as e:
+        await ctx.message.add_reaction('❌')
+        print(e)
+    else:
+        await ctx.message.add_reaction('✅')
 
-    for ban_entry in banned_users:
-        user = ban_entry.user
-        if (user.name, user.discriminator) == (member_name, member_discriminator):
-            await ctx.guild.unban(user)
-            await ctx.send(f'{user} is now unbanned.')
-            return
+@unban.error
+async def unban_error(ctx, error):
+    if isinstance(error, discord.ext.commands.BadArgument): pass # Just do nothing.
 
 
 @client.command()
@@ -365,5 +418,5 @@ async def ping(ctx):
 
 
 
-
-client.run("ODE2NjY4NjA0NjY5NzU1NDMz.YD-T6A.elZITTn8GRX1sOHRUbSWzME3aH4")
+if __name__ == '__main__':
+    client.run("ODE2NjY4NjA0NjY5NzU1NDMz.YD-T6A.elZITTn8GRX1sOHRUbSWzME3aH4")
