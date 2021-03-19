@@ -35,6 +35,11 @@
             "name": "Humans",
             "price": 0,
             "cname": "human"
+        },
+        "818590827868979250": {
+            "name": "server stuff",
+            "price": 150,
+            "cname": "ss"
         }
     }
 }
