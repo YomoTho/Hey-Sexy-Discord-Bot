@@ -8,6 +8,7 @@ from discord.ext import tasks, commands
 from levelingSystem import Leveling_System, Money
 from random import randint, choice
 from games import TicTacToe
+from dotenv import load_dotenv
 
 
 command_prefix = ";"
@@ -302,7 +303,7 @@ async def disconnect(ctx):
 
 
 @client.command()
-async def embed(ctx):
+async def embed(ctx): # Here i test my embed messages 
     time_stats = TimeStats()
     stats_msg = await get_tday_data(time_stats)
     guild = client.get_guild(int(data.server_id))
@@ -325,7 +326,7 @@ async def embed(ctx):
 
 
 @client.command()
-async def dm(ctx, *args): # Here I do my test commands
+async def dm(ctx, *args):
     if args[0] in ['history', 'hist']:
         async def hist(user : discord.Member, limit=10):
             messages_from_user = await user.history(limit=limit).flatten()
@@ -703,4 +704,6 @@ async def del_warn(ctx, user : discord.Member):
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
-    client.run("ODE2NjY4NjA0NjY5NzU1NDMz.YD-T6A.elZITTn8GRX1sOHRUbSWzME3aH4")
+    load_dotenv()
+    
+    client.run(os.getenv('BT_TOKEN'))
