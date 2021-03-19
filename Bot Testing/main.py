@@ -292,17 +292,6 @@ async def disconnect(ctx):
         await ctx.send("You not in that voice channel. Bruh")
 
 
-@client.command(aliases=['p'])
-async def play(ctx, url : str):
-    voice_channel = ctx.author.voice
-    try:
-        await voice_channel.channel.connect()
-    except discord.ClientException:
-        pass
-    finally:
-        
-
-
 @client.command()
 async def embed(ctx):
     time_stats = TimeStats()
