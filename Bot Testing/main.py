@@ -604,6 +604,13 @@ async def pfp(ctx, member : discord.Member=None):
 
 @client.command()
 async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
+    if player1.bot:
+        await ctx.send(f'{player1} is a bot,  bots cannot play.')
+        return
+    elif player2.bot:
+        await ctx.send(f'{player2} is a bot,  bots cannot play.')
+        return
+    
     global ttt_game
     ttt_game = TicTacToe(player1, player2)
 
