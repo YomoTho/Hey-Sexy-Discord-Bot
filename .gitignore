@@ -125,3 +125,5 @@ dmypy.json
 .pyre/
 data/leveling.json
 Bot Testing/save code.txt
+data/serverDates.json
+data/leveling.json
