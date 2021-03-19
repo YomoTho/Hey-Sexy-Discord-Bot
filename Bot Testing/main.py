@@ -624,4 +624,4 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
-    client.run("ODE2NjY4NjA0NjY5NzU1NDMz.YD-T6A.elZITTn8GRX1sOHRUbSWzME3aH4")
+    client.run(os.getenv('TOKEN'))
