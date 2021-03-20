@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 data_folder = '../data/'
 
 
-with open(f'{data}config.json') as f:
+with open(f'{data_folder}config.json') as f:
     d = json.load(f)
     command_prefix = d['prefix']
 
