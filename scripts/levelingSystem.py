@@ -54,7 +54,7 @@ class Leveling_System:
             rank_message_1 = f"Exp: **{self.exp}**/{end_lvl}"   # The user Exp
             rank_message_2 = f"[ Level: **{self.lvl}** ]"   # The user Level
             rank_message_3 = f"[ Total exp: **{self.total_exp}** ] [ Money: $**{self.user_rank_data['money']}** ]"      # The user total_exp and money
-            rank_exp_bar = f"[**{full_bar}**{empty_bar}] {p}%"  # The exp_bar and the %
+            rank_exp_bar = f"**[{full_bar}{empty_bar}] {p}%**"  # The exp_bar and the %
 
             return rank_message_1, rank_message_2, rank_message_3, rank_exp_bar
         
@@ -69,7 +69,7 @@ class Leveling_System:
         p = per(self.exp, end_lvl) #  is what % is lvl in end_lvl
         rp = str(round(p))[0] if p < 95 else 10 # rp is p but rounded to the nearest 10, but with the first index of the number (e.p: x = 45; x[0] = 4)
         full_bar = '#' * int(rp)
-        empty_bar = '=' * int(10 - len(full_bar))
+        empty_bar = ' . ' * int(10 - len(full_bar))
 
         return full_bar, empty_bar, p, end_lvl
 
@@ -172,21 +172,40 @@ class Money(Leveling_System):
         with open(f'{data_folder}shop.json') as f:
             return json.load(f)
 
-    def buy(self, role):
-        try:
-            self.role = self.shop['roles'][str(role.id)]
-            self.role_price = self.role['price']
-        except KeyError as e:
-            print(e)
-            raise Exception("Can't buy this role.")
-        else:
-            if self.user_money >= self.role_price:
-                self.user_money -= self.role_price
-                self.users[str(self.member.id)]['money'] = self.user_money
-                self.save(self.users)
-                return True
+    def buy(self, role=None, liverank=None):
+        if not role is None:
+            try:
+                self.role = self.shop['roles'][str(role.id)]
+                self.role_price = self.role['price']
+            except KeyError as e:
+                print(e)
+                raise Exception("Can't buy this role.")
             else:
-                return False
+                if self.user_money >= self.role_price:
+                    self.user_money -= self.role_price
+                    self.users[str(self.member.id)]['money'] = self.user_money
+                    self.save(self.users)
+                    return True
+                else:
+                    return False
+        elif not liverank is None:
+            with open(f'{data_folder}liverank.json') as f:
+                liverank_users = json.load(f)
+                
+            if not str(self.member.id) in liverank_users:
+                liverank_price = 500
+                if self.user_money >= liverank_price:
+                    yield True
+                    self.user_money -= liverank_price
+                    self.users[str(self.member.id)]['money'] = self.user_money
+                    self.save(self.users)
+                    yield True
+                else:
+                    raise Exception("You already have a live rank.")
+            else:
+                raise Exception("You don't have enough money to buy a liverank.")
+        else:
+            raise Exception
 
 
     def sell(self, role):
