@@ -200,8 +200,6 @@ async def rank_msg(member : discord.Member):
         embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
         embed.set_author(name=member, icon_url=member.avatar_url)
         return embed
-    else:
-        raise Exception
     
     
 async def update_live_rank(member):
@@ -445,10 +443,10 @@ async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
 async def rank(ctx, member : discord.Member=None):
     if member == None:
         member = ctx.author
-    try:
-        await ctx.send(embed=await rank_msg)
-    except Exception:
-        await ctx.send(f"Bots don't have a rank.")
+    if not member.bot:
+        await ctx.send(embed=await rank_msg(member))
+    else:
+        await ctx.send("Bots don't have rank.")
 
 @rank.error
 async def rank_error(ctx, error):
@@ -502,7 +500,7 @@ async def ban_error(ctx, error):
 async def bans(ctx):
     banned_users = await ctx.guild.bans()
     if len(banned_users) > 0:
-        embed = discord.Embed(title=f'{len(banned_users)} Banned Member(s)', color=discord.Color.red())
+        embed = discord.Embed(title=f'{len(banned_users)} Banned Member(s)', color=discord.Color.from_rgb(255, 0, 0))
         for ban_usr in banned_users:
             embed.add_field(name=f'{ban_usr.user}  [ ID: {ban_usr.user.id} ]', value=f'Reason: **{ban_usr.reason}**')
         else:
