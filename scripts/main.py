@@ -245,7 +245,7 @@ async def on_message(message):
             user_rank_data = Leveling_System(message.author) # This is doing the leveling system thing
             leveled_up = user_rank_data + int(len(message.content) / 1.5)
             if leveled_up[0]:
-                leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 10 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
+                leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
                 lu_msg = Send_Message(leveled_up_msg)
                 await lu_msg.text_channel(cname='lu')
             bot_access_role = data.get_useful_role('ba')
