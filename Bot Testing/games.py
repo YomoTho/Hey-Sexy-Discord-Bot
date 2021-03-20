@@ -1,5 +1,6 @@
 import discord
 from random import choice
+from levelingSystem import Leveling_System, Money
 
 
 class TicTacToe:
@@ -48,7 +49,9 @@ class TicTacToe:
                 who_won = await self.check_who_won()
                 if who_won[0]:
                     self.someone_won = True
-                    embed = discord.Embed(description=f"**{who_won[1]}** won!!!")
+                    winner = Leveling_System(who_won[1])
+                    w = winner + 100 # If a user win then the user get 100 exp
+                    embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
                     return
 
@@ -58,7 +61,7 @@ class TicTacToe:
                 self.turn = self.player_1
 
             if self.count >= 9:
-                embed = discord.Embed(description=f"Tied")
+                embed = discord.Embed(description=f"Tie")
             else:
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
 

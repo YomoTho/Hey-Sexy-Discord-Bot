@@ -11,13 +11,15 @@ from games import TicTacToe
 from dotenv import load_dotenv
 
 
-command_prefix = ";"
+data_folder = '../data/'
+
+
+with open(f'{data}config.json') as f:
+    d = json.load(f)
+    command_prefix = d['prefix']
 
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix=command_prefix, intents=intents)
-
-
-data_folder = '../data/'
 
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
