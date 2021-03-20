@@ -404,18 +404,23 @@ async def dm(ctx, *args):
         user_id = int(args[1][3:-1]) if args[1].startswith('<@!') else int(args[1])
         await delete_messages(client.get_user(user_id), ids)
     else:
-        user = client.get_user(int(args[0][3:-1] if args[0].startswith('<@!') else args[0]))
-        async def dmm(msg):
-            msg_cmd = ctx.message
-            if ctx.author.id == server_owner.id:
-                to = Send_Message(msg); await to.dm(user)
-                await msg_cmd.add_reaction('✅')
-                if not args[0].startswith('<@!'):
-                    await ctx.send(f'To {user}')
-            else:
-                await msg_cmd.add_reaction('⛔')
-            
-        await dmm(' '.join(word for word in args[1:]))
+        if args[0].startswith('<#'): # Check if it's a channel
+            channel_id = int(args[0][2:-1])
+            channel = client.get_channel(channel_id)
+            await channel.send(' '.join(word for word in args[1:]))
+        else:
+            user = client.get_user(int(args[0][3:-1] if args[0].startswith('<@!') else args[0]))
+            async def dmm(msg):
+                msg_cmd = ctx.message
+                if ctx.author.id == server_owner.id:
+                    to = Send_Message(msg); await to.dm(user)
+                    await msg_cmd.add_reaction('✅')
+                    if not args[0].startswith('<@!'):
+                        await ctx.send(f'To {user}')
+                else:
+                    await msg_cmd.add_reaction('⛔')
+                
+            await dmm(' '.join(word for word in args[1:]))
 
 
 

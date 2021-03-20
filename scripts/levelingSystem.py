@@ -193,7 +193,7 @@ class Money(Leveling_System):
                 liverank_users = json.load(f)
                 
             if not str(self.member.id) in liverank_users:
-                liverank_price = 500
+                liverank_price = 777
                 if self.user_money >= liverank_price:
                     yield True
                     self.user_money -= liverank_price
