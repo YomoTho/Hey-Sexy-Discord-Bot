@@ -37,11 +37,21 @@ class TicTacToe:
 
     async def move(self, emoji):
         try:
-            move_pos = self.move_choice[emoji.name].split(':')
-            self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
-            await self.game_msg.edit(content=await self.print())
+            if self.turn.bot:
+                while True:
+                    try:
+                        move_pos = self.move_choice[emoji].split(':')
+                        self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
+                        del self.move_choice[emoji]
+                        break
+                    except KeyError:
+                        emoji = choice(self.reactions)
+            else:
+                move_pos = self.move_choice[emoji.name].split(':')
+                self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
+                del self.move_choice[emoji.name]
             
-            del self.move_choice[emoji.name]
+            await self.game_msg.edit(content=await self.print())
 
             self.count += 1
 
@@ -66,6 +76,9 @@ class TicTacToe:
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
 
             await self.whos_turn_msg.edit(embed=embed)
+            
+            if self.turn.bot:
+                await self.move(choice(self.reactions))
         except KeyError:
             pass
 

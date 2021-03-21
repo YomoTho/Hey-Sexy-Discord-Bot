@@ -653,13 +653,6 @@ async def pfp(ctx, member : discord.Member=None):
 
 @client.command()
 async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
-    if player1.bot:
-        await ctx.send(f'{player1} is a bot,  bots cannot play.')
-        return
-    elif player2.bot:
-        await ctx.send(f'{player2} is a bot,  bots cannot play.')
-        return
-    
     global ttt_game
     ttt_game = TicTacToe(player1, player2)
 
@@ -674,6 +667,8 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     wtit = await ctx.send(embed=embed) # 'wtit' stands for 'whos turn is it'
     ttt_game.whos_turn_msg = wtit
     
+    if ttt_game.turn.bot:
+        await ttt_game.move(choice(ttt_game.reactions))
     
     
 @client.command()
