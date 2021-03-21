@@ -33,6 +33,18 @@ class TicTacToe:
 
     async def print(self):
         return '\n'.join([''.join(line) for line in self.gameBoard])
+    
+    
+    async def update_live_rank(self, member):
+        with open(f'{data_folder}liverank.json') as f:
+            liverank_users = json.load(f)
+            
+        if str(member.id) in liverank_users:
+            live_rank_channel = data.get_useful_channel(cname='lr')
+            if not live_rank_channel is None:
+                msg_id = liverank_users[str(member.id)]['msg_id']
+                msg = await live_rank_channel.fetch_message(msg_id)
+                await msg.edit(embed=await rank_msg(member))
 
 
     async def move(self, emoji):
@@ -63,6 +75,7 @@ class TicTacToe:
                     w = winner + 100 # If a user win then the user get 100 exp
                     embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
+                    await self.update_live_rank(who_won[1])
                     return
 
             if self.turn == self.player_1:
