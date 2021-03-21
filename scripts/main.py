@@ -170,13 +170,20 @@ async def check_time():
         if current_time == server_stats_alarm:
             time_stats = TimeStats()
             stats_msg = await get_tday_data(time_stats)
-
+            guild = client.get_guild(int(data.server_id))
+            
             stats_embed = discord.Embed(
                 title=f"{str(time_stats.current_date)}",
-                description=stats_msg,
+                description="This will show the server stats of this date.",
                 color=discord.Color.blue()
             )
+            stats_embed.add_field(name='Members', value=f"Total members: **{stats_msg[0]}**\nTotal humans: **{stats_msg[1]}**\nTotal bots **{stats_msg[2]}**", inline=False)
+            
+            stats_embed.add_field(name='Joins/leaves', value=f"Members joined: **{stats_msg[3]}**\nTotal leaves: **{stats_msg[4]}**", inline=False)
+            
+            stats_embed.add_field(name='Messages', value=f"Today total messages: **{stats_msg[5]}**", inline=False)
             stats_embed.set_thumbnail(url=guild.icon_url)
+            stats_embed.set_footer(text=f'{guild} • Created_at: {guild.created_at}')
             
             channel = data.get_useful_channel(cname='ss')
             
