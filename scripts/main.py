@@ -2,6 +2,7 @@ import discord
 import json
 import os
 import asyncio
+import pytz
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
 from discord.ext import tasks, commands
@@ -11,6 +12,7 @@ from games import TicTacToe
 from dotenv import load_dotenv
 from data import Data
 
+    #Africa/Johannesburg
 
 data_folder = '../data/'
 
@@ -103,9 +105,11 @@ async def check_time():
     await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
-        server_stats_alarm = time(hour=00, minute=15)
+        server_stats_alarm = time(hour=00, minute=29)
         
-        current_time = datetime.now().strftime('%H:%M')
+        sa_timezone = pytz.timezone('Africa/Johannesburg')
+        
+        current_time = datetime.now(sa_timezone).strftime('%H:%M')
         current_time = str(current_time).split(':')
         server_stats_alarm = str(server_stats_alarm).split(':')[:-1]
         current_h, current_m = int(current_time[0]), int(current_time[1])
