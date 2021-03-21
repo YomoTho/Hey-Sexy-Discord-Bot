@@ -1,12 +1,14 @@
 import discord
 from random import choice
 from levelingSystem import Leveling_System, Money
+from data import Data
 
 
 class TicTacToe:
-    def __init__(self, player_1, plaeyr_2):
+    def __init__(self, player_1, plaeyr_2, data):
         self.player_1 = player_1 
         self.player_2 = plaeyr_2
+        self.data = data
         self.turn = choice([self.player_1, self.player_2]) # This will randomly pick between player 1 and 2 to start first
 
         self.count = 0 # This will count how many moves has been given
@@ -63,6 +65,7 @@ class TicTacToe:
                     w = winner + 100 # If a user win then the user get 100 exp
                     embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
+                    await winner.update_live_rank(self.data)
                     return
 
             if self.turn == self.player_1:

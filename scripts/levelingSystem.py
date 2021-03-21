@@ -1,5 +1,5 @@
 import json
-
+import discord
 
 data_folder = '../data/'
 expc = 10 # expc stands for: 'every x per coin' (x is exp)
@@ -147,6 +147,32 @@ class Leveling_System:
             # 1 = False | It returns False bc the user didn't level up
             # 2 = 0 | It does not need to return member
             # 3 = 0 | It does not need to return the user previous level
+        
+    
+    async def rank_msg(self, member):
+        if not member.bot:
+            leveling_System = Leveling_System(member)
+            msg = leveling_System.rank()
+            embed = discord.Embed(
+                description=f'{msg[1]}  {msg[2]}\n',
+                color=discord.Color.blue()
+            )
+            embed.add_field(name=msg[3], value=msg[0], inline=False)
+            embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
+            embed.set_author(name=member, icon_url=member.avatar_url)
+            return embed
+        
+        
+    async def update_live_rank(self, data):
+        with open(f'{data_folder}liverank.json') as f:
+            liverank_users = json.load(f)
+            
+        if str(self.member.id) in liverank_users:
+            live_rank_channel = data.get_useful_channel(cname='lr')
+            if not live_rank_channel is None:
+                msg_id = liverank_users[str(self.member.id)]['msg_id']
+                msg = await live_rank_channel.fetch_message(msg_id)
+                await msg.edit(embed=await self.rank_msg(self.member))
 
 
 

@@ -9,6 +9,7 @@ from levelingSystem import Leveling_System, Money
 from random import randint, choice
 from games import TicTacToe
 from dotenv import load_dotenv
+from data import Data
 
 
 data_folder = '../data/'
@@ -23,39 +24,6 @@ client = commands.Bot(command_prefix=command_prefix, intents=intents)
 
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
-
-class Data:
-    def __init__(self):
-        self.server_data = self.get_server_data()
-        self.server_id = int(self.server_data['server_id'])
-        self.server_owner_id = self.server_data['owner_id']
-        self.channels_id = self.get_channels_id()
-
-    def get_channels_id(self):
-        return [channel for channel in self.server_data['channels']]
-
-    def get_server_data(self):
-        with open(f'{data_folder}data.json') as f:
-            return json.load(f)
-
-    def save_data(self, _data):
-        with open(f'{data_folder}data.json', 'w') as f:
-            json.dump(_data, f, indent=2)
-
-    def get_useful_channel(self, cname):
-        return client.get_channel(int([channel_id for channel_id in self.channels_id if self.server_data['channels'][str(channel_id)]['cname'] == cname][0]))
-        
-    def get_server(self, get_id=False):
-        return client.get_guild(self.server_id)
-
-    def get_owner(self, get_id=False):
-        return client.get_user(int(self.server_owner_id)) if get_id == False else int(self.server_owner_id)
-    
-    def get_role(self, cname):
-        for role in self.server_data['roles']:
-            if self.server_data['roles'][role]['cname'] == cname:
-                return discord.utils.get(self.get_server().roles, id=int(role))
-
 
 class Send_Message(Data):
     def __init__(self, msg):
@@ -79,7 +47,7 @@ class Send_Message(Data):
 
 # Global variables
 
-data = Data()
+data = Data(client)
 status_number = 0
 server = None
 server_owner = None
@@ -189,16 +157,16 @@ async def rank_msg(member : discord.Member):
         return embed
     
     
-async def update_live_rank(member):
-    with open(f'{data_folder}liverank.json') as f:
-        liverank_users = json.load(f)
+#async def update_live_rank(member):
+ #   with open(f'{data_folder}liverank.json') as f:
+  #      liverank_users = json.load(f)
         
-    if str(member.id) in liverank_users:
-        live_rank_channel = data.get_useful_channel(cname='lr')
-        if not live_rank_channel is None:
-            msg_id = liverank_users[str(member.id)]['msg_id']
-            msg = await live_rank_channel.fetch_message(msg_id)
-            await msg.edit(embed=await rank_msg(member))
+   # if str(member.id) in liverank_users:
+    #    live_rank_channel = data.get_useful_channel(cname='lr')
+     #   if not live_rank_channel is None:
+      #      msg_id = liverank_users[str(member.id)]['msg_id']
+       #     msg = await live_rank_channel.fetch_message(msg_id)
+        #    await msg.edit(embed=await rank_msg(member))
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -238,8 +206,8 @@ async def on_message(message):
             bot_access_role = data.get_role(cname='ba')
             if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
                 await client.process_commands(message)
-                await update_live_rank(message.author)
-            
+                #await update_live_rank(message.author)
+                await user_rank_data.update_live_rank(data)
 
 
 @client.event
@@ -442,7 +410,8 @@ async def rank(ctx, member : discord.Member=None):
     if member == None:
         member = ctx.author
     if not member.bot:
-        await ctx.send(embed=await rank_msg(member))
+        user_rank = Leveling_System(member)
+        await ctx.send(embed=await user_rank.rank_msg(member))
     else:
         await ctx.send("Bots don't have rank.")
 
@@ -557,8 +526,8 @@ async def buy(ctx, *args):
                 buying = buyer.buy(liverank=1)
                 if next(buying):
                     live_rank_channel = data.get_useful_channel(cname='lr')
-                    
-                    liverank_msg = await live_rank_channel.send(f'{ctx.author.mention} live rank', embed=await rank_msg(ctx.author))
+                    user_rank = Leveling_System(ctx.author)
+                    liverank_msg = await live_rank_channel.send(f'{ctx.author.mention} live rank', embed=await user_rank.rank_msg(ctx.author))
                     
                     with open(f'{data_folder}liverank.json', 'r') as f:
                         liverank_users = json.load(f)
@@ -654,7 +623,7 @@ async def pfp(ctx, member : discord.Member=None):
 @client.command()
 async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     global ttt_game
-    ttt_game = TicTacToe(player1, player2)
+    ttt_game = TicTacToe(player1, player2, data)
 
     game_msg = await ctx.send(await ttt_game.print())
     ttt_game.game_msg = game_msg
