@@ -155,18 +155,6 @@ async def rank_msg(member : discord.Member):
         embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
         embed.set_author(name=member, icon_url=member.avatar_url)
         return embed
-    
-    
-#async def update_live_rank(member):
- #   with open(f'{data_folder}liverank.json') as f:
-  #      liverank_users = json.load(f)
-        
-   # if str(member.id) in liverank_users:
-    #    live_rank_channel = data.get_useful_channel(cname='lr')
-     #   if not live_rank_channel is None:
-      #      msg_id = liverank_users[str(member.id)]['msg_id']
-       #     msg = await live_rank_channel.fetch_message(msg_id)
-        #    await msg.edit(embed=await rank_msg(member))
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -218,6 +206,7 @@ async def on_member_join(member):
     stats.member_join()
 
     welcome_channel = data.get_useful_channel('w')
+    leveling_system_channel = data.get_useful_channel('ls')
     if member.bot:
         await member.add_roles(data.get_role('bots'))
     else:
@@ -225,7 +214,7 @@ async def on_member_join(member):
 
     embed = discord.Embed(
         title=f"Welcome {member.name} to {member.guild}",
-        description=f"To know more of the leveling system and that, read it in #about." if not member.bot else "This is a bot.",
+        description=f"To know more of the leveling system and that, read it in {leveling_system_channel.mention}" if not member.bot else "This is a bot.",
         color=discord.Color.blue()
     )
     embed.set_footer(text=f'{member.guild}')
