@@ -20,7 +20,12 @@
         "member_leaves": 0
     },
     "2021-03-20": {
-        "total_messages": 95,
+        "total_messages": 425,
+        "member_joins": 2,
+        "member_leaves": 1
+    },
+    "2021-03-21": {
+        "total_messages": 205,
         "member_joins": 0,
         "member_leaves": 0
     }
