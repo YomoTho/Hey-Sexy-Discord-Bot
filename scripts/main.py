@@ -103,7 +103,7 @@ async def check_time():
     await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
-        server_stats_alarm = time(hour=23, minute=59)
+        server_stats_alarm = time(hour=00, minute=15)
         
         current_time = datetime.now().strftime('%H:%M')
         current_time = str(current_time).split(':')
@@ -111,8 +111,10 @@ async def check_time():
         current_h, current_m = int(current_time[0]), int(current_time[1])
         server_stats_alarm_h, server_stats_alarm_m = int(server_stats_alarm[0]), int(server_stats_alarm[1])
         h_left = server_stats_alarm_h - current_h; m_left = server_stats_alarm_m - current_m
-                
+        
         total_seconds = ((h_left * 60) * 60) + (m_left * 60)
+
+        print('secal_seconds', total_seconds)
 
         guild = client.get_guild(int(data.server_id))
         
@@ -229,6 +231,7 @@ async def on_member_remove(member):
     noob.remove_user()
     stats = TimeStats()
     stats.member_leave()
+    print(f"{member} has left the server.")
 
 
 @client.event
@@ -283,25 +286,14 @@ async def disconnect(ctx):
 
 
 @client.command()
-async def embed(ctx): # Here i test my embed messages 
-    time_stats = TimeStats()
-    stats_msg = await get_tday_data(time_stats)
-    guild = client.get_guild(int(data.server_id))
+async def embed(ctx, *, args): # Here i test my embed messages 
+    embed_msgs = args.split(' \ ')
     
-    stats_embed = discord.Embed(
-        title=f"{str(time_stats.current_date)}",
-        description="This will show the server stats of this date.",
-        color=discord.Color.blue()
-    )
-    stats_embed.add_field(name='Members', value=f"Total members: **{stats_msg[0]}**\nTotal humans: **{stats_msg[1]}**\nTotal bots **{stats_msg[2]}**", inline=False)
-    
-    stats_embed.add_field(name='Joins/leaves', value=f"Members joined: **{stats_msg[3]}**\nTotal leaves: **{stats_msg[4]}**", inline=False)
-    
-    stats_embed.add_field(name='Messages', value=f"Today total messages: **{stats_msg[5]}**", inline=False)
-    stats_embed.set_thumbnail(url=guild.icon_url)
-    stats_embed.set_footer(text=f'{guild} • Created_at: {guild.created_at}')
-    
-    await ctx.send(embed=stats_embed)
+    embed = discord.Embed(
+        title=embed_msgs[0] if not embed_msgs[0] == 'None' else ' ',
+        description=embed_msgs[1] if not embed_msgs[1] == 'None' else ' '
+        )
+    await ctx.send(embed=embed)
 
 
 
@@ -692,6 +684,13 @@ async def del_warn(ctx, user : discord.Member):
     with open(f'{data_folder}warnings.json', 'w') as f:
         json.dump(warnings, f, indent=2)
 
+
+@client.command(aliases=['server_update', 'announce'])
+@commands.has_permissions(administrator=True)
+async def server_announcement(ctx, *, msg):
+    server_announcement_channel = data.get_useful_channel(cname='sa')
+    await server_announcement_channel.send(msg)
+    await ctx.message.add_reaction('✅')
 
 
 if __name__ == '__main__':
