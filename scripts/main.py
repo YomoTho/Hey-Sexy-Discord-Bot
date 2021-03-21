@@ -118,7 +118,7 @@ async def check_time():
         
         total_seconds = ((h_left * 60) * 60) + (m_left * 60)
 
-        print('secal_seconds', total_seconds)
+        print('S:', total_seconds)
 
         guild = client.get_guild(int(data.server_id))
         
@@ -689,7 +689,7 @@ async def del_warn(ctx, user : discord.Member):
         json.dump(warnings, f, indent=2)
 
 
-@client.command(aliases=['server_update', 'announce'])
+@client.command(aliases=['server_update', 'announce', '__sa__'])
 @commands.has_permissions(administrator=True)
 async def server_announcement(ctx, *, msg):
     server_announcement_channel = data.get_useful_channel(cname='sa')
