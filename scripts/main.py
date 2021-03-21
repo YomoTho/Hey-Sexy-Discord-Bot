@@ -241,10 +241,15 @@ async def on_message(message):
             if message.content.startswith(command_prefix) and message.author.id == server_owner.id:
                 await client.process_commands(message)
                 return
-            embed = discord.Embed(title=message.content, color=discord.Color.blue())
-            embed.set_footer(text=message.author.id)
-            embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-            await server_owner.send(embed=embed)
+            
+            if message.content.startswith('https://tenor.com/'):
+                msg = f"From {message.author}\n{message.content}\n{message.author.id}"
+                await server_owner.send(msg)
+            else:
+                embed = discord.Embed(title=message.content, color=discord.Color.blue())
+                embed.set_footer(text=message.author.id)
+                embed.set_author(name=message.author, icon_url=message.author.avatar_url)
+                await server_owner.send(embed=embed)
     else:
         if not message.author.bot:
             # await count()
