@@ -105,7 +105,7 @@ async def check_time():
     await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
-        server_stats_alarm = time(hour=00, minute=29)
+        server_stats_alarm = time(hour=23, minute=59)
         
         sa_timezone = pytz.timezone('Africa/Johannesburg')
         
