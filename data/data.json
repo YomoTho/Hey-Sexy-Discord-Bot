@@ -1,7 +1,7 @@
 {
   "server_id": "818503710602428427",
   "name": "Sexy People",
-  "total_messages": 526,
+  "total_messages": 1138,
   "owner_id": "275192642101313536",
   "channels": {
     "818503710602428430": {
@@ -29,8 +29,66 @@
       "cname": "lu"
     },
     "822861690806468648": {
-        "name": "live-rank",
-        "cname": "lr"
+      "name": "live-rank",
+      "cname": "lr"
+    }
+  },
+  "roles": {
+    "822541860173250561": {
+      "name": "DJ_BOT",
+      "cname": "db"
+    },
+    "818591361837695010": {
+      "name": "can speak",
+      "cname": "cs"
+    },
+    "818590827868979250": {
+      "name": "server stuff",
+      "cname": "ss"
+    },
+    "818590424050303036": {
+      "name": "bots access",
+      "cname": "ba"
+    },
+    "818590152648556564": {
+      "name": "gamer",
+      "cname": "g"
+    },
+    "818590111612010566": {
+      "name": "cuteness",
+      "cname": "cn"
+    },
+    "818590068036993044": {
+      "name": "memes",
+      "cname": "m"
+    },
+    "818583267091415061": {
+      "name": "NSFW",
+      "cname": "nsfw"
+    },
+    "820084294361415691": {
+      "name": "\ud83e\udd16BOTS\ud83e\udd16",
+      "cname": "bots"
+    },
+    "821839747520528404": {
+      "name": "Humans",
+      "cname": "humans"
+    },
+    "821840149491089468": {
+      "name": "Friends",
+      "cname": "friends"
+    },
+    "818552678615220225": {
+      "name": "Mod",
+      "cname": "mod"
+    },
+    "818552557822804009": {
+      "name": "Totally not Admin",
+      "cname": "tna"
+    },
+    "818552192755302470": {
+      "name": "Owner",
+      "cname": "owner"
     }
   }
 }

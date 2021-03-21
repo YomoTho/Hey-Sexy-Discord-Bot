@@ -60,3 +60,19 @@ class TimeStats:
 
     def get_today_total_messaages(self):    # This will return how many messages has been send today
         return self.data[str(self.current_date)]['total_messages']
+    
+    
+    def cal_total_messages(self):
+        total_messages = 0
+        for msg in self.data:
+            total_messages += self.data[msg]['total_messages']
+        else:
+            with open(f'{data_folder}data.json') as f:
+                server_data = json.load(f)
+            
+            server_data['total_messages'] = total_messages
+            
+            with open(f'{data_folder}data.json', 'w') as f:
+                json.dump(server_data, f, indent=2)
+            
+            return total_messages

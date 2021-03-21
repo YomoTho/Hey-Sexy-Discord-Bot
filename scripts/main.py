@@ -27,22 +27,12 @@ client = commands.Bot(command_prefix=command_prefix, intents=intents)
 class Data:
     def __init__(self):
         self.server_data = self.get_server_data()
-        self.server_id = self.server_data['server_id']
+        self.server_id = int(self.server_data['server_id'])
         self.server_owner_id = self.server_data['owner_id']
         self.channels_id = self.get_channels_id()
 
     def get_channels_id(self):
         return [channel for channel in self.server_data['channels']]
-
-
-    def get_useful_role(self, cname):
-        with open(f"{data_folder}shop.json") as f:
-            shop = json.load(f)
-        for role in shop['roles']:
-            if shop['roles'][role]['cname'] == cname:
-                guild = self.get_server()
-                return discord.utils.get(guild.roles, id=int(role))
-
 
     def get_server_data(self):
         with open(f'{data_folder}data.json') as f:
@@ -56,11 +46,15 @@ class Data:
         return client.get_channel(int([channel_id for channel_id in self.channels_id if self.server_data['channels'][str(channel_id)]['cname'] == cname][0]))
         
     def get_server(self, get_id=False):
-        _server = client.get_guild(int(self.server_id))
-        return _server
+        return client.get_guild(self.server_id)
 
     def get_owner(self, get_id=False):
         return client.get_user(int(self.server_owner_id)) if get_id == False else int(self.server_owner_id)
+    
+    def get_role(self, cname):
+        for role in self.server_data['roles']:
+            if self.server_data['roles'][role]['cname'] == cname:
+                return discord.utils.get(self.get_server().roles, id=int(role))
 
 
 class Send_Message(Data):
@@ -81,20 +75,6 @@ class Send_Message(Data):
             await to.send(self.msg)
         else:
             raise Exception
-
-
-class CountMessages(Data):
-    def __init__(self, func):
-        self.func = func 
-        self.server_id = data.server_id
-        self.data = self.get_server_data()
-        self.num_msg = self.data['total_messages']
-
-    def __call__(self):
-        self.num_msg += 1
-        self.data['total_messages'] = self.num_msg
-        self.save_data(self.data)
-        return self.func()
 
 
 # Global variables
@@ -221,10 +201,6 @@ async def update_live_rank(member):
             await msg.edit(embed=await rank_msg(member))
 
 
-@CountMessages
-async def count(): pass
-
-
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -252,7 +228,6 @@ async def on_message(message):
                 await server_owner.send(embed=embed)
     else:
         if not message.author.bot:
-            # await count()
             stats = TimeStats(); stats.on_message()
             user_rank_data = Leveling_System(message.author) # This is doing the leveling system thing
             leveled_up = user_rank_data + int(len(message.content) / 1.5)
@@ -260,11 +235,10 @@ async def on_message(message):
                 leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
                 lu_msg = Send_Message(leveled_up_msg)
                 await lu_msg.text_channel(cname='lu')
-            bot_access_role = data.get_useful_role('ba')
+            bot_access_role = data.get_role(cname='ba')
             if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
                 await client.process_commands(message)
                 await update_live_rank(message.author)
-                
             
 
 
@@ -277,11 +251,9 @@ async def on_member_join(member):
 
     welcome_channel = data.get_useful_channel('w')
     if member.bot:
-        bot_role = discord.utils.get(member.guild.roles, id=820084294361415691) # TODO make it so Data class can return roles
-        await member.add_roles(bot_role)
+        await member.add_roles(data.get_role('bots'))
     else:
-        human_role = discord.utils.get(member.guild.roles, id=821839747520528404)
-        await member.add_roles(human_role)
+        await member.add_roles(data.get_role('humans'))
 
     embed = discord.Embed(
         title=f"Welcome {member.name} to {member.guild}",
@@ -316,9 +288,18 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
 
 #UP HERE ALL THE @client.event ^^ 
 
-###################################
+
+#########################################################
+
+#########################################################
+
 
 #DOWN HERE IS ALL THE COMMANDS \/ @client.command()
+
+
+@client.command()
+async def test(ctx): # Here i test commands
+    await ctx.send('test')
 
 
 @client.command(pass_context=True)
@@ -638,7 +619,8 @@ async def sell(ctx, *args):
 
 @client.command()
 async def msg_count(ctx):
-    await ctx.send(f"Total message's: {data.get_server_data()['total_messages']}")
+    stats = TimeStats()
+    await ctx.send(f"Total message's: {stats.cal_total_messages()}")
 
 
 @client.command()
