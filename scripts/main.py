@@ -30,6 +30,7 @@ class Send_Message(Data):
         self.server_id = server.id
         self.msg = msg
         self.channels_id = data.channels_id; self.server_data = data.server_data
+        self.client = client
         
     async def dm(self, to : discord.Member):
         await to.send(self.msg)
