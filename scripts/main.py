@@ -266,6 +266,7 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
 
 
 @client.command()
+@commands.is_owner()
 async def test(ctx): # Here i test commands
     await ctx.send('test')
 
@@ -293,6 +294,7 @@ async def disconnect(ctx):
 
 
 @client.command()
+@commands.is_owner()
 async def embed(ctx, *, args): # Here i test my embed messages 
     embed_msgs = args.split(' \ ')
     
@@ -305,6 +307,7 @@ async def embed(ctx, *, args): # Here i test my embed messages
 
 
 @client.command()
+@commands.is_owner()
 async def dm(ctx, *args):
     if args[0] in ['history', 'hist']:
         async def hist(user : discord.Member, limit=10):
@@ -386,6 +389,7 @@ async def dm_error(ctx, error):
 
 
 @client.command(aliases=['cls_dm'])
+@commands.is_owner()
 async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
     if ctx.author.id == server_owner.id:
         messages = await ctx.history(limit=amount).flatten()
@@ -607,10 +611,19 @@ async def info(ctx, member : discord.Member=None):
 async def pfp(ctx, member : discord.Member=None):
     if member == None: member = ctx.author
     await ctx.send(member.avatar_url)
-
+    
 
 @client.command(aliases=['ttt'])
-async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
+async def tictactoe(ctx, player1, player2 : discord.Member=None):
+    if player1 == 'bvb': # This stands for 'Bot vs Bot'
+        player1 = client.user
+        player2 = client.get_user(816668604669755433) # This ID is local bot
+    else:
+        if type(player1) is str:
+            player1 = client.get_user(int(player1[3:-1]))
+        if player2 is None:
+            player2 = ctx.author
+    
     global ttt_game
     ttt_game = TicTacToe(player1, player2, data, ctx)
 
@@ -631,7 +644,7 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     
     
 @client.command()
-@commands.has_permissions(kick_members=True)
+@commands.has_permissions(administrator=True)
 async def warn(ctx, user : discord.Member, *, reason=None):
     with open(f'{data_folder}warnings.json') as f:
         warnings = json.load(f)
