@@ -2,6 +2,7 @@ import discord
 from random import choice
 from levelingSystem import Leveling_System, Money
 from data import Data
+import asyncio
 
 
 class TicTacToe:
@@ -40,18 +41,15 @@ class TicTacToe:
     async def move(self, emoji):
         try:
             if self.turn.bot:
-                while True:
-                    try:
-                        move_pos = self.move_choice[emoji].split(':')
-                        self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
-                        del self.move_choice[emoji]
-                        break
-                    except KeyError:
-                        emoji = choice(self.reactions)
+                move_pos = self.move_choice[emoji].split(':')
+                self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
+                del self.move_choice[emoji]
+                self.reactions.remove(emoji)
             else:
                 move_pos = self.move_choice[emoji.name].split(':')
                 self.gameBoard[int(move_pos[0])][int(move_pos[1])] = self.o if self.turn == self.player_1 else self.x
                 del self.move_choice[emoji.name]
+                self.reactions.remove(emoji.name)
             
             await self.game_msg.edit(content=await self.print())
 
@@ -81,6 +79,7 @@ class TicTacToe:
             await self.whos_turn_msg.edit(embed=embed)
             
             if self.turn.bot:
+                await asyncio.sleep(1.5)
                 await self.move(choice(self.reactions))
         except KeyError:
             pass
