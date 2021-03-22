@@ -65,6 +65,7 @@ class TicTacToe:
                     embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
                     await winner.update_live_rank(self.data)
+                    await self.whos_turn_msg.add_reaction('🔄')
                     return
 
             if self.turn == self.player_1:

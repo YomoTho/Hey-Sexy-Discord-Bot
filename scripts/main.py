@@ -617,8 +617,9 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     game_msg = await ctx.send(await ttt_game.print())
     ttt_game.game_msg = game_msg
     
-    for emoji in ttt_game.reactions:
-        await game_msg.add_reaction(emoji=emoji)
+    if (player1.bot == False and player2.bot == False) or (not player1.bot or not player2.bot):
+        for emoji in ttt_game.reactions:
+            await game_msg.add_reaction(emoji=emoji)
 
     embed = discord.Embed(description=f"**{ttt_game.turn.name}** turn")
 
@@ -627,8 +628,6 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     
     if ttt_game.turn.bot:
         await ttt_game.move(choice(ttt_game.reactions))
-        
-    await wtit.add_reaction('🔄')
     
     
 @client.command()
