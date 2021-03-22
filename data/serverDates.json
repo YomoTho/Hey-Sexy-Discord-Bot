@@ -25,8 +25,13 @@
         "member_leaves": 1
     },
     "2021-03-21": {
-        "total_messages": 205,
-        "member_joins": 0,
+        "total_messages": 692,
+        "member_joins": 4,
+        "member_leaves": 1
+    },
+    "2021-03-22": {
+        "total_messages": 490,
+        "member_joins": 1,
         "member_leaves": 0
     }
 }
