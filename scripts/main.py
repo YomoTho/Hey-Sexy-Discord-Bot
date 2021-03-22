@@ -609,7 +609,7 @@ async def pfp(ctx, member : discord.Member=None):
     await ctx.send(member.avatar_url)
 
 
-@client.command()
+@client.command(aliases=['ttt'])
 async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     global ttt_game
     ttt_game = TicTacToe(player1, player2, data, ctx)
