@@ -75,6 +75,7 @@ class TicTacToe:
 
             if self.count >= 9:
                 embed = discord.Embed(description=f"Tie")
+                await self.whos_turn_msg.add_reaction('🔄')
             else:
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
 
