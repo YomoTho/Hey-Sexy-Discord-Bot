@@ -259,10 +259,6 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
 
                     with open(f"{data_folder}errors.json", 'w') as f:
                         json.dump(errors_data, f, indent=4)
-                else:
-                    print('Error message dont exist')
-            else:
-                print('Didnt find the channel. lol')
         else:
             try:
                 if payload.message_id == ttt_game.game_msg.id and not payload.user_id == client.user.id:
@@ -563,7 +559,7 @@ async def buy(ctx, *args):
                         await ctx.send(f"Huh, who!?")
                 else:
                     buyer = Money(ctx.author)
-                    if buyer.buy(role=role):
+                    if next(buyer.buy(role=role)):
                         await ctx.message.add_reaction('✅')
                         await ctx.author.add_roles(role)
                     else:
