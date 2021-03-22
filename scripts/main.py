@@ -240,18 +240,72 @@ async def on_member_remove(member):
 
 @client.event
 async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
-    try:
-        if payload.message_id == ttt_game.game_msg.id and not payload.user_id == client.user.id:
-            if ttt_game.count <= 9 and not ttt_game.someone_won:
-                if payload.user_id == ttt_game.player_1.id and ttt_game.turn.id == payload.user_id: # Player 1
-                    await ttt_game.move(payload.emoji)
-                elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
-                    await ttt_game.move(payload.emoji)
-        elif not ttt_game.whos_turn_msg is None:
-            if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id:
-                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
-    except NameError:
-        pass
+    if not payload.user_id == client.user.id:
+        if payload.emoji.name == '❌':
+            with open(f"{data_folder}errors.json") as f:
+                errors_data = json.load(f)
+            
+            if str(payload.channel_id) in errors_data:
+                if str(payload.message_id) in errors_data[str(payload.channel_id)]:
+                    dumb_user = client.get_user(errors_data[str(payload.channel_id)][str(payload.message_id)]['user_id'])
+                    embed = discord.Embed(title=" :x: Error", color=0xff001c)
+                    embed.set_author(name=dumb_user, icon_url=dumb_user.avatar_url)
+                    embed.add_field(name='Message:', value=f""""{errors_data[str(payload.channel_id)][str(payload.message_id)]['msg_ctx']}" """, inline=False)
+                    embed.add_field(name='Error Message:', value=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", inline=False)
+                    channel = client.get_channel(payload.channel_id)
+                    await channel.send(embed=embed)
+
+                    del errors_data[str(payload.channel_id)][str(payload.message_id)]
+
+                    with open(f"{data_folder}errors.json", 'w') as f:
+                        json.dump(errors_data, f, indent=4)
+                else:
+                    print('Error message dont exist')
+            else:
+                print('Didnt find the channel. lol')
+        else:
+            try:
+                if payload.message_id == ttt_game.game_msg.id and not payload.user_id == client.user.id:
+                    if ttt_game.count <= 9 and not ttt_game.someone_won:
+                        if payload.user_id == ttt_game.player_1.id and ttt_game.turn.id == payload.user_id: # Player 1
+                            await ttt_game.move(payload.emoji)
+                        elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
+                            await ttt_game.move(payload.emoji)
+                elif not ttt_game.whos_turn_msg is None:
+                    if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id:
+                        await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+            except NameError:
+                pass
+    
+    
+@client.event
+async def on_command_error(ctx, error):
+    with open(f'{data_folder}errors.json') as f:
+        errors_data = json.load(f)
+
+    await ctx.message.add_reaction('❌')
+
+    if not str(ctx.channel.id) in errors_data:
+        errors_data[str(ctx.channel.id)] = {}
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)] = {}
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['error'] = str(error)
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['msg_ctx'] = ctx.message.content
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['user_id'] = ctx.author.id
+
+    with open(f'{data_folder}errors.json', 'w') as f:
+        json.dump(errors_data, f, indent=4)
+    
+    #if isinstance(error, discord.ext.commands.CommandNotFound):
+     #   await ctx.message.add_reaction('❓')
+    #elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
+     #   embe=discord.Embed(title=" :x: Error", description=f'**Missing Required Argument.**', color=0xff001c)
+      #  await ctx.send(embed=embe)
+    #elif isinstance(error, discord.ext.commands.NotOwner):
+     #   pass # If a user tries to use command just for the owner, then I will just do nothing
+    #raise error
+    #else:
+        #embe=discord.Embed(title=" :x: Error", description=f'**{error}**', color=0xff001c)
+        #await ctx.send(embed=embe)
 
 
 #UP HERE ALL THE @client.event ^^ 
@@ -382,10 +436,10 @@ async def set_status(ctx, status_num):
     pass # TODO make it so a user can set the bot status
 
 
-@dm.error
-async def dm_error(ctx, error):
-    print(error)
-    await ctx.message.add_reaction('❌')
+#@dm.error
+#async def dm_error(ctx, error):
+    #print(error)
+    #await ctx.message.add_reaction('❌')
 
 
 @client.command(aliases=['cls_dm'])
@@ -408,12 +462,12 @@ async def rank(ctx, member : discord.Member=None):
     else:
         await ctx.send("Bots don't have rank.")
 
-@rank.error
-async def rank_error(ctx, error):
-    if isinstance(error, commands.MemberNotFound):
-        await ctx.message.add_reaction('⁉')
-    else:
-        print(error)
+#@rank.error
+#async def rank_error(ctx, error):
+ #   if isinstance(error, commands.MemberNotFound):
+  #      await ctx.message.add_reaction('⁉')
+   # else:
+    #    print(error)
 
 
 @client.command()
@@ -421,10 +475,10 @@ async def rank_error(ctx, error):
 async def clear(ctx, amount : int):
     await ctx.channel.purge(limit=amount + 1)
 
-@clear.error 
-async def clear_error(ctx, error):
-    if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("Please specify an amount of messages to delete.")
+#@clear.error 
+#async def clear_error(ctx, error):
+ #   if isinstance(error, commands.MissingRequiredArgument):
+  #      await ctx.send("Please specify an amount of messages to delete.")
 
 
 @client.command()
@@ -434,11 +488,11 @@ async def kick(ctx, member : discord.Member, *, reason=None):
     await ctx.message.add_reaction('🦶🏽')
     await ctx.send(f'**{member}** kicked!')
 
-@kick.error
-async def kick_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MemberNotFound):
-        await ctx.message.add_reaction('❓')
-        await ctx.send(f"Huh, Who?")
+#@kick.error
+#async def kick_error(ctx, error):
+ #   if isinstance(error, discord.ext.commands.MemberNotFound):
+  #      await ctx.message.add_reaction('❓')
+   #     await ctx.send(f"Huh, Who?")
 
 
 @client.command()
@@ -449,11 +503,11 @@ async def ban(ctx, member : discord.Member, *, reason=None):
     await ctx.message.add_reaction('✅')
     await ctx.send(choice(bans_says).format(member))
 
-@ban.error
-async def ban_error(ctx, error):
-    if isinstance(error, discord.ext.commands.MemberNotFound):
-        await ctx.message.add_reaction('❓')
-        await ctx.send(f"Huh, Who?")
+#@ban.error
+#async def ban_error(ctx, error):
+ #   if isinstance(error, discord.ext.commands.MemberNotFound):
+  #      await ctx.message.add_reaction('❓')
+   #     await ctx.send(f"Huh, Who?")
 
 
 @client.command()
@@ -481,9 +535,9 @@ async def unban(ctx, id : int):
     else:
         await ctx.message.add_reaction('✅')
 
-@unban.error
-async def unban_error(ctx, error):
-    if isinstance(error, discord.ext.commands.BadArgument): pass # Just do nothing.
+#@unban.error
+#async def unban_error(ctx, error):
+ #   if isinstance(error, discord.ext.commands.BadArgument): pass # Just do nothing.
 
 
 @client.command()
