@@ -247,6 +247,9 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                     await ttt_game.move(payload.emoji)
                 elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
                     await ttt_game.move(payload.emoji)
+        elif not ttt_game.whos_turn_msg is None:
+            if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id:
+                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
     except NameError:
         pass
 
@@ -609,7 +612,7 @@ async def pfp(ctx, member : discord.Member=None):
 @client.command()
 async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     global ttt_game
-    ttt_game = TicTacToe(player1, player2, data)
+    ttt_game = TicTacToe(player1, player2, data, ctx)
 
     game_msg = await ctx.send(await ttt_game.print())
     ttt_game.game_msg = game_msg
@@ -624,6 +627,8 @@ async def tictactoe(ctx, player1 : discord.Member, player2 : discord.Member):
     
     if ttt_game.turn.bot:
         await ttt_game.move(choice(ttt_game.reactions))
+        
+    await wtit.add_reaction('🔄')
     
     
 @client.command()

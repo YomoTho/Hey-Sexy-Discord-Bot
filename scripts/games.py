@@ -6,10 +6,11 @@ import asyncio
 
 
 class TicTacToe:
-    def __init__(self, player_1, plaeyr_2, data):
+    def __init__(self, player_1, plaeyr_2, data, ctx):
         self.player_1 = player_1 
         self.player_2 = plaeyr_2
         self.data = data
+        self.ctx = ctx
         self.turn = choice([self.player_1, self.player_2]) # This will randomly pick between player 1 and 2 to start first
 
         self.count = 0 # This will count how many moves has been given
@@ -78,7 +79,7 @@ class TicTacToe:
 
             await self.whos_turn_msg.edit(embed=embed)
             
-            if self.turn.bot:
+            if self.turn.bot and not self.count >= 9:
                 await asyncio.sleep(1.5)
                 await self.move(choice(self.reactions))
         except KeyError:
