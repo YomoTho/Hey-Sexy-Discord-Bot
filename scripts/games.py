@@ -1,5 +1,5 @@
 import discord
-from random import choice, uniform
+from random import choice, uniform, randint
 from levelingSystem import Leveling_System, Money
 from data import Data
 import asyncio
@@ -10,10 +10,10 @@ class TicTacToe:
         self.player_1 = player_1 
         self.player_2 = plaeyr_2
         self.data = data
-        self.ctx = ctx
-        self.all_running_ttt = all_running_ttt
-        self.current_game = None
-        self.client = client
+        self.ctx = ctx # Context
+        self.all_running_ttt = all_running_ttt # This is a list of all running tictactoe games
+        self.current_game = None # This class object
+        self.client = client # The bot
         self.turn = choice([self.player_1, self.player_2]) # This will randomly pick between player 1 and 2 to start first
 
         self.count = 0 # This will count how many moves has been given
@@ -35,8 +35,10 @@ class TicTacToe:
             '8️⃣': '7',
             '9️⃣': '8'
         }
-        self.someone_won = False
-        self.destroy = True
+        self.someone_won = False # If someone won it turns True
+        self.running = True # Then the game ends, it turns false. If false player can't make moves
+        self.destroy = True # If True this class object will be removed
+        self.make_move_msgs = list() # This is a list of all the message's that says "{player} make a move!"
 
 
     async def print(self, board=None):
@@ -50,11 +52,13 @@ class TicTacToe:
             line2 = ''.join(self.gameBoard[3:6])
             line3 = ''.join(self.gameBoard[6:9])
             return f"{line1}\n{line2}\n{line3}"
-        #return '\n'.join(line for line in self.gameBoard])
 
 
     async def game_end(self):
+        self.running = False
         await self.whos_turn_msg.add_reaction('🔄')
+        for i in self.make_move_msgs:
+            await i.delete()
         await asyncio.sleep(60)
         if self.destroy:
             if not self.current_game is None:
@@ -100,8 +104,12 @@ class TicTacToe:
         return move
 
 
+    async def send_msg(self, msg):
+        await self.ctx.send(msg)
+
+
     async def move(self, emoji):
-        try:
+        if self.running:
             if self.turn.bot:
                 move_pos = self.move_choice[emoji]
                 self.gameBoard[int(move_pos)] = self.o if self.turn == self.player_1 else self.x
@@ -123,11 +131,18 @@ class TicTacToe:
                     self.someone_won = True
                     winner = Leveling_System(who_won[1])
                     w = winner + 100 # If a user win then the user get 100 exp
-                    embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
+                    winner_text = f"**{who_won[1]}** won!!!" if not who_won[1].id == self.client.user.id else f"**{who_won[1].name}** won **ez**" if randint(0, 1) == 1 else f"**{who_won[1]}** won!!!" 
+                    embed = discord.Embed(description=winner_text if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
                     await winner.update_live_rank(self.data)
                     await self.game_end()
                     return
+
+            try:
+                await self.make_move_msgs[-1].delete()
+                self.make_move_msgs.remove(self.make_move_msgs[-1])
+            except IndexError:
+                pass
 
             if self.turn == self.player_1:
                 self.turn = self.player_2
@@ -136,7 +151,6 @@ class TicTacToe:
 
             if self.count >= 9:
                 embed = discord.Embed(description=f"Tie")
-                await self.game_end()
             else:
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
 
@@ -144,10 +158,16 @@ class TicTacToe:
             
             if self.turn.bot and not self.count >= 9:
                 await asyncio.sleep(uniform(0.5, 5.5))
-                move = await self.smart_bot_move()
+                if randint(0, 20) == 6:
+                    move = choice(self.reactions)
+                else:
+                    move = await self.smart_bot_move()
                 await self.move(move)
-        except KeyError:
-            pass
+
+            if self.count >= 9:
+                await self.game_end()
+        else:
+            print('The game is not running')
 
 
     async def check_who_won(self, game_board):
@@ -174,6 +194,7 @@ class TicTacToe:
             elif line == self.o * 3:
                 return True, self.player_1
 
+        # D check
         if game_board[4] == self.x:
             if game_board[0] == self.x and game_board[8] == self.x:
                 return True, self.player_2
