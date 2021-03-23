@@ -633,6 +633,9 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
             player1 = client.get_user(int(player1[3:-1]))
         if player2 is None:
             player2 = ctx.author
+
+    if player1 == player2:
+        raise Exception("Player 1 and Player 2, can't be the same.")
     
     global ttt_game
     ttt_game = TicTacToe(player1, player2, data, ctx)

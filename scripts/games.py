@@ -1,5 +1,5 @@
 import discord
-from random import choice
+from random import choice, uniform
 from levelingSystem import Leveling_System, Money
 from data import Data
 import asyncio
@@ -82,7 +82,7 @@ class TicTacToe:
             await self.whos_turn_msg.edit(embed=embed)
             
             if self.turn.bot and not self.count >= 9:
-                await asyncio.sleep(1.5)
+                await asyncio.sleep(uniform(0.5, 5.5))
                 await self.move(choice(self.reactions))
         except KeyError:
             pass
