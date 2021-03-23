@@ -55,6 +55,7 @@ data = Data(client)
 status_number = 0
 server = None
 server_owner = None
+ttt_running = list()
 
 # Global variables ^^^
 
@@ -261,18 +262,22 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                     with open(f"{data_folder}errors.json", 'w') as f:
                         json.dump(errors_data, f, indent=4)
         else:
-            try:
-                if payload.message_id == ttt_game.game_msg.id and not payload.user_id == client.user.id:
-                    if ttt_game.count <= 9 and not ttt_game.someone_won:
-                        if payload.user_id == ttt_game.player_1.id and ttt_game.turn.id == payload.user_id: # Player 1
-                            await ttt_game.move(payload.emoji)
-                        elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
-                            await ttt_game.move(payload.emoji)
-                elif not ttt_game.whos_turn_msg is None:
-                    if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id:
-                        await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
-            except NameError:
-                pass
+            global ttt_running
+            if len(ttt_running) > 0:
+                try:
+                    for ttt_game in ttt_running:
+                        if ttt_game.count <= 9 and not ttt_game.someone_won:
+                            if payload.user_id == ttt_game.player_1.id and ttt_game.turn.id == payload.user_id: # Player 1
+                                await ttt_game.move(payload.emoji)
+                            elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
+                                await ttt_game.move(payload.emoji)
+                        elif not ttt_game.whos_turn_msg is None:
+                            if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id and payload.emoji.name == '🔄':
+                                ttt_running.remove(ttt_game)
+                                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                                ttt_game.destroy = False
+                except NameError:
+                    pass
     
     
 @client.event
@@ -310,7 +315,7 @@ async def on_command_error(ctx, error):
 @client.command()
 @commands.is_owner()
 async def test(ctx): # Here i test commands
-    await ctx.send('test')
+    await ctx.send([ttt for ttt in ttt_running])
 
 
 @client.command(pass_context=True)
@@ -639,9 +644,11 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     if player1 == player2:
         raise Exception("Player 1 and Player 2, can't be the same.")
     
-    global ttt_game
-    ttt_game = TicTacToe(player1, player2, data, ctx)
-
+    global ttt_running
+    ttt_game = TicTacToe(player1, player2, data, ctx, ttt_running, client)
+    ttt_running.append(ttt_game)
+    ttt_game.all_running_ttt = ttt_running
+    ttt_game.current_game = ttt_game
     game_msg = await ctx.send(await ttt_game.print())
     ttt_game.game_msg = game_msg
     

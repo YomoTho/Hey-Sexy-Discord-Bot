@@ -6,11 +6,14 @@ import asyncio
 
 
 class TicTacToe:
-    def __init__(self, player_1, plaeyr_2, data, ctx):
+    def __init__(self, player_1, plaeyr_2, data, ctx, all_running_ttt, client):
         self.player_1 = player_1 
         self.player_2 = plaeyr_2
         self.data = data
         self.ctx = ctx
+        self.all_running_ttt = all_running_ttt
+        self.current_game = None
+        self.client = client
         self.turn = choice([self.player_1, self.player_2]) # This will randomly pick between player 1 and 2 to start first
 
         self.count = 0 # This will count how many moves has been given
@@ -33,6 +36,7 @@ class TicTacToe:
             '9️⃣': '8'
         }
         self.someone_won = False
+        self.destroy = True
 
 
     async def print(self, board=None):
@@ -47,6 +51,16 @@ class TicTacToe:
             line3 = ''.join(self.gameBoard[6:9])
             return f"{line1}\n{line2}\n{line3}"
         #return '\n'.join(line for line in self.gameBoard])
+
+
+    async def game_end(self):
+        await self.whos_turn_msg.add_reaction('🔄')
+        await asyncio.sleep(60)
+        if self.destroy:
+            if not self.current_game is None:
+                if self.current_game in self.all_running_ttt:
+                    await self.whos_turn_msg.remove_reaction('🔄', self.client.user)
+                    self.all_running_ttt.remove(self.current_game)
 
 
     async def smart_bot_move(self):
@@ -112,7 +126,7 @@ class TicTacToe:
                     embed = discord.Embed(description=f"**{who_won[1]}** won!!!" if not w[0] else f"**{who_won[1]}** won!!!\nLeveled up from {w[2]} -> {w[3]}")
                     await self.whos_turn_msg.edit(embed=embed)
                     await winner.update_live_rank(self.data)
-                    await self.whos_turn_msg.add_reaction('🔄')
+                    await self.game_end()
                     return
 
             if self.turn == self.player_1:
@@ -122,7 +136,7 @@ class TicTacToe:
 
             if self.count >= 9:
                 embed = discord.Embed(description=f"Tie")
-                await self.whos_turn_msg.add_reaction('🔄')
+                await self.game_end()
             else:
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
 
