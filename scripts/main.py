@@ -650,6 +650,7 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     ttt_game.whos_turn_msg = wtit
     
     if ttt_game.turn.bot:
+        await asyncio.sleep(2)
         await ttt_game.move(choice(ttt_game.reactions))
     
     
