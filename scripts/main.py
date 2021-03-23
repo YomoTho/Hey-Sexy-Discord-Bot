@@ -272,7 +272,7 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                             elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
                                 await ttt_game.move(payload.emoji)
                         elif not ttt_game.whos_turn_msg is None:
-                            if payload.message_id == ttt_game.whos_turn_msg.id and not payload.user_id == client.user.id and payload.emoji.name == '🔄':
+                            if payload.message_id == ttt_game.whos_turn_msg.id and payload.emoji.name == '🔄':
                                 ttt_running.remove(ttt_game)
                                 await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
                                 ttt_game.destroy = False
@@ -637,7 +637,7 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
         player2 = client.user
     else:
         if type(player1) is str:
-            player1 = client.get_user(int(player1[3:-1]))
+            player1 = client.get_user(int(player1[2:-1]))
         if player2 is None:
             player2 = ctx.author
 
