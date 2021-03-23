@@ -637,7 +637,10 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
         player2 = client.user
     else:
         if type(player1) is str:
-            player1 = client.get_user(int(player1[2:-1]))
+            try:
+                player1 = client.get_user(int(player1[2:-1]))
+            except ValueError:
+                player1 = client.get_user(int(player1[3:-1]))
         if player2 is None:
             player2 = ctx.author
 
@@ -664,6 +667,25 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     if ttt_game.turn.bot:
         await asyncio.sleep(2)
         await ttt_game.move(await ttt_game.smart_bot_move())
+    
+    if not player1.bot or not player2.bot: # This checks if a user didn't make a move for a while
+        make_move_msgs = ttt_game.make_move_msgs
+        wait_time = 40
+        while ttt_game.running:
+            count = ttt_game.count
+            await asyncio.sleep(wait_time)
+            if count == ttt_game.count:
+                make_move_msg = await ctx.send(f'{ttt_game.turn.mention} make a move!')
+                make_move_msgs.append(make_move_msg)
+                await asyncio.sleep(wait_time)
+                if count == ttt_game.count:
+                    ttt_game.running = False
+                    ttt_game.all_running_ttt.remove(ttt_game.current_game)
+                    done_embed = discord.Embed(description=f"**{ttt_game.turn.name}** took too long to make a move, what a NOOB!")
+                    await ttt_game.whos_turn_msg.edit(embed=done_embed)
+                    for msg in make_move_msgs:
+                        await msg.delete()
+                    break
     
     
 @client.command()
