@@ -23,6 +23,7 @@ with open(f'{data_folder}config.json') as f:
 
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix=command_prefix, intents=intents)
+#client.remove_command('help')
 
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
@@ -291,17 +292,6 @@ async def on_command_error(ctx, error):
     with open(f'{data_folder}errors.json', 'w') as f:
         json.dump(errors_data, f, indent=4)
     
-    #if isinstance(error, discord.ext.commands.CommandNotFound):
-     #   await ctx.message.add_reaction('❓')
-    #elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
-     #   embe=discord.Embed(title=" :x: Error", description=f'**Missing Required Argument.**', color=0xff001c)
-      #  await ctx.send(embed=embe)
-    #elif isinstance(error, discord.ext.commands.NotOwner):
-     #   pass # If a user tries to use command just for the owner, then I will just do nothing
-    #raise error
-    #else:
-        #embe=discord.Embed(title=" :x: Error", description=f'**{error}**', color=0xff001c)
-        #await ctx.send(embed=embe)
 
 
 #UP HERE ALL THE @client.event ^^ 
@@ -432,12 +422,6 @@ async def set_status(ctx, status_num):
     pass # TODO make it so a user can set the bot status
 
 
-#@dm.error
-#async def dm_error(ctx, error):
-    #print(error)
-    #await ctx.message.add_reaction('❌')
-
-
 @client.command(aliases=['cls_dm'])
 @commands.is_owner()
 async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
@@ -458,23 +442,11 @@ async def rank(ctx, member : discord.Member=None):
     else:
         await ctx.send("Bots don't have rank.")
 
-#@rank.error
-#async def rank_error(ctx, error):
- #   if isinstance(error, commands.MemberNotFound):
-  #      await ctx.message.add_reaction('⁉')
-   # else:
-    #    print(error)
-
 
 @client.command()
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount : int):
     await ctx.channel.purge(limit=amount + 1)
-
-#@clear.error 
-#async def clear_error(ctx, error):
- #   if isinstance(error, commands.MissingRequiredArgument):
-  #      await ctx.send("Please specify an amount of messages to delete.")
 
 
 @client.command()
@@ -484,12 +456,6 @@ async def kick(ctx, member : discord.Member, *, reason=None):
     await ctx.message.add_reaction('🦶🏽')
     await ctx.send(f'**{member}** kicked!')
 
-#@kick.error
-#async def kick_error(ctx, error):
- #   if isinstance(error, discord.ext.commands.MemberNotFound):
-  #      await ctx.message.add_reaction('❓')
-   #     await ctx.send(f"Huh, Who?")
-
 
 @client.command()
 @commands.has_permissions(ban_members=True)
@@ -498,12 +464,6 @@ async def ban(ctx, member : discord.Member, *, reason=None):
     await member.ban(reason=reason)
     await ctx.message.add_reaction('✅')
     await ctx.send(choice(bans_says).format(member))
-
-#@ban.error
-#async def ban_error(ctx, error):
- #   if isinstance(error, discord.ext.commands.MemberNotFound):
-  #      await ctx.message.add_reaction('❓')
-   #     await ctx.send(f"Huh, Who?")
 
 
 @client.command()
@@ -762,6 +722,40 @@ async def server_announcement(ctx, *, msg):
     server_announcement_channel = data.get_useful_channel(cname='sa')
     await server_announcement_channel.send(msg)
     await ctx.message.add_reaction('✅')
+
+
+@client.command()
+async def _help(ctx):
+    embed = discord.Embed(title='Commands:', description='Prefix: "**;**"')
+    leveling_system_commands = """
+    **rank** | Show your rank. ";rank"
+    **buy** | You can buy roles ";buy role @role"
+    **sell** | You can sell roles ";sell role @role"
+    """
+    moderations_commands = """
+    **ban** | ban members. ";ban [@member] [reason]"
+    **bans** | show all banned members. ";bans"
+    **unban** | unban members. ";unban [member id]" 
+    **kick** | kick members. ";kick [@member] [reason]"
+    **warn** | warn members. ";warn [@member] [reason]"
+    **warns** | show all the warnings list. ";warns"
+    **del_warn** | remove's a member warnings.";del_warn [@member]"
+    **clear** | delete message's. ";clear [amount]"
+    **dm** | To dm member's (as bot). ";dm [@member] [your message]"
+    """
+    fun_commands = """
+    **ping** | show the bot latency. ";ping"
+    **pfp** | show a member profile pic. ";pfp [@member]"
+    **info** | show's info of a member. ";info [@member]"
+    **msg_count** | show's the total message's. ";msg_count"
+    **tictactoe** (ttt) | tic-tac-toe game. ";tictactoe [@member 1] [@member 2]"
+    """
+
+    embed.add_field(name='Leveling System:', value=leveling_system_commands, inline=False)
+    embed.add_field(name='MOD:', value=moderations_commands, inline=False)
+    embed.add_field(name='Fun commands:', value=fun_commands, inline=False)
+
+    await ctx.send(embed=embed)
 
 
 if __name__ == '__main__':
