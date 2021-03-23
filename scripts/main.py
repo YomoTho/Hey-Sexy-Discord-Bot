@@ -630,9 +630,9 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
         player2 = client.get_user(816668604669755433) # This ID is local bot
     else:
         if type(player1) is str:
-            player1 = client.get_user(int(player1[3:-1]))
+            player1 = ctx.author
         if player2 is None:
-            player2 = ctx.author
+            player2 = client.get_user(int(player1[3:-1]))
     
     global ttt_game
     ttt_game = TicTacToe(player1, player2, data, ctx)
