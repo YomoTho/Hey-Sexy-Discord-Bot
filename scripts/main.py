@@ -626,13 +626,13 @@ async def pfp(ctx, member : discord.Member=None):
 @client.command(aliases=['ttt'])
 async def tictactoe(ctx, player1, player2 : discord.Member=None):
     if player1 == 'bvb': # This stands for 'Bot vs Bot'
-        player1 = client.user
-        player2 = client.get_user(816668604669755433) # This ID is local bot
+        player1 = client.get_user(816668604669755433) # This ID is local bot
+        player2 = client.user
     else:
         if type(player1) is str:
-            player1 = ctx.author
+            player1 = client.get_user(int(player1[3:-1]))
         if player2 is None:
-            player2 = client.get_user(int(player1[3:-1]))
+            player2 = ctx.author
     
     global ttt_game
     ttt_game = TicTacToe(player1, player2, data, ctx)
