@@ -291,6 +291,8 @@ async def on_command_error(ctx, error):
 
     with open(f'{data_folder}errors.json', 'w') as f:
         json.dump(errors_data, f, indent=4)
+
+    raise error
     
 
 
@@ -654,7 +656,7 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     
     if ttt_game.turn.bot:
         await asyncio.sleep(2)
-        await ttt_game.move(choice(ttt_game.reactions))
+        await ttt_game.move(await ttt_game.smart_bot_move())
     
     
 @client.command()
