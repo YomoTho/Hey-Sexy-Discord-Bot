@@ -266,16 +266,17 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
             if len(ttt_running) > 0:
                 try:
                     for ttt_game in ttt_running:
-                        if ttt_game.count <= 9 and not ttt_game.someone_won:
-                            if payload.user_id == ttt_game.player_1.id and ttt_game.turn.id == payload.user_id: # Player 1
-                                await ttt_game.move(payload.emoji)
-                            elif payload.user_id == ttt_game.player_2.id and ttt_game.turn.id == payload.user_id: # Player 2
-                                await ttt_game.move(payload.emoji)
-                        elif not ttt_game.whos_turn_msg is None:
-                            if payload.message_id == ttt_game.whos_turn_msg.id and payload.emoji.name == '🔄':
-                                ttt_running.remove(ttt_game)
-                                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
-                                ttt_game.destroy = False
+                        if payload.emoji.name in ttt_game.reactions:
+                            if payload.message_id == ttt_game.game_msg.id:
+                                if payload.user_id == ttt_game.turn.id:
+                                    await ttt_game.move(payload.emoji)
+                        elif payload.emoji.name == '🔄':
+                            if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
+                                if not ttt_game.whos_turn_msg is None:
+                                    if payload.message_id == ttt_game.whos_turn_msg.id:
+                                        ttt_running.remove(ttt_game)
+                                        await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                                        ttt_game.destroy = False
                 except NameError:
                     pass
     

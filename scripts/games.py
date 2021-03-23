@@ -144,17 +144,18 @@ class TicTacToe:
             except IndexError:
                 pass
 
-            if self.turn == self.player_1:
-                self.turn = self.player_2
-            else:
-                self.turn = self.player_1
-
             if self.count >= 9:
                 embed = discord.Embed(description=f"Tie")
+                await self.whos_turn_msg.edit(embed=embed)
+                await self.game_end()
+                return
             else:
+                if self.turn == self.player_1:
+                    self.turn = self.player_2
+                else:
+                    self.turn = self.player_1
                 embed = discord.Embed(description=f"**{self.turn.name}** turn")
-
-            await self.whos_turn_msg.edit(embed=embed)
+                await self.whos_turn_msg.edit(embed=embed)
             
             if self.turn.bot and not self.count >= 9:
                 await asyncio.sleep(uniform(0.5, 5.5))
@@ -163,9 +164,6 @@ class TicTacToe:
                 else:
                     move = await self.smart_bot_move()
                 await self.move(move)
-
-            if self.count >= 9:
-                await self.game_end()
         else:
             print('The game is not running')
 
