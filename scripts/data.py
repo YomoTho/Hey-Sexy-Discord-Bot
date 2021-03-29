@@ -36,3 +36,11 @@ class Data:
         for role in self.server_data['roles']:
             if self.server_data['roles'][role]['cname'] == cname:
                 return discord.utils.get(self.get_server().roles, id=int(role))
+            
+    def load_config(self):
+        with open(f"{data_folder}config.json") as f:
+            return json.load(f)
+        
+    def save_config(self, config):
+        with open(f"{data_folder}config.json", 'w') as f:
+            json.dump(config, f, indent=2)

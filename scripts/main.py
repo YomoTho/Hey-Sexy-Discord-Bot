@@ -527,9 +527,13 @@ async def buy(ctx, *args):
                         await ctx.send(f"Huh, who!?")
                 else:
                     buyer = Money(ctx.author)
-                    if next(buyer.buy(role=role)):
-                        await ctx.message.add_reaction('✅')
+                    buying = buyer.buy(role=role)
+                    if next(buying):
                         await ctx.author.add_roles(role)
+                        if next(buying):
+                            await ctx.message.add_reaction('✅')
+                        else:
+                            await ctx.send("Something went wrong here.")
                     else:
                         await ctx.send(f"You don't have enough money to buy this role.")
             elif args[0] in ['lr', 'liverank']:     # TODO add live rank
