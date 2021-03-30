@@ -29,24 +29,40 @@ client = commands.Bot(command_prefix=command_prefix, intents=intents)
 # This class have data of the server, like server, server owner, id & Text Channels, etc
 
 class Send_Message(Data):
-    def __init__(self, msg):
-        self.server_id = server.id
-        self.msg = msg
-        self.channels_id = data.channels_id; self.server_data = data.server_data
-        self.client = client
+    def __init__(self, channel):
+        super().__init__(client)
+        self.channel = channel
+        self.config = self.load_config()
         
-    async def dm(self, to : discord.Member):
-        await to.send(self.msg)
-        
-    async def text_channel(self, cname=None, _channel_id=None):
-        if not cname == None:
-            to = self.get_useful_channel(cname)
-            await to.send(self.msg)
-        elif not _channel_id == None:
-            to = client.get_channel(int(_channel_id))
-            await to.send(self.msg)
+    def check(func): # This check if the channel is disabled or not, if disabled it won't call the function.
+        async def in_check(self, *args, **kwargs):
+            if not self.channel.id in self.config['disabled_channels']:
+                await func(self, *args, **kwargs)
+        return in_check
+    
+    def enable(self):
+        if self.channel.id in self.config['disabled_channels']:
+            self.config['disabled_channels'].remove(self.channel.id)
+            self.save_config(self.config)
+            return f"{self.channel} enabled."
         else:
-            raise Exception
+            return f"{self.channel} is already not disabled."
+        
+    def disable(self):
+        if not self.channel.id in self.config['disabled_channels']:
+            self.config['disabled_channels'].append(self.channel.id)
+            self.save_config(self.config)
+            return f"{self.channel} disabled."
+        else:
+            return f"{self.channel} is already disabled."
+        
+    @check
+    async def send(self, msg):
+        await self.channel.send(msg)
+        
+    @check
+    async def test(self, msg):
+        print(msg)
 
 
 # Global variables
@@ -198,8 +214,8 @@ async def on_message(message):
             leveled_up = user_rank_data + int(len(message.content) / 1.5)
             if leveled_up[0]:
                 leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
-                lu_msg = Send_Message(leveled_up_msg)
-                await lu_msg.text_channel(cname='lu')
+                channel = Send_Message(data.get_useful_channel(cname='lu'))
+                await channel.send(leveled_up_msg)
             bot_access_role = data.get_role(cname='ba')
             if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
                 await client.process_commands(message)
@@ -315,8 +331,27 @@ async def on_command_error(ctx, error):
 
 @client.command()
 @commands.is_owner()
-async def test(ctx): # Here i test commands
-    await ctx.send([ttt for ttt in ttt_running])
+async def test(ctx, *, msg): # Here i test commands
+    i = Send_Message(ctx.channel)
+    await i.test(msg)
+    
+    
+@client.command()
+@commands.is_owner()
+async def enable(ctx, channel : discord.TextChannel=None):
+    if channel is None: 
+        channel = ctx.channel
+    channel = Send_Message(channel)
+    await ctx.send(channel.enable())
+    
+    
+@client.command()
+@commands.is_owner()
+async def disable(ctx, channel : discord.TextChannel=None):
+    if channel is None: 
+        channel = ctx.channel
+    channel = Send_Message(channel)
+    await ctx.send(channel.disable())
 
 
 @client.command(pass_context=True)
@@ -414,7 +449,7 @@ async def dm(ctx, *args):
             async def dmm(msg):
                 msg_cmd = ctx.message
                 if ctx.author.id == server_owner.id:
-                    to = Send_Message(msg); await to.dm(user)
+                    to = Send_Message(user); await to.send(msg)
                     await msg_cmd.add_reaction('✅')
                     if not args[0].startswith('<@!'):
                         await ctx.send(f'To {user}')
