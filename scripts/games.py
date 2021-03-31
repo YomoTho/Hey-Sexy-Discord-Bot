@@ -69,8 +69,8 @@ class TicTacToe:
 
     async def smart_bot_move(self):
         move = None
-
-        for p in [self.player_1, self.player_2]:
+        other_player = self.player_2 if self.turn == self.player_1 else self.player_1
+        for p in [self.turn, other_player]:
             ox = self.o if p == self.player_1 else self.x
             for i in self.reactions: # self.reactions is like all the possible moves
                 gameBoard_copy = self.gameBoard.copy()
