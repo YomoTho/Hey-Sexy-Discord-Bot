@@ -3,6 +3,7 @@ import json
 import os
 import asyncio
 import pytz
+import asyncpraw
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
 from discord.ext import tasks, commands
@@ -73,8 +74,10 @@ server = None
 server_owner = None
 ttt_running = list()
 
-# Global variables ^^^
+reddit = asyncpraw.Reddit(client_id="FtUszntw__QrLQ", client_secret="JByUdEmPln88-wRpwYs8phb6j_Mt1A", username="Yomotho369", password="Awesome4848", user_agent="yes")
 
+# Global variables ^^^
+ 
 
 async def store_data():
     global server_owner, server
@@ -830,6 +833,43 @@ async def _help(ctx):
     embed.add_field(name='MOD:', value=moderations_commands, inline=False)
     embed.add_field(name='Fun commands:', value=fun_commands, inline=False)
 
+    await ctx.send(embed=embed)
+
+
+@client.command()
+async def meme(ctx):
+    subreddit = await reddit.subreddit('memes')
+    top = subreddit.top(limit=30)
+
+    all_subs = []
+    async for submission in top:
+        all_subs.append(submission)
+
+    random_sub = choice(all_subs)
+
+    name = random_sub.title
+    url = random_sub.url
+    embed = discord.Embed(title=name)
+    embed.set_image(url=url)
+    await ctx.send(embed=embed)
+
+
+@client.command()
+@commands.is_nsfw()
+async def nsfw(ctx, subr='nsfw'):
+    subreddit = await reddit.subreddit(subr)
+    top = subreddit.top(limit=30)
+
+    all_subs = []
+    async for submission in top:
+        all_subs.append(submission)
+
+    random_sub = choice(all_subs)
+
+    name = random_sub.title
+    url = random_sub.url
+    embed = discord.Embed(title=name)
+    embed.set_image(url=url)
     await ctx.send(embed=embed)
 
 
