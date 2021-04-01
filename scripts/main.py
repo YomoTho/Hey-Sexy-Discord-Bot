@@ -186,9 +186,9 @@ async def rank_msg(member : discord.Member):
 
 
 
-async def get_subreddit(subr):
+async def get_subreddit(subr, limit):
     subreddit = await reddit.subreddit(subr)
-    top = subreddit.top(limit=30)
+    top = subreddit.top(limit=limit)
 
     all_subs = []
     async for submission in top:
@@ -205,6 +205,23 @@ async def get_subreddit(subr):
         return url
     else:
         return embed
+
+
+async def save_command_error(ctx, error):
+    with open(f'{data_folder}errors.json') as f:
+        errors_data = json.load(f)
+
+    await ctx.message.add_reaction('❌')
+
+    if not str(ctx.channel.id) in errors_data:
+        errors_data[str(ctx.channel.id)] = {}
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)] = {}
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['error'] = str(error)
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['msg_ctx'] = ctx.message.content
+    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['user_id'] = ctx.author.id
+
+    with open(f'{data_folder}errors.json', 'w') as f:
+        json.dump(errors_data, f, indent=4)
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -324,22 +341,52 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
     
 @client.event
 async def on_command_error(ctx, error):
-    with open(f'{data_folder}errors.json') as f:
-        errors_data = json.load(f)
-
-    await ctx.message.add_reaction('❌')
-
-    if not str(ctx.channel.id) in errors_data:
-        errors_data[str(ctx.channel.id)] = {}
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)] = {}
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['error'] = str(error)
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['msg_ctx'] = ctx.message.content
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['user_id'] = ctx.author.id
-
-    with open(f'{data_folder}errors.json', 'w') as f:
-        json.dump(errors_data, f, indent=4)
-
-    raise error
+    async def yes(e=error):
+        await save_command_error(ctx, e)
+    
+    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        await yes()
+    elif isinstance(error, discord.ext.commands.NSFWChannelRequired):
+        await yes()
+    elif isinstance(error, discord.ext.commands.CommandNotFound):
+        await yes()
+    elif isinstance(error, discord.ext.commands.MissingPermissions):
+        await yes()
+    elif isinstance(error, discord.ext.commands.NotOwner):
+        await yes(e="You not the owner.")
+    else:
+        if ctx.message.content.startswith('.dm hist'):
+            if str(error) == "Command raised an exception: IndexError: tuple index out of range":
+                await yes(e="Missing Required Argument.")
+            elif str(error) == "Command raised an exception: AttributeError: 'ClientUser' object has no attribute 'history'":
+                await yes()
+            elif str(error).startswith("Command raised an exception: ValueError: invalid literal for int() with base 10"):
+                await yes()
+            elif str(error) == "Command raised an exception: HTTPException: 400 Bad Request (error code: 50007): Cannot send messages to this user":
+                await yes()
+            elif str(error) == "You do not own this bot.":
+                await yes()
+            else:
+                print(str(error))
+        elif ctx.message.content.startswith('.dm'):
+            if str(error) == "Command raised an exception: AttributeError: 'ClientUser' object has no attribute 'send'":
+                await yes(e="The bot can't send messages to itself.")
+            elif str(error) == "Command raised an exception: HTTPException: 400 Bad Request (error code: 50007): Cannot send messages to this user":
+                await yes(e="Cannot send messages to this user.")
+            elif str(error).startswith("Command raised an exception: ValueError: invalid literal for int() with base 10:"):
+                if str(error)[-23:-1].startswith('<@&'): # Checks if this is a role
+                    await yes(e="Can't send messages to roles.")
+                else:
+                    await yes()
+                    raise error
+            elif str(error) == "You do not own this bot.":
+                await yes()
+            else:                                                                  
+                print(str(error))
+        else:
+            await yes()
+            raise error
+    
     
 
 
@@ -439,7 +486,9 @@ async def dm(ctx, *args):
                 else:
                     messages_author = messages_author[::-1]; messages_content = messages_content[::-1]
                     for index, message in enumerate(messages_content):
-                        embed.add_field(name=messages_author[index], value=message, inline=False)
+                        if message == '' or message == ' ':
+                            message = "<not found.>"
+                        embed.add_field(name=messages_author[index], value=f'{message}\n' + '-' * 60, inline=False)
                     await ctx.send(embed=embed)
         try: _limit = int(args[2])
         except IndexError: _limit = 10
@@ -482,7 +531,6 @@ async def dm(ctx, *args):
                     await msg_cmd.add_reaction('⛔')
                 
             await dmm(' '.join(word for word in args[1:]))
-
 
 
 @client.command()
@@ -859,23 +907,26 @@ async def _help(ctx):
 
 
 @client.command()
-async def meme(ctx):
-    await ctx.send(embed=await get_subreddit('memes'))
+async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
+    for _ in range(loop):
+        await ctx.send(embed=await get_subreddit('memes', limit))
 
 
 @client.command()
 @commands.is_nsfw()
-async def nsfw(ctx, subr='nsfw'):
-    embed = await get_subreddit(subr)
-    try:
-        await ctx.send(embed=await get_subreddit(subr))
-    except AttributeError:
-        await ctx.send(embed)
+async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
+    for _ in range(loop):
+        embed = await get_subreddit(subr, limit)
+        try:
+            await ctx.send(embed=embed)
+        except AttributeError:
+            await ctx.send(embed)
 
 
 @client.command()
-async def dankmeme(ctx):
-    await ctx.send(embed=await get_subreddit('dankmemes'))
+async def dankmeme(ctx, limit : int=30, loop=1):
+    for _ in range(loop):
+        await ctx.send(embed=await get_subreddit('dankmemes', limit))
 
 
 if __name__ == '__main__':
