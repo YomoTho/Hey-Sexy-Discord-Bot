@@ -185,6 +185,28 @@ async def rank_msg(member : discord.Member):
         return embed
 
 
+
+async def get_subreddit(subr):
+    subreddit = await reddit.subreddit(subr)
+    top = subreddit.top(limit=30)
+
+    all_subs = []
+    async for submission in top:
+        all_subs.append(submission)
+
+    random_sub = choice(all_subs)
+
+    name = random_sub.title
+    url = random_sub.url
+    embed = discord.Embed(title=name)
+    embed.set_image(url=url)
+    embed.set_footer(text=url)
+    if subr == 'porn':
+        return url
+    else:
+        return embed
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -838,39 +860,22 @@ async def _help(ctx):
 
 @client.command()
 async def meme(ctx):
-    subreddit = await reddit.subreddit('memes')
-    top = subreddit.top(limit=30)
-
-    all_subs = []
-    async for submission in top:
-        all_subs.append(submission)
-
-    random_sub = choice(all_subs)
-
-    name = random_sub.title
-    url = random_sub.url
-    embed = discord.Embed(title=name)
-    embed.set_image(url=url)
-    await ctx.send(embed=embed)
+    await ctx.send(embed=await get_subreddit('memes'))
 
 
 @client.command()
 @commands.is_nsfw()
 async def nsfw(ctx, subr='nsfw'):
-    subreddit = await reddit.subreddit(subr)
-    top = subreddit.top(limit=30)
+    embed = await get_subreddit(subr)
+    try:
+        await ctx.send(embed=await get_subreddit(subr))
+    except AttributeError:
+        await ctx.send(embed)
 
-    all_subs = []
-    async for submission in top:
-        all_subs.append(submission)
 
-    random_sub = choice(all_subs)
-
-    name = random_sub.title
-    url = random_sub.url
-    embed = discord.Embed(title=name)
-    embed.set_image(url=url)
-    await ctx.send(embed=embed)
+@client.command()
+async def dankmeme(ctx):
+    await ctx.send(embed=await get_subreddit('dankmemes'))
 
 
 if __name__ == '__main__':
