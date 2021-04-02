@@ -4,6 +4,8 @@ import os
 import asyncio
 import pytz
 import asyncpraw
+import requests
+from bs4 import BeautifulSoup
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
 from discord.ext import tasks, commands
@@ -186,7 +188,7 @@ async def rank_msg(member : discord.Member):
 
 
 
-async def get_subreddit(subr, limit):
+async def get_subreddit(subr, limit, loop_times):
     subreddit = await reddit.subreddit(subr)
     top = subreddit.top(limit=limit)
 
@@ -196,14 +198,28 @@ async def get_subreddit(subr, limit):
 
     random_sub = choice(all_subs)
 
-    name = random_sub.title
-    url = random_sub.url
-    embed = discord.Embed(title=name)
-    embed.set_image(url=url)
-    embed.set_footer(text=url)
     if subr == 'porn':
+        url = random_sub.url
+        page = requests.get(url)
+
+        bSoup = BeautifulSoup(page.content, 'html.parser')
+
+        links_list = bSoup.find_all('source')
+        for link in links_list:
+            try:
+                if not link['src'] == '':
+                    url = link['src']
+                    break
+            except KeyError: pass
+        if url.startswith('//i.imgur.com/'):
+            url = 'https:' + url
         return url
     else:
+        name = random_sub.title
+        url = random_sub.url
+        embed = discord.Embed(title=name)
+        embed.set_image(url=url)
+        embed.set_footer(text=f"{loop_times[0]}/{loop_times[1]}")
         return embed
 
 
@@ -908,25 +924,26 @@ async def _help(ctx):
 
 @client.command()
 async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
-    for _ in range(loop):
-        await ctx.send(embed=await get_subreddit('memes', limit))
+    for i in range(loop):
+        await ctx.send(embed=await get_subreddit('memes', limit, (i + 1, loop)))
 
 
 @client.command()
 @commands.is_nsfw()
 async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
-    for _ in range(loop):
-        embed = await get_subreddit(subr, limit)
+    for i in range(loop):
+        embed = await get_subreddit(subr, limit, (i + 1, loop))
         try:
-            await ctx.send(embed=embed)
-        except AttributeError:
+            embed = f'**{i + 1}/{loop}: **' + embed
             await ctx.send(embed)
+        except TypeError:
+            await ctx.send(embed=embed)
 
 
 @client.command()
 async def dankmeme(ctx, limit : int=30, loop=1):
-    for _ in range(loop):
-        await ctx.send(embed=await get_subreddit('dankmemes', limit))
+    for i in range(loop):
+        await ctx.send(embed=await get_subreddit('dankmemes', limit, (i + 1, loop)))
 
 
 if __name__ == '__main__':
