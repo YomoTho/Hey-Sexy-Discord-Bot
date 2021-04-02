@@ -189,7 +189,7 @@ async def rank_msg(member : discord.Member):
 
 
 async def get_subreddit(subr, limit, loop_times):
-    if limit > 100:
+    if loop_times > 100:
         return "The limit must be less than a 100"
     subreddit = await reddit.subreddit(subr)
     top = subreddit.top(limit=limit)
