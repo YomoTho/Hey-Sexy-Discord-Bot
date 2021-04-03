@@ -925,6 +925,9 @@ async def _help(ctx):
 
 @client.command()
 async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
+    if loop > 100:
+        await ctx.send("You loop times must be less than a 100")
+        return
     for i in range(loop):
         await ctx.send(embed=await get_subreddit('memes', limit, (i + 1, loop)))
 
@@ -932,6 +935,9 @@ async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
 @client.command()
 @commands.is_nsfw()
 async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
+    if loop > 100:
+        await ctx.send("You loop times must be less than a 100")
+        return
     for i in range(loop):
         embed = await get_subreddit(subr, limit, (i + 1, loop))
         try:
@@ -943,6 +949,9 @@ async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
 
 @client.command()
 async def dankmeme(ctx, limit : int=30, loop=1):
+    if loop > 100:
+        await ctx.send("You loop times must be less than a 100")
+        return
     for i in range(loop):
         await ctx.send(embed=await get_subreddit('dankmemes', limit, (i + 1, loop)))
 
