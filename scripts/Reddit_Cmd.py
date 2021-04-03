@@ -6,27 +6,33 @@ class Reddit_Command:
         if loop > 100:
             await ctx.send("The loop times must be less than a 100!")
             return
+        if loop > limit:
+            loop = limit
 
         self.reddit = asyncpraw.Reddit(client_id=getenv('CLIENT_ID'), client_secret=getenv('CLIENT_SECRET'), username=getenv('USERNAME'), password=getenv('PASSWORD'), user_agent="NO")
         self.subreddit = await self.reddit.subreddit(subreddit)
         self.top = self.subreddit.top(limit=limit)
-        self.all_posts = [sub async for sub in self.top]
+        try:
+            self.all_posts = [sub async for sub in self.top]
+        except Exception:
+            await ctx.send(f"Subreddit not found.")
+        else:
+            self.ctx = ctx
+            self.random = random
+            self.loop = loop
+            self.requests = requests
+            self.discord = discord
 
-        self.ctx = ctx
-        self.random = random
-        self.loop = loop
-        self.requests = requests
-        self.discord = discord
-
-        await self.send(self)
+            await self.send(self)
 
     
     async def send(self):
         for i in range(self.loop):
             self.sub = self.random(self.all_posts)
+            self.all_posts.remove(self.sub) # Just remove to make it so it won't report the same thing
             url, title = self.sub.url, self.sub.title
             if not url.endswith('.gifv'):
-                video_url = self.get_video(self, url)
+                video_url = await self.get_video(self, url)
             else:
                 video_url = url
 
@@ -42,19 +48,16 @@ class Reddit_Command:
 
 
 
-    def get_video(self, url):
-        if self.sub.over_18:
-            page = self.requests.get(url)
-            bSoup = BeautifulSoup(page.content, 'html.parser')
-            link_list = bSoup.find_all('source')
-            
-            for link in link_list:
-                try:
-                    if not link['src'] == '':
-                        url = link['src']
-                        return url
-                except KeyError: pass
+    async def get_video(self, url):
+        page = self.requests.get(url)
+        bSoup = BeautifulSoup(page.content, 'html.parser')
+        link_list = bSoup.find_all('source')
+        
+        for link in link_list:
+            try:
+                if not link['src'] == '':
+                    url = link['src']
+                    return url
+            except KeyError: pass
 
-            return url
-        else:
-            return url
+        return url
