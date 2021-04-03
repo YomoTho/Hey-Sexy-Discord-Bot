@@ -5,6 +5,7 @@ import asyncio
 import pytz
 import asyncpraw
 import requests
+from Reddit_Cmd import Reddit_Command
 from bs4 import BeautifulSoup
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
@@ -944,6 +945,11 @@ async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
 async def dankmeme(ctx, limit : int=30, loop=1):
     for i in range(loop):
         await ctx.send(embed=await get_subreddit('dankmemes', limit, (i + 1, loop)))
+
+
+@client.command()
+async def r(ctx, subr, limit : int=30, loop : int=1):
+    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
 
 
 if __name__ == '__main__':
