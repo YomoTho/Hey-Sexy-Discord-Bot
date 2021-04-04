@@ -901,6 +901,21 @@ async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
 
 
 @client.command()
+async def food(ctx, limit : int=30, loop : int=1):
+    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord)
+
+
+@client.command(aliases=['cats', 'cat', 'kittens', 'pussy'])
+async def kitten(ctx, limit : int=30, loop : int=1):
+    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord)
+
+
+@client.command(aliases=['dogs', 'puppy', 'puppies'])
+async def dog(ctx, limit : int=30, loop : int=1):
+    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord)
+
+
+@client.command()
 async def dankmeme(ctx, limit : int=30, loop=1):
     await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord)
 
