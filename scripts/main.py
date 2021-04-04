@@ -212,7 +212,7 @@ async def on_ready():
         if int(sys.argv[1:][0]) == 69:
             with open(f'{data_folder}reboot_id') as f:
                 channel = client.get_channel(int(f.read()))
-                await channel.send(f"{client.user} is online.")
+                await channel.send(f"Back online!")
     except IndexError: pass
 
     
