@@ -912,6 +912,7 @@ async def r(ctx, subr, limit : int=30, loop : int=1):
 
 
 @client.command()
+@commands.is_owner()
 async def reboot(ctx):
     await ctx.send("Rebooting...")
     with open(f'{data_folder}reboot_id', 'w') as f:
