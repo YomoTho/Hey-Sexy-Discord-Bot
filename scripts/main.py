@@ -4,6 +4,7 @@ import os
 import asyncio
 import pytz
 import requests
+import sys
 from Reddit_Cmd import Reddit_Command
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
@@ -207,7 +208,12 @@ async def save_command_error(ctx, error):
 async def on_ready():
     print(f"{client.user} is online.")
     await store_data()
-    
+    try:
+        if int(sys.argv[1:][0]) == 69:
+            with open(f'{data_folder}reboot_id') as f:
+                channel = client.get_channel(int(f.read()))
+                await channel.send(f"{client.user} is online.")
+    except IndexError: pass
 
     
 @client.event
@@ -903,6 +909,14 @@ async def dankmeme(ctx, limit : int=30, loop=1):
 @commands.is_owner()
 async def r(ctx, subr, limit : int=30, loop : int=1):
     await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
+
+
+@client.command()
+async def reboot(ctx):
+    await ctx.send("Rebooting...")
+    with open(f'{data_folder}reboot_id', 'w') as f:
+        f.write(str(ctx.channel.id))
+    exit(69)
 
 
 if __name__ == '__main__':
