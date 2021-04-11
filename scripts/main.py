@@ -926,16 +926,17 @@ async def r(ctx, subr, limit : int=30, loop : int=1):
     await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
 
 
-#@commands.is_owner()
 @client.command()
+@commands.is_owner()
 async def reboot(ctx, args=None):
     await ctx.send("Rebooting...")
     sys.exit(f"1::{ctx.channel.id}")
 
 
-@client.command()
-async def stop(ctx):
-    exit(0)
+#@client.command()
+#@commands.is_owner()
+#async def stop(ctx):
+#    exit(0)
 
 
 if __name__ == '__main__':
