@@ -1,15 +1,41 @@
-#! /bin/bash
+#!/bin/bash
 
-clear; python3 main.py
-exit_code=$?
+function rw() {
+	while read line
+	do 
+		code=$line && break
+    done < $1
+    echo $code
+}
 
-while [ true ]; do
-    if [[ $exit_code -eq 69 ]]; then
+function p() {
+	if [[ $1 == "r" ]]; then
+		echo '../data/reboot_id'
+	else
+		echo 'reboot_id_a'
+	fi
+}
+
+function cleanup() {
+    [[ $1 == "-d" ]] && echo "Cleaning up..."
+    echo > $(p)
+    echo > $(p "r")
+    [[ $1 == "-d" ]] && echo "Done!"
+}
+
+function main() {
+    cleanup $1
+    while [[ : ]]
+    do
+        python3 main.py 1 2> $(p) && break
+        echo > $(p "r")
+        code=$(rw $(p))
+        [[ $(echo $code | cut -c1-3) != "1::" ]] && break
+        echo $code > $(p "r")
         echo "Rebooting..."
-        python3 main.py $exit_code
-        exit_code=$?
-    else
-        break
-    fi
-done
+    done
+    cleanup $1
+}
 
+clear
+main $@

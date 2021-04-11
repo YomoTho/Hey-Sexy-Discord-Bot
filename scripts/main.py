@@ -209,9 +209,9 @@ async def on_ready():
     print(f"{client.user} is online.")
     await store_data()
     try:
-        if int(sys.argv[1:][0]) == 69:
+        if int(sys.argv[1:][0]) == 1:
             with open(f'{data_folder}reboot_id') as f:
-                channel = client.get_channel(int(f.read()))
+                channel = client.get_channel(int(f.read().split('::')[1]))
                 await channel.send(f"Back online!")
     except IndexError: pass
 
@@ -575,7 +575,7 @@ async def bans(ctx):
         else:
             await ctx.send(embed=embed)
     else:
-        await ctx.send('There are nobody banned from this server.')
+        await ctx.send("There's nobody banned in this server.")
 
 
 @client.command()
@@ -806,7 +806,7 @@ async def warn(ctx, user : discord.Member, *, reason=None):
         description=f"{reason_text}\n{warning_count_text}" if not return_warnings(user) == 1 else reason_text,
         color=discord.Color.red()
     )
-    embed.set_footer(text=f'{ctx.guild} • owner: {ctx.author}')
+    embed.set_footer(text=f'{ctx.guild} • owner: {ctx.guild.owner}')
     await user.send(embed=embed)
     await ctx.send("Warning send.")
 
@@ -926,13 +926,16 @@ async def r(ctx, subr, limit : int=30, loop : int=1):
     await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
 
 
+#@commands.is_owner()
 @client.command()
-@commands.is_owner()
-async def reboot(ctx):
+async def reboot(ctx, args=None):
     await ctx.send("Rebooting...")
-    with open(f'{data_folder}reboot_id', 'w') as f:
-        f.write(str(ctx.channel.id))
-    exit(69)
+    sys.exit(f"1::{ctx.channel.id}")
+
+
+@client.command()
+async def stop(ctx):
+    exit(0)
 
 
 if __name__ == '__main__':
