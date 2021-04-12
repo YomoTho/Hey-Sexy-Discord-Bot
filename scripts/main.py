@@ -5,6 +5,8 @@ import asyncio
 import pytz
 import requests
 import sys
+import insta
+import shutil
 from Reddit_Cmd import Reddit_Command
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
@@ -27,7 +29,6 @@ with open(f'{data_folder}config.json') as f:
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix=command_prefix, intents=intents)
 #client.remove_command('help')
-
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
 
@@ -938,10 +939,19 @@ async def reboot(ctx, args=None):
 #async def stop(ctx):
 #    exit(0)
 
+@client.command()
+@commands.is_owner()
+async def instagram(ctx, image_url, *, caption=" "):
+    _insta = insta.Instagram_Bot(sys, requests, shutil, os)
+    await _insta.main(image_url, caption)
+    await ctx.message.add_reaction('✅')
+
 
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
     load_dotenv()
 
+    print("Starting...")
     client.run(os.getenv('TOKEN'))
+    print("Ended.")
