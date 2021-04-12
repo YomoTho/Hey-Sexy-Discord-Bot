@@ -140,7 +140,7 @@ async def check_time():
         
         total_seconds = ((h_left * 60) * 60) + (m_left * 60)
 
-        print('S:', total_seconds)
+        #print('S:', total_seconds)
 
         guild = client.get_guild(int(data.server_id))
         
@@ -809,7 +809,7 @@ async def warn(ctx, user : discord.Member, *, reason=None):
     )
     embed.set_footer(text=f'{ctx.guild} • owner: {ctx.guild.owner}')
     await user.send(embed=embed)
-    await ctx.send("Warning send.")
+    await ctx.send("Warning sent.")
 
     with open(f'{data_folder}warnings.json', 'w') as f:
         json.dump(warnings, f, indent=2)
