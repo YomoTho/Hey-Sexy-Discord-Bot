@@ -1,6 +1,7 @@
 #!/bin/bash
 
-function rw() {
+function rw() 
+{
 	while read line
 	do 
 		code=$line && break
@@ -8,22 +9,21 @@ function rw() {
     echo $code
 }
 
-function p() {
-	if [[ $1 == "r" ]]; then
-		echo '../data/reboot_id'
-	else
-		echo 'reboot_id_a'
-	fi
+function p() 
+{
+    ([[ $1 == "r" ]] && echo '../data/reboot_id') || (echo 'reboot_id')
 }
 
-function cleanup() {
+function cleanup() 
+{
     [[ $1 == "-d" ]] && echo "Cleaning up..."
     echo > $(p)
     echo > $(p "r")
     [[ $1 == "-d" ]] && echo "Done!"
 }
 
-function main() {
+function main() 
+{
     cleanup $1
     while [[ : ]]
     do

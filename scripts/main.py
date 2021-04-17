@@ -61,12 +61,8 @@ class Send_Message(Data):
             return f"{self.channel} is already disabled."
         
     @check
-    async def send(self, msg):
-        await self.channel.send(msg)
-        
-    @check
-    async def test(self, msg):
-        print(msg)
+    async def send(self, *args, **kwargs):
+        await self.channel.send(*args, **kwargs)
 
 
 # Global variables
@@ -203,6 +199,14 @@ async def save_command_error(ctx, error):
         json.dump(errors_data, f, indent=4)
 
 
+async def member_leave_process(member):
+    noob = Leveling_System(member)
+    noob.remove_user()
+    stats = TimeStats()
+    stats.member_leave()
+    print(f"{member} has left the server.")
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -245,7 +249,6 @@ async def on_message(message):
             bot_access_role = data.get_role(cname='ba')
             if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
                 await client.process_commands(message)
-                #await update_live_rank(message.author)
                 await user_rank_data.update_live_rank(data)
 
 
@@ -256,7 +259,6 @@ async def on_member_join(member):
     stats = TimeStats()
     stats.member_join()
 
-    welcome_channel = data.get_useful_channel('w')
     leveling_system_channel = data.get_useful_channel('ls')
     if member.bot:
         await member.add_roles(data.get_role('bots'))
@@ -270,16 +272,15 @@ async def on_member_join(member):
     )
     embed.set_footer(text=f'{member.guild}')
     embed.set_thumbnail(url=member.avatar_url)
-    await welcome_channel.send(member.mention, embed=embed)
+    channel = Send_Message(data.get_useful_channel('w'))
+    await channel.send(member.mention, embed=embed)
 
 
 @client.event
 async def on_member_remove(member):
-    noob = Leveling_System(member)
-    noob.remove_user()
-    stats = TimeStats()
-    stats.member_leave()
-    print(f"{member} has left the server.")
+    task = asyncio.create_task(member_leave_process(member))
+    embed = discord.Embed(description=f'**{member}** left this server.')
+    await Send_Message(data.get_useful_channel('ntl')).send(embed=embed)
 
 
 @client.event
@@ -386,14 +387,13 @@ async def on_command_error(ctx, error):
 
 
 @client.command()
-@commands.is_owner()
-async def test(ctx, *, msg): # Here i test commands
-    i = Send_Message(ctx.channel)
-    await i.test(msg)
+@commands.has_permissions(administrator=True)
+async def test(ctx, *, msg=None): # Here i test commands
+    await Send_Message(ctx.channel).send("test test it works")
     
     
 @client.command()
-@commands.is_owner()
+@commands.has_permissions(administrator=True)
 async def enable(ctx, channel : discord.TextChannel=None):
     if channel is None: 
         channel = ctx.channel
@@ -402,7 +402,7 @@ async def enable(ctx, channel : discord.TextChannel=None):
     
     
 @client.command()
-@commands.is_owner()
+@commands.has_permissions(administrator=True)
 async def disable(ctx, channel : discord.TextChannel=None):
     if channel is None: 
         channel = ctx.channel
