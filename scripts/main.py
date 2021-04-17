@@ -947,6 +947,19 @@ async def instagram(ctx, image_url, *, caption=" "):
     await ctx.message.add_reaction('✅')
 
 
+@client.command()
+@commands.has_permissions(administrator=True)
+async def add_role(ctx, role : discord.Role, price, cname):
+    with open(f'{data_folder}shop.json') as f:
+        shop = json.load(f)
+    shop['roles'][str(role.id)] = {}
+    shop['roles'][str(role.id)]['name'] = role.name
+    shop['roles'][str(role.id)]['price'] = int(price)
+    shop['roles'][str(role.id)]['cname'] = cname
+    with open(f'{data_folder}shop.json', 'w') as f:
+        json.dump(shop, f, indent=2)
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
