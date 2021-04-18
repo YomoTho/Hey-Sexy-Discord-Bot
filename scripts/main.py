@@ -960,6 +960,19 @@ async def add_role(ctx, role : discord.Role, price, cname):
         json.dump(shop, f, indent=2)
 
 
+@client.command()
+async def lines(ctx):
+    lines = 0
+
+    for file in os.scandir():
+        if file.name.endswith('.py') or file.name.endswith('.sh'):
+            with open(file.name) as f:
+                for _ in f.readlines():
+                    lines += 1
+
+    await ctx.send('I have **%i** lines of code.' % lines)
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
