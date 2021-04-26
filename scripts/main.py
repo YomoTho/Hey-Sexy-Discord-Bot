@@ -293,12 +293,11 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
             if str(payload.channel_id) in errors_data:
                 if str(payload.message_id) in errors_data[str(payload.channel_id)]:
                     dumb_user = client.get_user(errors_data[str(payload.channel_id)][str(payload.message_id)]['user_id'])
-                    embed = discord.Embed(title=" :x: Error", color=0xff001c)
+                    embed = discord.Embed(title=" :x: Error:", description=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", color=0xff001c)
                     embed.set_author(name=dumb_user, icon_url=dumb_user.avatar_url)
-                    embed.add_field(name='Message:', value=f""""{errors_data[str(payload.channel_id)][str(payload.message_id)]['msg_ctx']}" """, inline=False)
-                    embed.add_field(name='Error Message:', value=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", inline=False)
-                    channel = client.get_channel(payload.channel_id)
-                    await channel.send(embed=embed)
+                    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+                    
+                    await message.reply(embed=embed)
 
                     del errors_data[str(payload.channel_id)][str(payload.message_id)]
 
@@ -389,7 +388,11 @@ async def on_command_error(ctx, error):
 @client.command()
 @commands.has_permissions(administrator=True)
 async def test(ctx, *, msg=None): # Here i test commands
-    await Send_Message(ctx.channel).send("test test it works")
+    embed = discord.Embed(
+        title='React with with this to get the role.',
+        description=f"{'Role id'} {'emoji id'} : {'description'}\n{'Role id'} {'emoji id'} : {'description'}\n{'Role id'} {'emoji id'} : {'description'}\n"
+    )
+    await Send_Message(ctx.channel).send(embed=embed) #TODO: add reaction roles command and reaction roles 
     
     
 @client.command()
@@ -744,6 +747,8 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     if player1 == player2:
         raise Exception("Player 1 and Player 2, can't be the same.")
     
+    if player1 is None: raise Exception("**Player 1 ({}) not found.**".format(player1))
+    
     global ttt_running
     ttt_game = TicTacToe(player1, player2, data, ctx, ttt_running, client)
     ttt_running.append(ttt_game)
@@ -751,7 +756,7 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
     ttt_game.current_game = ttt_game
     game_msg = await ctx.send(await ttt_game.print())
     ttt_game.game_msg = game_msg
-    
+
     if (player1.bot == False and player2.bot == False) or (not player1.bot or not player2.bot):
         for emoji in ttt_game.reactions:
             await game_msg.add_reaction(emoji=emoji)
@@ -970,7 +975,21 @@ async def lines(ctx):
                 for _ in f.readlines():
                     lines += 1
 
-    await ctx.send('I have **%i** lines of code.' % lines)
+    await ctx.send('I have **%i** lines of code.' % (lines))
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def reaction_roles(ctx, *, args):
+    lines = args.split('\n')
+    blocks = lines[0].split(' ')
+    role = blocks[0]
+    reaction_emoji = blocks[1]
+    description = ' '.join(blocks[2:])
+    reply = f"{role} {reaction_emoji}: {description}"
+    message = await ctx.send(reply)
+
+    await message.add_reaction(reaction_emoji)
 
 
 if __name__ == '__main__':
