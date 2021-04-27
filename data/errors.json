@@ -1,1 +1,44 @@
-{}
+{
+    "818588345508560983": {
+        "833005299018629140": {
+            "error": "Command \"buy_role\" is not found",
+            "msg_ctx": ";buy_role food",
+            "user_id": 347357694761500673
+        }
+    },
+    "818583406635909120": {
+        "833036404770603020": {
+            "error": "Command raised an exception: UnboundLocalError: local variable 'match' referenced before assignment",
+            "msg_ctx": ";nsfw boobs 1000 20",
+            "user_id": 537321522809929738
+        }
+    },
+    "818574185088548904": {
+        "836235957454897162": {
+            "error": "Command raised an exception: AttributeError: 'NoneType' object has no attribute 'bot'",
+            "msg_ctx": ";ttt <@&818547096507646004>",
+            "user_id": 275192642101313536
+        }
+    },
+    "818568123845705768": {
+        "834170864240820224": {
+            "error": "You not the owner.",
+            "msg_ctx": ";r awww 420 10",
+            "user_id": 736191007003115560
+        }
+    },
+    "818547292357394453": {
+        "834887191368958062": {
+            "error": "Channel '\ud83c\udf10general-chat\ud83c\udf10' needs to be NSFW for this command to work.",
+            "msg_ctx": ";nsfw",
+            "user_id": 275192642101313536
+        }
+    },
+    "818568136907030559": {
+        "836137903758639164": {
+            "error": "Command raised an exception: AttributeError: 'NoneType' object has no attribute 'bot'",
+            "msg_ctx": ";ttt <@&818547096507646004> <@!347357694761500673>",
+            "user_id": 347357694761500673
+        }
+    }
+}
