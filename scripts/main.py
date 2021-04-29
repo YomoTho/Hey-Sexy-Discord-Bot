@@ -983,7 +983,7 @@ async def id(ctx, member : discord.Member=None):
     if member is None:
         member = ctx.author
 
-    await ctx.send("%s id: **%i**" % (member, member.id))
+    await ctx.message.reply('**%i**' % (member.id))
 
 
 @client.command()
@@ -1005,6 +1005,11 @@ async def list_json(ctx):
             json_files.append(f.name)
     else:
         await ctx.send('\n'.join(json_files))
+
+
+@client.command()
+async def who(ctx, user_id : int):
+    await ctx.message.reply('**%s**' % (client.get_user(user_id)))
 
 
 @client.command()
