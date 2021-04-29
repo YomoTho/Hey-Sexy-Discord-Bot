@@ -979,6 +979,35 @@ async def lines(ctx):
 
 
 @client.command()
+async def id(ctx, member : discord.Member=None):
+    if member is None:
+        member = ctx.author
+
+    await ctx.send("%s id: **%i**" % (member, member.id))
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def view_json(ctx, file_name):
+    if file_name.endswith('.json'):
+        with open('%s%s' % (data_folder, file_name)) as f:
+            await ctx.send("```json\n%s\n```" % (f.read()))
+    else:
+        raise Exception("**%s does not end with '.json'**" % (file_name))
+
+
+@client.command()
+@commands.has_permissions(administrator=True)
+async def list_json(ctx):
+    json_files = []
+    for f in os.scandir(data_folder):
+        if f.name.endswith('.json'):
+            json_files.append(f.name)
+    else:
+        await ctx.send('\n'.join(json_files))
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
 async def reaction_roles(ctx, *, args):
     lines = args.split('\n')
