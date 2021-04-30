@@ -387,12 +387,11 @@ async def on_command_error(ctx, error):
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def test(ctx, *, msg=None): # Here i test commands
-    embed = discord.Embed(
-        title='React with with this to get the role.',
-        description=f"{'Role id'} {'emoji id'} : {'description'}\n{'Role id'} {'emoji id'} : {'description'}\n{'Role id'} {'emoji id'} : {'description'}\n"
-    )
-    await Send_Message(ctx.channel).send(embed=embed) #TODO: add reaction roles command and reaction roles 
+async def test(ctx, member : discord.Member=None): # Here i test commands
+    member = member or ctx.author
+
+    await ctx.send(member)
+    
     
     
 @client.command()
@@ -537,8 +536,7 @@ async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
 
 @client.command()
 async def rank(ctx, member : discord.Member=None):
-    if member == None:
-        member = ctx.author
+    member = member or ctx.author
     if not member.bot:
         user_rank = Leveling_System(member)
         await ctx.send(embed=await user_rank.rank_msg(member))
@@ -704,7 +702,7 @@ async def msg_count(ctx):
 
 @client.command()
 async def info(ctx, member : discord.Member=None):
-    if member == None: member = ctx.author
+    member = member or ctx.author
 
     created = member.created_at.strftime(f"%A, %B %d %Y @ %H:%M %p")
     joined = member.joined_at.strftime(f"%A, %B %d %Y @ %H:%M %p")
@@ -726,7 +724,7 @@ async def info(ctx, member : discord.Member=None):
     
 @client.command()
 async def pfp(ctx, member : discord.Member=None):
-    if member == None: member = ctx.author
+    member = member or ctx.author
     await ctx.send(member.avatar_url)
     
 
@@ -980,8 +978,7 @@ async def lines(ctx):
 
 @client.command()
 async def id(ctx, member : discord.Member=None):
-    if member is None:
-        member = ctx.author
+    member = member or ctx.author
 
     await ctx.message.reply('**%i**' % (member.id))
 
