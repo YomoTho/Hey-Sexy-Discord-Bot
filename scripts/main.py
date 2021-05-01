@@ -1091,6 +1091,16 @@ async def status(ctx, member : discord.Member=None, args=None):
 
 
 @client.command()
+async def iqtest(ctx, member : discord.Member=None):
+    member = member or ctx.author
+    low, high = 0, 10
+    if randint(0, 10) == 9:
+        low, high = 10, 420
+
+    await ctx.send("%s's IQ is: **%i**" % (member.name, randint(low, high)))
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
 async def reaction_roles(ctx, *, args):
     lines = args.split('\n')
