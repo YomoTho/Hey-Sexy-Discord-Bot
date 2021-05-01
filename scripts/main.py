@@ -814,7 +814,10 @@ async def warn(ctx, user : discord.Member, *, reason=None):
     except discord.errors.HTTPException as e:
         raise Exception('**%s**' % (e))
     else:
-        await ctx.send('Warning sent.')
+        try:
+            await ctx.send('Warning sent.')
+        except:
+            pass
 
         if not str(user.id) in warnings: warnings[str(user.id)] = {}
         warnings[str(user.id)][str(warning_message.id)] = reason
