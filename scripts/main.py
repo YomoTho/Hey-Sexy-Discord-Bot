@@ -387,8 +387,8 @@ async def on_command_error(ctx, error):
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def test(ctx): # Here i test commands
-    print("One\fTwo\fThree")
+async def test(ctx, member : discord.Member): # Here i test commands
+    await ctx.send(member.activities)
     
     
 @client.command()
@@ -1063,6 +1063,31 @@ async def list_json(ctx):
 @client.command()
 async def who(ctx, user_id : int):
     await ctx.message.reply('**%s**' % (client.get_user(user_id)))
+
+
+@client.command()
+async def status(ctx, member : discord.Member=None, args=None):
+    member = member or ctx.author
+    try:
+        t = str(member.activities[0].type).replace('ActivityType.', '')
+        t = '%s%s' % (t[0].upper(), t[1:])
+        des = '%s **%s**' % (t, str(member.activities[0].name))
+        if args == '-d':
+            try:
+                des = '%s\n**%s**\n%s' % (des, member.activities[1].name, member.activities[2].details)
+            except IndexError:
+                try:
+                    des = '%s\nGame: **%s**' % (des, member.activities[1].name)
+                except IndexError:
+                    pass
+    except IndexError:
+        await ctx.send("Nothing.")
+    else:
+        embed = discord.Embed(
+            title="%s's status:" % member.name,
+            description=des
+        )
+        await ctx.send(embed=embed)
 
 
 @client.command()
