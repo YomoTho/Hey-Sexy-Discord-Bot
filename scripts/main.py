@@ -80,8 +80,8 @@ async def store_data():
     global server_owner, server
     server_owner = data.get_owner()
     server = data.get_server()
-    
-    
+
+
 async def get_tday_data(time_stats=None):
     guild = client.get_guild(int(data.server_id))
     async def server_members():
@@ -387,11 +387,8 @@ async def on_command_error(ctx, error):
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def test(ctx, member : discord.Member=None): # Here i test commands
-    member = member or ctx.author
-
-    await ctx.send(member)
-    
+async def test(ctx): # Here i test commands
+    print("One\fTwo\fThree")
     
     
 @client.command()
@@ -791,64 +788,123 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
 @client.command()
 @commands.has_permissions(administrator=True)
 async def warn(ctx, user : discord.Member, *, reason=None):
-    with open(f'{data_folder}warnings.json') as f:
+    with open('%swarnings.json' % (data_folder)) as f:
         warnings = json.load(f)
-    
-    if not str(user.id) in warnings:
-        warnings[str(user.id)] = {}
-        warnings[str(user.id)]['reason'] = reason
-        with open(f'{data_folder}warnings.json', 'w') as f:
-            json.dump(warnings, f, indent=2)
-    else:
-        warnings[str(user.id)][f'reason{return_warnings(user)}'] = reason
 
-    warning_count_text = f"This is your {return_warnings(user) + 1}th warning"
     reason_text = f"Reason: **{reason}**" if not reason == None else f"Reason: {reason}"
-    
+
+    if str(user.id) in warnings:
+        warnings_count = len([warn for warn in warnings[str(user.id)]]) + 1
+        reason_text = '%s\n%s' % (reason_text, 'This is your %ith warning.' % (warnings_count))
+
     embed = discord.Embed(
         title=f"**⚠️ !!! YOU HAVE BEEN WARN !!!** ⚠️",
-        description=f"{reason_text}\n{warning_count_text}" if not return_warnings(user) == 1 else reason_text,
+        description=reason_text,
         color=discord.Color.red()
     )
     embed.set_footer(text=f'{ctx.guild} • owner: {ctx.guild.owner}')
-    await user.send(embed=embed)
-    await ctx.send("Warning sent.")
+    
+    try:
+        warning_message = await user.send(embed=embed)
+    except discord.errors.HTTPException as e:
+        raise Exception('**%s**' % (e))
+    else:
+        await ctx.send('Warning sent.')
 
-    with open(f'{data_folder}warnings.json', 'w') as f:
-        json.dump(warnings, f, indent=2)
+        if not str(user.id) in warnings: warnings[str(user.id)] = {}
+        warnings[str(user.id)][str(warning_message.id)] = reason
+
+        with open('%swarnings.json' % (data_folder), 'w') as f:
+            json.dump(warnings, f, indent=4)   
 
 
-@client.command(aliases=['warns'])
+@client.command(aliases=['warns', 'warns_id'])
 @commands.has_permissions(administrator=True)
 async def warnings(ctx, member : discord.Member=None):
-    warnings = return_warnings(member, users=True)
+    with open('%swarnings.json' % (data_folder)) as f:
+        warnings = json.load(f)
+    
     embed = discord.Embed(
-        title=f"Warnings list",
+        title="Warning List",
         color=discord.Color.red()
     )
-    for warning in warnings:
-        reasons_list = list()
-        for r_list in warnings[warning]:
-            reasons_list.append(str(warnings[warning][r_list]))
-        reasons = str(); reasons = '\n• '.join(reasons_list)
-        user = client.get_user(int(warning))
-        warnings_user = f"**{user}**"
-        warning_reason = f"{len(reasons_list)} Reason(s):\n• {reasons}"
-        embed.add_field(name=warnings_user, value=warning_reason, inline=False)
-    
+    if member is None:
+        for user_id in warnings:
+            user = client.get_user(int(user_id))
+            if ctx.message.content.startswith('%swarns_id' % (command_prefix)): user = '%s (%i)' % (user.name, user.id)
+            user_reasons = []
+            for msg_id in warnings[user_id]:
+                if ctx.message.content.startswith('%swarns_id' % (command_prefix)):
+                    user_reasons.append('• `%s` ~ (%s)' % (str(warnings[user_id][msg_id]), msg_id))    
+                else:
+                    user_reasons.append('• `%s`' % (str(warnings[user_id][msg_id])))
+            user_reasons = '\n'.join(user_reasons)
+            embed.add_field(name='%s, reason(s):' % user, value=user_reasons, inline=False)
+    else:
+        user_reasons = []
+        for msg_id in warnings[str(member.id)]:
+            if ctx.message.content.startswith('%swarns_id' % (command_prefix)):
+                user_reasons.append('• `%s` ~ (%s)' % (str(warnings[str(member.id)][msg_id]), msg_id))    
+            else:
+                user_reasons.append('• `%s`' % (str(warnings[str(member.id)][msg_id])))
+        user_reasons = '\n'.join(user_reasons)
+        if ctx.message.content.startswith('%swarns_id' % (command_prefix)): member = '%s (%i)' % (member.name, member.id)
+        embed.add_field(name='%s, reason(s):' % member, value=user_reasons, inline=False)
+
     await ctx.send(embed=embed)
 
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def del_warn(ctx, user : discord.Member):
+async def del_warn(ctx, id):
     with open(f'{data_folder}warnings.json') as f:
         warnings = json.load(f)
 
-    del warnings[str(user.id)]
+    if id.startswith('<@!'):
+        id = id[3:-1]
 
-    with open(f'{data_folder}warnings.json', 'w') as f:
-        json.dump(warnings, f, indent=2)
+    async def delete_warn(member_id, message_id):
+        member = client.get_user(int(member_id))
+        messages = await member.history(limit=100).flatten()
+        for msg in messages:
+            if int(message_id) == msg.id:
+                await msg.delete()
+                return 0
+        return 1
+
+    async def delete_warns(member_id, messages_id : list):
+        member = client.get_user(int(member_id))
+        messages = await member.history(limit=100).flatten()
+        for msg in messages:
+            if str(msg.id) in messages_id:
+                await msg.delete()
+        else:
+            del warnings[member_id]
+            return 0
+
+    exit_code = 1
+    if str(id) in warnings:
+        exit_code = await delete_warns(id, [msg_id for msg_id in warnings[id]])
+    else:
+        try:
+            for user_id in warnings:
+                if str(id) in warnings[user_id]:
+                    if await delete_warn(user_id, id) == 0:
+                        del warnings[user_id][str(id)]
+                        exit_code = 0
+                if warnings[user_id] == {}:
+                    del warnings[user_id]
+                    exit_code = 0
+        except RuntimeError:
+            pass
+
+    if exit_code == 1:
+        await ctx.send('**%s** not found.' % (id))
+    else:
+        with open(f'{data_folder}warnings.json', 'w') as f:
+            json.dump(warnings, f, indent=2)
+
+        await ctx.message.add_reaction('✅')
 
 
 @client.command(aliases=['server_update', 'announce', '__sa__'])
