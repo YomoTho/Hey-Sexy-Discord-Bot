@@ -74,6 +74,7 @@ server_owner = None
 ttt_running = list()
 no_no_words = ['discord.gg/']
 sa_timezone = pytz.timezone('Africa/Johannesburg')
+last_deleted_message = dict()
 
 # Global variables ^^^
  
@@ -234,9 +235,13 @@ async def on_message_delete(message):
         current_time = '%i:%i %s' % (int(current_time.split(':')[0]) - 12, int(current_time.split(':')[1]), 'PM')
     else:
         current_time = '%s %s' % (current_time, 'AM')
-        
+
     embed.set_footer(text=current_time)
     await channel.send(embed=embed)
+    
+    last_deleted_message[message.channel.id] = {}
+    last_deleted_message[message.channel.id]['user'] = message.author.id
+    last_deleted_message[message.channel.id]['content'] = message.content
 
     
 @client.event
@@ -1177,7 +1182,20 @@ async def list_scripts(ctx):
         description='\n'.join(py_files)
     )
     await ctx.send(embed=embed)
-    
+
+
+@client.command()
+async def snipe(ctx):
+    if ctx.channel.id in last_deleted_message:
+        embed = discord.Embed(
+            description="Last deleted message in %s from %s:" % (ctx.channel.mention, 
+            client.get_user(last_deleted_message[ctx.channel.id]['user']).mention
+            )
+        )
+        embed.add_field(name='Message:', value=last_deleted_message[ctx.channel.id]['content'], inline=False)
+        await ctx.send(embed=embed)
+    else:
+        await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
 
 
 @client.command()
