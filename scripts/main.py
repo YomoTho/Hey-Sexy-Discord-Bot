@@ -73,6 +73,7 @@ server = None
 server_owner = None
 ttt_running = list()
 no_no_words = ['discord.gg/']
+sa_timezone = pytz.timezone('Africa/Johannesburg')
 
 # Global variables ^^^
  
@@ -125,8 +126,6 @@ async def check_time():
     
     while client.is_closed:     # TODO : Clean this code
         server_stats_alarm = time(hour=23, minute=59)
-        
-        sa_timezone = pytz.timezone('Africa/Johannesburg')
         
         current_time = datetime.now(sa_timezone).strftime('%H:%M')
         current_time = str(current_time).split(':')
@@ -220,6 +219,24 @@ async def on_ready():
                 channel = client.get_channel(int(f.read().split('::')[1]))
                 await channel.send(f"Back online!")
     except IndexError: pass
+
+
+@client.event
+async def on_message_delete(message):
+    channel = Send_Message(data.get_useful_channel('al'))
+
+    embed = discord.Embed(
+        description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention)
+    )
+    embed.add_field(name='Message:', value=message.content, inline=False)
+    current_time = str(datetime.now(sa_timezone).strftime('%H:%M'))
+    if int(current_time.split(':')[0]) > 12:
+        current_time = '%i:%i %s' % (int(current_time.split(':')[0]) - 12, int(current_time.split(':')[1]), 'PM')
+    else:
+        current_time = '%s %s' % (current_time, 'AM')
+        
+    embed.set_footer(text=current_time)
+    await channel.send(embed=embed)
 
     
 @client.event
