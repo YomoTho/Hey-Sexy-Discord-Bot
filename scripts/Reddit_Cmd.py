@@ -2,7 +2,7 @@ import asyncpraw
 from bs4 import BeautifulSoup
 
 class Reddit_Command:
-    async def __new__(self, ctx, subreddit, limit, loop, getenv, random, requests, discord):
+    async def __new__(self, ctx, subreddit, limit, loop, getenv, random, requests, discord, fast=False):
         if loop > 100:
             await ctx.send("The loop times must be less than a 100!")
             return
@@ -22,6 +22,7 @@ class Reddit_Command:
             self.loop = loop
             self.requests = requests
             self.discord = discord
+            self.fast = fast
 
             await self.send(self)
 
@@ -31,7 +32,7 @@ class Reddit_Command:
             self.sub = self.random(self.all_posts)
             self.all_posts.remove(self.sub) # Just remove to make it so it won't report the same thing
             url, title = self.sub.url, self.sub.title
-            if not url.endswith('.gifv'):
+            if not url.endswith('.gifv') and self.fast == False:
                 video_url = await self.get_video(self, url)
             else:
                 video_url = url

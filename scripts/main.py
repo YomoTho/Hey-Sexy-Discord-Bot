@@ -956,34 +956,34 @@ async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
 
 @client.command()
 @commands.is_nsfw()
-async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1):
-    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
+async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1, args=None):
+    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command()
-async def food(ctx, limit : int=30, loop : int=1):
-    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord)
+async def food(ctx, limit : int=30, loop : int=1, args=None):
+    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command(aliases=['cats', 'cat', 'kittens', 'pussy'])
-async def kitten(ctx, limit : int=30, loop : int=1):
-    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord)
+async def kitten(ctx, limit : int=30, loop : int=1, args=None):
+    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command(aliases=['dogs', 'puppy', 'puppies'])
-async def dog(ctx, limit : int=30, loop : int=1):
-    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord)
+async def dog(ctx, limit : int=30, loop : int=1, args=None):
+    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command()
-async def dankmeme(ctx, limit : int=30, loop=1):
-    await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord)
+async def dankmeme(ctx, limit : int=30, loop=1, args=None):
+    await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command()
 @commands.is_owner()
-async def r(ctx, subr, limit : int=30, loop : int=1):
-    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord)
+async def r(ctx, subr, limit : int=30, loop : int=1, args=None):
+    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command()
