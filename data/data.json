@@ -35,6 +35,10 @@
     "822861690806468648": {
       "name": "live-rank",
       "cname": "lr"
+    },
+    "838035243222564925": {
+      "name": "audit-log",
+      "cname": "al"
     }
   },
   "roles": {
