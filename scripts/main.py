@@ -72,6 +72,7 @@ status_number = 0
 server = None
 server_owner = None
 ttt_running = list()
+no_no_words = ['discord.gg/']
 
 # Global variables ^^^
  
@@ -238,6 +239,10 @@ async def on_message(message):
                 embed.set_author(name=message.author, icon_url=message.author.avatar_url)
                 await server_owner.send(embed=embed)
     else:
+        if any(word in message.content for word in no_no_words):
+            await message.delete()
+            await warn(message, message.author, reason="Discord Invites")
+            return
         if not message.author.bot:
             stats = TimeStats(); stats.on_message()
             user_rank_data = Leveling_System(message.author) # This is doing the leveling system thing
