@@ -1137,6 +1137,25 @@ async def iqlist(ctx):
 
 
 @client.command()
+async def list_scripts(ctx):
+    py_files = [py_file.name for py_file in os.scandir() if py_file.name.endswith('.py') or py_file.name.endswith('.sh')]
+    
+    for idx, file in enumerate(py_files):
+        lines = 0
+        with open(file) as f:
+            for line in f.readlines():
+                lines += 1
+        py_files[idx] = '`%s` : **%i** lines' % (file, lines)
+
+    embed = discord.Embed(
+        title="All the script files:",
+        description='\n'.join(py_files)
+    )
+    await ctx.send(embed=embed)
+    
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
 async def reaction_roles(ctx, *, args):
     lines = args.split('\n')
