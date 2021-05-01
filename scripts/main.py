@@ -1091,13 +1091,31 @@ async def status(ctx, member : discord.Member=None, args=None):
 
 
 @client.command()
-async def iqtest(ctx, member : discord.Member=None):
-    member = member or ctx.author
+async def iqtest(ctx):
+    with open('%siq_scores.json' % data_folder) as f:
+        iqscores = json.load(f)
+    
+    member = ctx.author
+
+    luck = randint(0, 10)
     low, high = 0, 10
-    if randint(0, 10) == 9:
+    if luck == 9:
         low, high = 10, 420
 
-    await ctx.send("%s's IQ is: **%i**" % (member.name, randint(low, high)))
+    if str(member.id) in iqscores:
+        if luck == 9:
+            iq = randint(low, high)
+        else:
+            iq = iqscores[str(member.id)]
+    else:
+        iq = randint(low, high)
+
+    await ctx.send("%s's IQ is: **%i**" % (member.name, iq))
+
+    iqscores[str(member.id)] = iq
+
+    with open('%siq_scores.json' % data_folder, 'w') as f:
+        json.dump(iqscores, f, indent=4)
 
 
 @client.command()
