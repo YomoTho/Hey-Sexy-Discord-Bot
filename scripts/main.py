@@ -1104,6 +1104,7 @@ async def iqtest(ctx):
 
     if str(member.id) in iqscores:
         if luck == 9:
+            if randint(0, 10) != 9: low, high = 0, 10
             iq = randint(low, high)
         else:
             iq = iqscores[str(member.id)]
@@ -1116,6 +1117,23 @@ async def iqtest(ctx):
 
     with open('%siq_scores.json' % data_folder, 'w') as f:
         json.dump(iqscores, f, indent=4)
+
+
+@client.command()
+async def iqlist(ctx):
+    with open('%siq_scores.json' % data_folder) as f:
+        iqscores = json.load(f)
+
+    users = []
+    
+    for user_id in iqscores:
+        users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
+
+    embed = discord.Embed(
+        title='%s members IQ:' % ctx.guild,
+        description='\n'.join(users)
+    )
+    await ctx.send(embed=embed)
 
 
 @client.command()
