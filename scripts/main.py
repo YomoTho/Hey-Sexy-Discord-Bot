@@ -1198,6 +1198,18 @@ async def snipe(ctx):
         await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
 
 
+@client.command(aliases=['listttt', 'list_tictactoe'])
+async def list_ttt(ctx):
+    des = str()
+    for ttt in ttt_running:
+        des = '%s\n%s' % (des, ttt)
+    embed = discord.Embed(
+        title='All running tic-tac-toe games:', 
+        description=des
+    )
+    await ctx.send(embed=embed)
+
+
 @client.command()
 @commands.has_permissions(administrator=True)
 async def reaction_roles(ctx, *, args):

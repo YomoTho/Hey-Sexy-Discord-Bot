@@ -41,6 +41,10 @@ class TicTacToe:
         self.make_move_msgs = list() # This is a list of all the message's that says "{player} make a move!"
 
 
+    def __repr__(self):
+        return '**%s**~**%s**//**%i**' % (self.player_1.name, self.player_2.name, self.ctx.message.id)
+
+
     async def print(self, board=None):
         if not board is None:
             line1 = ''.join(board[0:3])
