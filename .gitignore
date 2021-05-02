@@ -128,3 +128,5 @@ Bot Testing/save code.txt
 data/serverDates.json
 .directory
 data/config.json
+scripts/reboot_id
+scripts/reboot_id_a
