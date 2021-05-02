@@ -1211,6 +1211,22 @@ async def list_ttt(ctx):
 
 
 @client.command()
+@commands.is_owner()
+async def spam(ctx, member : discord.Member, *args):
+    if args[0] == 'file':
+        with open(args[1]) as f:
+            for line in f.readlines():
+                try:
+                    await member.send(line)
+                except:
+                    pass
+    else:
+        for _ in range(int(args[1])):
+            await member.send(args[0])
+    await ctx.send('Done spamming **%s**' % member)
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
 async def reaction_roles(ctx, *, args):
     lines = args.split('\n')
