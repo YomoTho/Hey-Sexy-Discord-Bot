@@ -1214,12 +1214,15 @@ async def list_ttt(ctx):
 @commands.is_owner()
 async def spam(ctx, member : discord.Member, *args):
     if args[0] == 'file':
+        file_content = None
         with open(args[1]) as f:
-            for line in f.readlines():
-                try:
-                    await member.send(line)
-                except:
-                    pass
+            file_content = f.readlines()
+        await ctx.send("Going to spam **%s**\nFile: **%s**, **%i** lines." % (member.name, args[1], len(file_content)))
+        for line in file_content:
+            try:
+                await member.send(line)
+            except discord.errors.HTTPException:
+                pass
     else:
         for _ in range(int(args[1])):
             await member.send(args[0])
