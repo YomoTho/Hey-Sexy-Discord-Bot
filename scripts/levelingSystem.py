@@ -150,18 +150,17 @@ class Leveling_System:
         
     
     async def rank_msg(self, member):
-        if not member.bot:
-            leveling_System = Leveling_System(member)
-            msg = leveling_System.rank()
-            embed = discord.Embed(
-                description=f'{msg[1]}  {msg[2]}\n',
-                color=discord.Color.blue()
-            )
-            embed.add_field(name=msg[3], value=msg[0], inline=False)
-            embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
-            embed.set_author(name=member, icon_url=member.avatar_url)
-            embed.set_thumbnail(url=member.avatar_url)
-            return embed
+        leveling_System = Leveling_System(member)
+        msg = leveling_System.rank()
+        embed = discord.Embed(
+            description=f'{msg[1]}  {msg[2]}\n',
+            color=discord.Color.blue()
+        )
+        embed.add_field(name=msg[3], value=msg[0], inline=False)
+        embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
+        embed.set_author(name=member, icon_url=member.avatar_url)
+        embed.set_thumbnail(url=member.avatar_url)
+        return embed
         
         
     async def update_live_rank(self, data):

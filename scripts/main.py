@@ -564,11 +564,8 @@ async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
 @client.command()
 async def rank(ctx, member : discord.Member=None):
     member = member or ctx.author
-    if not member.bot:
-        user_rank = Leveling_System(member)
-        await ctx.send(embed=await user_rank.rank_msg(member))
-    else:
-        await ctx.send("Bots don't have rank.")
+    user_rank = Leveling_System(member)
+    await ctx.send(embed=await user_rank.rank_msg(member))
 
 
 @client.command()
