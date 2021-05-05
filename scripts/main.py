@@ -212,7 +212,9 @@ async def member_leave_process(member):
 
 @client.event
 async def on_ready():
-    print(f"{client.user} is online.")
+    global on_ready_time
+    on_ready_time = datetime.now()
+    print(f"{client.user} is online @ {on_ready_time}")
     await store_data()
     try:
         if int(sys.argv[1:][0]) == 1:
@@ -1243,6 +1245,16 @@ async def reaction_roles(ctx, *, args):
     message = await ctx.send(reply)
 
     await message.add_reaction(reaction_emoji)
+
+
+@client.command()
+async def uptime(ctx):
+    current_time = datetime.now()
+    cal_uptime = current_time - on_ready_time
+    total_minutes = (cal_uptime.total_seconds() / 60)
+    total_hours = (total_minutes / 60)
+
+    await ctx.message.reply('**%i** hours' % (int(total_hours)) if int(total_hours) > 0 else '**%i** minutes' % (int(total_minutes)))
 
 
 if __name__ == '__main__':
