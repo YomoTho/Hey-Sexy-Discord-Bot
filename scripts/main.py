@@ -242,6 +242,7 @@ async def on_message_delete(message):
     last_deleted_message[message.channel.id] = {}
     last_deleted_message[message.channel.id]['user'] = message.author.id
     last_deleted_message[message.channel.id]['content'] = message.content
+    last_deleted_message[message.channel.id]['time'] = current_time
 
     
 @client.event
@@ -1188,8 +1189,9 @@ async def list_scripts(ctx):
 async def snipe(ctx):
     if ctx.channel.id in last_deleted_message:
         embed = discord.Embed(
-            description="Last deleted message in %s from %s:" % (ctx.channel.mention, 
-            client.get_user(last_deleted_message[ctx.channel.id]['user']).mention
+            description="Last deleted message in %s from %s @ **%s**:" % (ctx.channel.mention, 
+            client.get_user(last_deleted_message[ctx.channel.id]['user']).mention,
+            last_deleted_message[ctx.channel.id]['time']
             )
         )
         embed.add_field(name='Message:', value=last_deleted_message[ctx.channel.id]['content'], inline=False)
