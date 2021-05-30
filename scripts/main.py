@@ -1339,6 +1339,19 @@ async def uptime(ctx):
         await ctx.send(embed=embed)
 
 
+@client.command()
+@commands.is_owner()
+async def listall(ctx, members_or_role:str):
+    if members_or_role.lower() == 'roles':
+        the_list = [role for role in ctx.guild.roles if not str(role) == '@everyone']
+    elif members_or_role.lower() == 'members':
+        the_list = ctx.guild.members 
+    else:
+        return await ctx.send("List all WHAT?")
+
+    await ctx.send(embed=discord.Embed(title='%i total:' % len(the_list), description='\n'.join([thing.mention for thing in the_list])))
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
