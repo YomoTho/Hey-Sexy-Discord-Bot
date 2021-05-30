@@ -120,7 +120,18 @@ def return_warnings(user : discord.Member, users=False, r_count=False):
     else:
         return len([warning for warning in warnings[str(user.id)]]) if not warnings == {} else 0
 
-    
+
+def check_if_reaction_role_message(message_id:str):
+    with open('%sreactions.json' % data_folder) as f:
+        messages = json.load(f)
+
+    if message_id in messages:
+        del messages[message_id]
+
+        with open('%sreactions.json' % data_folder, 'w') as f:
+            json.dump(messages, f, indent=4)
+
+
 async def check_time():
     await client.wait_until_ready()
     await asyncio.sleep(1)
@@ -226,6 +237,8 @@ async def on_ready():
 
 @client.event
 async def on_message_delete(message):
+    check_if_reaction_role_message(str(message.id))
+
     channel = Send_Message(data.get_useful_channel('al'))
 
     embed = discord.Embed(
@@ -316,43 +329,73 @@ async def on_member_remove(member):
 @client.event
 async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
     if not payload.user_id == client.user.id:
-        if payload.emoji.name == '❌':
-            with open(f"{data_folder}errors.json") as f:
-                errors_data = json.load(f)
-            
-            if str(payload.channel_id) in errors_data:
-                if str(payload.message_id) in errors_data[str(payload.channel_id)]:
-                    dumb_user = client.get_user(errors_data[str(payload.channel_id)][str(payload.message_id)]['user_id'])
-                    embed = discord.Embed(title=" :x: Error:", description=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", color=0xff001c)
-                    embed.set_author(name=dumb_user, icon_url=dumb_user.avatar_url)
-                    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
-                    
-                    await message.reply(embed=embed)
+        if payload.channel_id == data.get_useful_channel(cname='r').id:
+            with open('%sreactions.json' % data_folder) as f:
+                messages = json.load(f)
 
-                    del errors_data[str(payload.channel_id)][str(payload.message_id)]
-
-                    with open(f"{data_folder}errors.json", 'w') as f:
-                        json.dump(errors_data, f, indent=4)
+            if str(payload.message_id) in messages:
+                if str(payload.emoji) in messages[str(payload.message_id)]:
+                    role_id = messages[str(payload.message_id)][str(payload.emoji)]
+                    role = discord.utils.get(client.get_guild(payload.guild_id).roles, id=int(role_id))
+                    user = discord.utils.get(client.get_guild(payload.guild_id).members, id=payload.user_id)
+                    await user.add_roles(role)
+            else:
+                pass
         else:
-            global ttt_running
-            if len(ttt_running) > 0:
-                try:
-                    for ttt_game in ttt_running:
-                        if payload.emoji.name in ttt_game.reactions:
-                            if payload.message_id == ttt_game.game_msg.id:
-                                if payload.user_id == ttt_game.turn.id:
-                                    await ttt_game.move(payload.emoji)
-                        elif payload.emoji.name == '🔄':
-                            if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
-                                if not ttt_game.whos_turn_msg is None:
-                                    if payload.message_id == ttt_game.whos_turn_msg.id:
-                                        ttt_running.remove(ttt_game)
-                                        await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
-                                        ttt_game.destroy = False
-                except NameError:
-                    pass
+            if payload.emoji.name == '❌':
+                with open(f"{data_folder}errors.json") as f:
+                    errors_data = json.load(f)
+                
+                if str(payload.channel_id) in errors_data:
+                    if str(payload.message_id) in errors_data[str(payload.channel_id)]:
+                        dumb_user = client.get_user(errors_data[str(payload.channel_id)][str(payload.message_id)]['user_id'])
+                        embed = discord.Embed(title=" :x: Error:", description=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", color=0xff001c)
+                        embed.set_author(name=dumb_user, icon_url=dumb_user.avatar_url)
+                        message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+                        
+                        await message.reply(embed=embed)
+
+                        del errors_data[str(payload.channel_id)][str(payload.message_id)]
+
+                        with open(f"{data_folder}errors.json", 'w') as f:
+                            json.dump(errors_data, f, indent=4)
+            else:
+                global ttt_running
+                if len(ttt_running) > 0:
+                    try:
+                        for ttt_game in ttt_running:
+                            if payload.emoji.name in ttt_game.reactions:
+                                if payload.message_id == ttt_game.game_msg.id:
+                                    if payload.user_id == ttt_game.turn.id:
+                                        await ttt_game.move(payload.emoji)
+                            elif payload.emoji.name == '🔄':
+                                if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
+                                    if not ttt_game.whos_turn_msg is None:
+                                        if payload.message_id == ttt_game.whos_turn_msg.id:
+                                            ttt_running.remove(ttt_game)
+                                            await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                                            ttt_game.destroy = False
+                    except NameError:
+                        pass
     
     
+@client.event
+async def on_raw_reaction_remove(payload:discord.RawReactionActionEvent):
+    if not payload.user_id == client.user.id:
+        if payload.channel_id == data.get_useful_channel(cname='r').id:
+            with open('%sreactions.json' % data_folder) as f:
+                messages = json.load(f)
+
+            if str(payload.message_id) in messages:
+                if str(payload.emoji) in messages[str(payload.message_id)]:
+                    role_id = messages[str(payload.message_id)][str(payload.emoji)]
+                    role = discord.utils.get(client.get_guild(payload.guild_id).roles, id=int(role_id))
+                    user = discord.utils.get(client.get_guild(payload.guild_id).members, id=payload.user_id)
+                    await user.remove_roles(role)
+            else:
+                pass
+
+
 @client.event
 async def on_command_error(ctx, error):
     async def yes(e=error):
@@ -626,96 +669,96 @@ async def ping(ctx):
     await ctx.send(f'ping {round(client.latency * 1000)}ms')
 
 
-@client.command()
-async def buy(ctx, *args):
-    if ctx.channel == data.get_useful_channel(cname='sh') or ctx.author.id == data.get_owner().id:
-        try:
-            if args[0] in 'role':
-                try:
-                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
-                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-                    if role in ctx.author.roles:
-                        await ctx.send('You already have this role. lol')
-                        return
-                except ValueError:
-                    if args[1].startswith('<@!'):
-                        await ctx.send(f"You can't buy {args[1]}, dum dum")
-                    else:
-                        await ctx.send(f"Huh, who!?")
-                else:
-                    buyer = Money(ctx.author)
-                    buying = buyer.buy(role=role)
-                    if next(buying):
-                        await ctx.author.add_roles(role)
-                        if next(buying):
-                            await ctx.message.add_reaction('✅')
-                        else:
-                            await ctx.send("Something went wrong here.")
-                    else:
-                        await ctx.send(f"You don't have enough money to buy this role.")
-            elif args[0] in ['lr', 'liverank']:     # TODO add live rank
-                buyer = Money(ctx.author)
-                buying = buyer.buy(liverank=1)
-                if next(buying):
-                    live_rank_channel = data.get_useful_channel(cname='lr')
-                    user_rank = Leveling_System(ctx.author)
-                    liverank_msg = await live_rank_channel.send(f'{ctx.author.mention} live rank', embed=await user_rank.rank_msg(ctx.author))
-                    
-                    with open(f'{data_folder}liverank.json', 'r') as f:
-                        liverank_users = json.load(f)
-                    
-                    liverank_users[ctx.author.id] = {}
-                    liverank_users[ctx.author.id]['msg_id'] = liverank_msg.id
-                    liverank_users[ctx.author.id]['channel_id'] = liverank_msg.channel.id
-                    
-                    with open(f'{data_folder}liverank.json', 'w') as f:
-                        json.dump(liverank_users, f, indent=2)
-                        
-                    if next(buying):     # Take money
-                        await ctx.message.add_reaction('✅')
-            else:
-                raise IndexError
-        except IndexError:
-            await ctx.send("Not like that, type in: ';buy role {@role}' (e.p ';buy role <@&818591361837695010>')")
-        except Exception as e:
-            await ctx.message.add_reaction('❌')
-            await ctx.send(e)
-    else:
-        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
-
-
-@client.command()
-async def sell(ctx, *args):
-    if ctx.channel == data.get_useful_channel(cname='sh'):
-        try:
-            if args[0] == 'role':
-                try:
-                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
-                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-                except ValueError:
-                    if args[1].startswith('<@!'):
-                        await ctx.send(f"You can't sell {args[1]}, dum dum")
-                    else:
-                        await ctx.send(f"Huh!?")
-                else:
-                    try:
-                        seller_user = Money(ctx.author) # Here we define the member
-                        seller = seller_user.sell(role) # This function is a generator
-                        if next(seller): # If the user can sell this role, then it will return True
-                            await ctx.author.remove_roles(role)
-                            await ctx.message.add_reaction('✅')
-                    except Exception as e:
-                        await ctx.send(e)
-                    else:
-                        # If verything went good then it will save, the changes
-                        money_update = next(seller) # This will save and return info
-                        await ctx.send(f"You had ${money_update[0]}, then sell '{role.name}' for ${money_update[2]}. Now you have $**{money_update[1]}**.")
-            else:
-                raise IndexError
-        except IndexError:
-            await ctx.send("Not like that dummy, type in: ';sell role {@role}' \n(e.p: ';sell role <@&818591361837695010>')")
-    else:
-        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
+#@client.command()
+#async def buy(ctx, *args):
+#    if ctx.channel == data.get_useful_channel(cname='sh') or ctx.author.id == data.get_owner().id:
+#        try:
+#            if args[0] in 'role':
+#                try:
+#                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
+#                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
+#                    if role in ctx.author.roles:
+#                        await ctx.send('You already have this role. lol')
+#                        return
+#                except ValueError:
+#                    if args[1].startswith('<@!'):
+#                        await ctx.send(f"You can't buy {args[1]}, dum dum")
+#                    else:
+#                        await ctx.send(f"Huh, who!?")
+#                else:
+#                    buyer = Money(ctx.author)
+#                    buying = buyer.buy(role=role)
+#                    if next(buying):
+#                        await ctx.author.add_roles(role)
+#                        if next(buying):
+#                            await ctx.message.add_reaction('✅')
+#                        else:
+#                            await ctx.send("Something went wrong here.")
+#                    else:
+#                        await ctx.send(f"You don't have enough money to buy this role.")
+#            elif args[0] in ['lr', 'liverank']:     # TODO add live rank
+#                buyer = Money(ctx.author)
+#                buying = buyer.buy(liverank=1)
+#                if next(buying):
+#                    live_rank_channel = data.get_useful_channel(cname='lr')
+#                    user_rank = Leveling_System(ctx.author)
+#                    liverank_msg = await live_rank_channel.send(f'{ctx.author.mention} live rank', embed=await user_rank.rank_msg(ctx.author))
+#                    
+#                    with open(f'{data_folder}liverank.json', 'r') as f:
+#                        liverank_users = json.load(f)
+#                    
+#                    liverank_users[ctx.author.id] = {}
+#                    liverank_users[ctx.author.id]['msg_id'] = liverank_msg.id
+#                    liverank_users[ctx.author.id]['channel_id'] = liverank_msg.channel.id
+#                    
+#                    with open(f'{data_folder}liverank.json', 'w') as f:
+#                        json.dump(liverank_users, f, indent=2)
+#                        
+#                    if next(buying):     # Take money
+#                        await ctx.message.add_reaction('✅')
+#            else:
+#                raise IndexError
+#        except IndexError:
+#            await ctx.send("Not like that, type in: ';buy role {@role}' (e.p ';buy role <@&818591361837695010>')")
+#        except Exception as e:
+#            await ctx.message.add_reaction('❌')
+#            await ctx.send(e)
+#    else:
+#        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
+#
+#
+#@client.command()
+#async def sell(ctx, *args):
+#    if ctx.channel == data.get_useful_channel(cname='sh'):
+#        try:
+#            if args[0] == 'role':
+#                try:
+#                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
+#                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
+#                except ValueError:
+#                    if args[1].startswith('<@!'):
+#                        await ctx.send(f"You can't sell {args[1]}, dum dum")
+#                    else:
+#                        await ctx.send(f"Huh!?")
+#                else:
+#                    try:
+#                        seller_user = Money(ctx.author) # Here we define the member
+#                        seller = seller_user.sell(role) # This function is a generator
+#                        if next(seller): # If the user can sell this role, then it will return True
+#                            await ctx.author.remove_roles(role)
+#                            await ctx.message.add_reaction('✅')
+#                    except Exception as e:
+#                        await ctx.send(e)
+#                    else:
+#                        # If verything went good then it will save, the changes
+#                        money_update = next(seller) # This will save and return info
+#                        await ctx.send(f"You had ${money_update[0]}, then sell '{role.name}' for ${money_update[2]}. Now you have $**{money_update[1]}**.")
+#            else:
+#                raise IndexError
+#        except IndexError:
+#            await ctx.send("Not like that dummy, type in: ';sell role {@role}' \n(e.p: ';sell role <@&818591361837695010>')")
+#    else:
+#        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
 
 
 @client.command()
@@ -1234,17 +1277,25 @@ async def spam(ctx, member : discord.Member, *args):
 
 
 @client.command()
-@commands.has_permissions(administrator=True)
-async def reaction_roles(ctx, *, args):
-    lines = args.split('\n')
-    blocks = lines[0].split(' ')
-    role = blocks[0]
-    reaction_emoji = blocks[1]
-    description = ' '.join(blocks[2:])
-    reply = f"{role} {reaction_emoji}: {description}"
-    message = await ctx.send(reply)
+@commands.is_owner()
+async def newrr(ctx, message_id:int, *, args:str):
+    roles_channel = data.get_useful_channel(cname='r')
 
-    await message.add_reaction(reaction_emoji)
+    message = await roles_channel.fetch_message(message_id)
+    
+    with open('%sreactions.json' % data_folder) as f:
+        blocks = json.load(f)
+        blocks[str(message.id)] = {}
+    
+    for block in args.split(' / '):
+        emoji_and_role = block.split(' ')
+        blocks[str(message.id)][emoji_and_role[0]] = int(emoji_and_role[1][3:-1])
+        await message.add_reaction(emoji_and_role[0])
+    else:
+        with open('%sreactions.json' % data_folder, 'w') as f:
+            json.dump(blocks, f, indent=4)
+
+    await ctx.message.delete()
 
 
 @client.command()
