@@ -312,15 +312,14 @@ async def on_member_join(member):
     stats = TimeStats()
     stats.member_join()
 
-    leveling_system_channel = data.get_useful_channel('ls')
+    roles_channel = data.get_useful_channel('r')
+    rules_channel = data.get_useful_channel(cname='rules')
     if member.bot:
         await member.add_roles(data.get_role('bots'))
-    else:
-        await member.add_roles(data.get_role('humans'))
 
     embed = discord.Embed(
         title=f"Welcome {member.name} to {member.guild}",
-        description=f"To know more of the leveling system and that, read it in {leveling_system_channel.mention}" if not member.bot else "This is a bot.",
+        description=f"The rules: {rules_channel.mention}\n\nTo get roles, look in {roles_channel.mention}" if not member.bot else "This is a bot.",
         color=discord.Color.blue()
     )
     embed.set_footer(text=f'{member.guild}')
@@ -351,6 +350,11 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                     await user.add_roles(role)
             else:
                 pass
+        elif payload.channel_id == data.get_useful_channel(cname='rules').id:
+            if str(payload.message_id) == '823307869746495568': # This ID is the rules message's ID
+                user = discord.utils.get(client.get_guild(payload.guild_id).members, id=payload.user_id)
+                role = discord.utils.get(client.get_guild(payload.guild_id).roles, id=int(data.get_role(cname='humans').id))
+                await user.add_roles(role)
         else:
             if payload.emoji.name == '❌':
                 with open(f"{data_folder}errors.json") as f:

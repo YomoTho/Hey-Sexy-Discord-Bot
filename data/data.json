@@ -12,10 +12,6 @@
       "name": "leveling-system",
       "cname": "ls"
     },
-    "818588345508560983": {
-      "name": "shop",
-      "cname": "sh"
-    },
     "818560379117895740": {
       "name": "\ud83d\udce3server-announcement",
       "cname": "sa"
@@ -43,6 +39,10 @@
     "848632564640907337": {
       "name": "roles",
       "cname": "r"
+    },
+    "818560649189654589": {
+      "name": "rules",
+      "cname": "rules"
     }
   },
   "roles": {
