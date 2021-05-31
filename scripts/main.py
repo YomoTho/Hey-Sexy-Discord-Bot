@@ -7,7 +7,7 @@ import requests
 import sys
 import insta
 import shutil
-from Reddit_Cmd import Reddit_Command
+from Reddit_Cmd import Reddit
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
 from discord.ext import tasks, commands
@@ -20,7 +20,7 @@ from data import Data
     #Africa/Johannesburg
 
 data_folder = '../data/'
-
+print("Starting...")
 
 with open(f'{data_folder}config.json') as f:
     d = json.load(f)
@@ -219,11 +219,17 @@ async def member_leave_process(member):
     print(f"{member} has left the server.")
 
 
+async def reddit_command(*args):
+    await reddit(*args)
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
 async def on_ready():
     global on_ready_time
+    global reddit
+    reddit = Reddit()
     on_ready_time = datetime.now()
     print(f"{client.user} is online @ {on_ready_time}")
     await store_data()
@@ -291,7 +297,11 @@ async def on_message(message):
                 await channel.send(leveled_up_msg)
             bot_access_role = data.get_role(cname='ba')
             if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
-                await client.process_commands(message)
+                if not message.content.startswith('%sr/' % command_prefix):
+                    await client.process_commands(message)
+                else:
+                    ctx = message.content.split('/')[1]
+                    await reddit_command(await client.get_context(message), *ctx.split(' '))
                 await user_rank_data.update_live_rank(data)
 
 
@@ -1022,41 +1032,41 @@ async def _help(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command()
-async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
-    await Reddit_Command(ctx, 'memes', limit, loop, os.getenv, choice, requests, discord)
+#@client.command()
+#async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
+#    await Reddit_Command(ctx, 'memes', limit, loop, os.getenv, choice, requests, discord)
+#
+#
+#@client.command()
+#@commands.is_nsfw()
+#async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1, args=None):
+#    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
+#
+#
+#@client.command()
+#async def food(ctx, limit : int=30, loop : int=1, args=None):
+#    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
+#
+#
+#@client.command(aliases=['cats', 'cat', 'kittens', 'pussy'])
+#async def kitten(ctx, limit : int=30, loop : int=1, args=None):
+#    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
+#
+#
+#@client.command(aliases=['dogs', 'puppy', 'puppies'])
+#async def dog(ctx, limit : int=30, loop : int=1, args=None):
+#    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
+#
+#
+#@client.command()
+#async def dankmeme(ctx, limit : int=30, loop=1, args=None):
+#    await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
-@client.command()
-@commands.is_nsfw()
-async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1, args=None):
-    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-@client.command()
-async def food(ctx, limit : int=30, loop : int=1, args=None):
-    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-@client.command(aliases=['cats', 'cat', 'kittens', 'pussy'])
-async def kitten(ctx, limit : int=30, loop : int=1, args=None):
-    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-@client.command(aliases=['dogs', 'puppy', 'puppies'])
-async def dog(ctx, limit : int=30, loop : int=1, args=None):
-    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-@client.command()
-async def dankmeme(ctx, limit : int=30, loop=1, args=None):
-    await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-@client.command()
-@commands.is_owner()
-async def r(ctx, subr, limit : int=30, loop : int=1, args=None):
-    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
+#@client.command()
+#@commands.is_owner()
+#async def r(ctx, subr, limit : int=30, loop : int=1, args=None):
+#    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
 @client.command()
@@ -1357,6 +1367,5 @@ if __name__ == '__main__':
     
     load_dotenv()
 
-    print("Starting...")
     client.run(os.getenv('TOKEN'))
     print("Ended.")
