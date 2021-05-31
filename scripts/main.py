@@ -295,14 +295,12 @@ async def on_message(message):
                 leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
                 channel = Send_Message(data.get_useful_channel(cname='lu'))
                 await channel.send(leveled_up_msg)
-            bot_access_role = data.get_role(cname='ba')
-            if bot_access_role in message.author.roles or message.content.startswith(';buy') or message.content.startswith(';rank') or message.content.startswith(';help'):
-                if not message.content.startswith('%sr/' % command_prefix):
-                    await client.process_commands(message)
-                else:
-                    ctx = message.content.split('/')[1]
-                    await reddit_command(await client.get_context(message), *ctx.split(' '))
-                await user_rank_data.update_live_rank(data)
+            if not message.content.startswith('%sr/' % command_prefix):
+                await client.process_commands(message)
+            else:
+                ctx = message.content.split('/')[1]
+                await reddit_command(await client.get_context(message), *ctx.split(' '))
+            await user_rank_data.update_live_rank(data)
 
 
 @client.event
