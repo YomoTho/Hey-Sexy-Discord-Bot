@@ -1368,9 +1368,13 @@ async def listall(ctx, members_or_role:str):
 async def gaytest(ctx, member:discord.Member=None):
     member = member or ctx.author
 
-    says = ['**100%** GAY!', 'kinda yea', 'nope! 100% straight', '**69%** gay', "21% gay", '1% gay', '99% gay', '50% gay', '10% gay']
+    says = choice(['**100%** GAY!', 'kinda yea', 'nope! 100% straight', '**69%** gay', "21% gay", '1% gay', '99% gay', '50% gay', '10% gay'])
 
-    await ctx.send(choice(says))
+    rand_say = f'**{randint(0, 100)}**% gay'
+
+    say = choice([rand_say, says])
+
+    await ctx.send(say)
 
 
 if __name__ == '__main__':
