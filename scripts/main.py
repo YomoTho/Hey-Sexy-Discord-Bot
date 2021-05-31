@@ -1364,6 +1364,15 @@ async def listall(ctx, members_or_role:str):
     await ctx.send(embed=discord.Embed(title='%i total:' % len(the_list), description='\n'.join([thing.mention for thing in the_list])))
 
 
+@client.command()
+async def gaytest(ctx, member:discord.Member=None):
+    member = member or ctx.author
+
+    says = ['**100%** GAY!', 'kinda yea', 'nope! 100% straight', '**69%** gay', "21% gay", '1% gay', '99% gay', '50% gay', '10% gay']
+
+    await ctx.send(choice(says))
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
