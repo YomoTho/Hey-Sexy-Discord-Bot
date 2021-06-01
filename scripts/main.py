@@ -223,6 +223,41 @@ async def reddit_command(*args):
     await reddit(*args)
 
 
+async def get_iq(member:discord.Member) -> int:
+    with open('%siq_scores.json' % data_folder) as f:
+        iqscores = json.load(f)
+    
+    luck = randint(0, 10)
+    low, high = 0, 10
+    if luck == 9:
+        low, high = 10, 420
+
+    if str(member.id) in iqscores:
+        if luck == 9:
+            if randint(0, 10) != 9: low, high = 0, 10
+            iq = randint(low, high)
+        else:
+            iq = iqscores[str(member.id)]
+    else:
+        iq = randint(low, high)
+
+    iqscores[str(member.id)] = iq
+
+    with open('%siq_scores.json' % data_folder, 'w') as f:
+        json.dump(iqscores, f, indent=4)
+    
+    return iq
+
+
+async def get_gay_test():
+    says = choice(['**100%** GAY!', 'kinda yea', 'nope! 100% straight', '**69%** gay', "21% gay", '1% gay', '99% gay', '50% gay', '10% gay'])
+
+    rand_say = f'**{randint(0, 100)}**% gay'
+
+    say = choice([rand_say, says])
+
+    return say
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -317,11 +352,12 @@ async def on_member_join(member):
 
     embed = discord.Embed(
         title=f"Welcome {member.name} to {member.guild}",
-        description=f"The rules: {rules_channel.mention}\n\nTo get roles, look in {roles_channel.mention}" if not member.bot else "This is a bot.",
+        description=f"The rules: {rules_channel.mention}\n\nTo get roles, look in {roles_channel.mention}\n\nAny help? ask {client.get_user(int(data.server_owner_id)).mention}" if not member.bot else "This is a bot.",
         color=discord.Color.blue()
     )
     embed.set_footer(text=f'{member.guild}')
     embed.set_thumbnail(url=member.avatar_url)
+    embed.add_field(name='Info:', value='IQ: **%i**\n%s' % (await get_iq(member), await get_gay_test()), inline=False)
     channel = Send_Message(data.get_useful_channel('w'))
     await channel.send(member.mention, embed=embed)
 
@@ -1180,31 +1216,11 @@ async def status(ctx, member : discord.Member=None, args=None):
 
 @client.command()
 async def iqtest(ctx):
-    with open('%siq_scores.json' % data_folder) as f:
-        iqscores = json.load(f)
-    
     member = ctx.author
-
-    luck = randint(0, 10)
-    low, high = 0, 10
-    if luck == 9:
-        low, high = 10, 420
-
-    if str(member.id) in iqscores:
-        if luck == 9:
-            if randint(0, 10) != 9: low, high = 0, 10
-            iq = randint(low, high)
-        else:
-            iq = iqscores[str(member.id)]
-    else:
-        iq = randint(low, high)
+    
+    iq = await get_iq(member)
 
     await ctx.send("%s's IQ is: **%i**" % (member.name, iq))
-
-    iqscores[str(member.id)] = iq
-
-    with open('%siq_scores.json' % data_folder, 'w') as f:
-        json.dump(iqscores, f, indent=4)
 
 
 @client.command()
@@ -1371,13 +1387,9 @@ async def listall(ctx, members_or_role:str):
 async def gaytest(ctx, member:discord.Member=None):
     member = member or ctx.author
 
-    says = choice(['**100%** GAY!', 'kinda yea', 'nope! 100% straight', '**69%** gay', "21% gay", '1% gay', '99% gay', '50% gay', '10% gay'])
+    say = await get_gay_test()
 
-    rand_say = f'**{randint(0, 100)}**% gay'
-
-    say = choice([rand_say, says])
-
-    await ctx.send(say)
+    await ctx.send("%s is... %s" % (member.name, say))
 
 
 @client.command()
