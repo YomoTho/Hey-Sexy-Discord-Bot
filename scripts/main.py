@@ -1380,6 +1380,19 @@ async def gaytest(ctx, member:discord.Member=None):
     await ctx.send(say)
 
 
+@client.command()
+async def guess(ctx, user_guess:int):
+    if user_guess >= 0 and user_guess <= 6:
+        bot_guess = randint(0, 6)
+        
+        embed = discord.Embed(description="I guess: **%i**\nYou guessed: **%i**"  % (bot_guess, user_guess))
+        await ctx.send(embed=embed)
+        if user_guess == bot_guess:
+            await ctx.send("Wow!")
+    else:
+        await ctx.send("You must guess between 0-6")
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
