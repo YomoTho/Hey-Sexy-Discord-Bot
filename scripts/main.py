@@ -870,6 +870,9 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
 @client.command()
 @commands.has_permissions(administrator=True)
 async def warn(ctx, user : discord.Member, *, reason=None):
+    if user.id == ctx.guild.owner.id:
+        await ctx.send("Fuck you! %s" % ctx.author.mention)
+        return 
     with open('%swarnings.json' % (data_folder)) as f:
         warnings = json.load(f)
 
@@ -940,7 +943,7 @@ async def warnings(ctx, member : discord.Member=None):
 
 
 @client.command()
-@commands.has_permissions(administrator=True)
+@commands.is_owner()
 async def del_warn(ctx, id):
     with open(f'{data_folder}warnings.json') as f:
         warnings = json.load(f)
