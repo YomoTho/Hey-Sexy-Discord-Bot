@@ -7,6 +7,7 @@ import requests
 import sys
 import insta
 import shutil
+import matplotlib.pyplot as plt
 from Reddit_Cmd import Reddit
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
@@ -137,7 +138,7 @@ async def check_time():
     await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
-        server_stats_alarm = time(hour=23, minute=59)
+        server_stats_alarm = time(hour=22, minute=22)
         
         current_time = datetime.now(sa_timezone).strftime('%H:%M')
         current_time = str(current_time).split(':')
@@ -169,10 +170,12 @@ async def check_time():
             stats_embed.add_field(name='Messages', value=f"Today total messages: **{stats_msg[5]}**", inline=False)
             stats_embed.set_thumbnail(url=guild.icon_url)
             stats_embed.set_footer(text=f'{guild} • Created_at: {guild.created_at}')
-            
+
+            stats_embed.set_image(url='attachment://stat.png')
+
             channel = data.get_useful_channel(cname='ss')
             
-            await channel.send(embed=stats_embed)
+            await channel.send(file=await stats(), embed=stats_embed)
             total_seconds = ((24 * 60) * 60)
         else:
             total_seconds = ((h_left * 60) * 60) + (m_left * 60)
@@ -257,6 +260,35 @@ async def get_gay_test():
     say = choice([rand_say, says])
 
     return say
+
+
+async def stats() -> discord.File:
+    with open('%sserverDates.json' % (data_folder)) as f:
+        stats = json.load(f)
+
+    x, y, = [], []
+
+    last_days = 7
+
+    for stat in list(stats)[-last_days:]:
+        x.append(str(stat)[-5:])
+        y.append(stats[stat]['total_messages'])
+
+    plt.plot(x, y)
+
+    plt.xlabel('x - axis')
+    plt.ylabel('y - axis')
+
+    plt.title('Total messages (Last %i days)' % last_days)
+
+    image_name = 'stat.png'
+
+    plt.savefig(image_name)
+
+    file = discord.File(image_name)
+
+    return file
+
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
@@ -508,8 +540,36 @@ async def on_command_error(ctx, error):
 
 @client.command()
 @commands.has_permissions(administrator=True)
-async def test(ctx, member : discord.Member): # Here i test commands
-    await ctx.send(member.activities)
+async def test(ctx): # Here i test commands
+    return
+    with open('%sserverDates.json' % (data_folder)) as f:
+        stats = json.load(f)
+
+    x, y, = [], []
+
+    last_days = 7
+
+    for stat in list(stats)[-last_days:]:
+        x.append(str(stat)[-5:])
+        y.append(stats[stat]['total_messages'])
+
+    plt.plot(x, y)
+
+    plt.xlabel('x - axis')
+    plt.ylabel('y - axis')
+
+    plt.title('Total messages (Last %i days)' % last_days)
+
+    image_name = 'stat.png'
+
+    plt.savefig(image_name)
+
+    file = discord.File(image_name)
+
+    embed = discord.Embed(title='Stat')
+    embed.set_image(url="attachment://%s" % image_name)
+
+    await ctx.send(file=file, embed=embed)
     
     
 @client.command()
