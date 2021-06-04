@@ -131,3 +131,4 @@ data/config.json
 scripts/reboot_id
 scripts/reboot_id_a
 scripts/test.py
+scripts/stats.png

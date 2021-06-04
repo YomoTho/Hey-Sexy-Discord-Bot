@@ -66,6 +66,50 @@ class Send_Message(Data):
         await self.channel.send(*args, **kwargs)
 
 
+class Stats:
+    def __init__(self) -> None:
+        self.filename = 'stats.png'
+        self.last_days = 7
+
+    def load_stats(self) -> dict:
+        with open('%sserverDates.json' % (data_folder)) as f:
+            return json.load(f)
+
+
+    def get_stats(self) -> discord.File:
+        with open('../data/serverDates.json') as f:
+            stats = json.load(f)
+
+        dates, total_messgae, member_joins, member_leaves = [], [], [], []
+
+        last_days = 7
+
+        for stat in list(stats)[-last_days:]:
+            dates.append(str(stat)[-5:])
+            total_messgae.append(stats[stat]['total_messages'])
+            member_joins.append(stats[stat]['member_joins'])
+            member_leaves.append(stats[stat]['member_leaves'])
+
+
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        fig.suptitle("The Last %i days" % last_days)
+        ax1.plot(dates, member_joins, label='member_joins', color='green')
+        ax1.plot(dates, member_leaves, label='member_leaves', color='red')
+        ax1.set_title('Member joins')
+        ax1.legend()
+        ax2.plot(dates, total_messgae)
+        ax2.set_title('Total messages')
+
+        fig.set_size_inches(10, 5)
+        ax2.grid(color = 'green', linestyle = '--', linewidth = 0.5)
+        ax1.grid(color = 'green', linestyle = '--', linewidth = 0.5)
+        fig.savefig(self.filename)
+
+        file = discord.File(self.filename)
+
+        return file
+
+
 # Global variables
 
 data = Data(client)
@@ -135,7 +179,6 @@ def check_if_reaction_role_message(message_id:str):
 
 async def check_time():
     await client.wait_until_ready()
-    await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
         server_stats_alarm = time(hour=23, minute=59)
@@ -147,9 +190,11 @@ async def check_time():
         server_stats_alarm_h, server_stats_alarm_m = int(server_stats_alarm[0]), int(server_stats_alarm[1])
         h_left = server_stats_alarm_h - current_h; m_left = server_stats_alarm_m - current_m
         
+        #server_stats_alarm = current_time
+
         total_seconds = ((h_left * 60) * 60) + (m_left * 60)
 
-        #print('S:', total_seconds)
+        #print('S:', total_seconds)2
 
         guild = client.get_guild(int(data.server_id))
         
@@ -157,25 +202,23 @@ async def check_time():
             time_stats = TimeStats()
             stats_msg = await get_tday_data(time_stats)
             guild = client.get_guild(int(data.server_id))
-            
-            stats_embed = discord.Embed(
-                title=f"{str(time_stats.current_date)}",
-                description="This will show the server stats of this date.",
-                color=discord.Color.blue()
-            )
-            stats_embed.add_field(name='Members', value=f"Total members: **{stats_msg[0]}**\nTotal humans: **{stats_msg[1]}**\nTotal bots **{stats_msg[2]}**", inline=False)
-            
-            stats_embed.add_field(name='Joins/leaves', value=f"Members joined: **{stats_msg[3]}**\nTotal leaves: **{stats_msg[4]}**", inline=False)
-            
-            stats_embed.add_field(name='Messages', value=f"Today total messages: **{stats_msg[5]}**", inline=False)
-            stats_embed.set_thumbnail(url=guild.icon_url)
-            stats_embed.set_footer(text=f'{guild} • Created_at: {guild.created_at}')
 
-            stats_embed.set_image(url='attachment://stat.png')
+
+            stats = Stats()
+
+            embed_1 = discord.Embed(title=f"{str(time_stats.current_date)}", color=discord.Color.blue())
+            embed_1.set_thumbnail(url=guild.icon_url)
+            embed_1.add_field(name='Joins/Leaves', value=f"Joins: **{stats_msg[3]}**\nLeaves: **{stats_msg[4]}**")
+            embed_1.add_field(name='Messages', value=f"Total messages: **{stats_msg[5]}**")
+
+            embed_2 = discord.Embed(color=discord.Color.blue())
+            embed_2.set_image(url='attachment://%s' % stats.filename)
 
             channel = data.get_useful_channel(cname='ss')
             
-            await channel.send(file=await stats(), embed=stats_embed)
+            await channel.send(embed=embed_1)
+            await channel.send(file=stats.get_stats(), embed=embed_2)          
+
             total_seconds = ((24 * 60) * 60)
         else:
             total_seconds = ((h_left * 60) * 60) + (m_left * 60)
@@ -260,34 +303,6 @@ async def get_gay_test():
     say = choice([rand_say, says])
 
     return say
-
-
-async def stats() -> discord.File:
-    with open('%sserverDates.json' % (data_folder)) as f:
-        stats = json.load(f)
-
-    x, y, = [], []
-
-    last_days = 7
-
-    for stat in list(stats)[-last_days:]:
-        x.append(str(stat)[-5:])
-        y.append(stats[stat]['total_messages'])
-
-    plt.plot(x, y)
-
-    plt.xlabel('x - axis')
-    plt.ylabel('y - axis')
-
-    plt.title('Total messages (Last %i days)' % last_days)
-
-    image_name = 'stat.png'
-
-    plt.savefig(image_name)
-
-    file = discord.File(image_name)
-
-    return file
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -614,14 +629,8 @@ async def disconnect(ctx):
 
 @client.command()
 @commands.is_owner()
-async def embed(ctx, *, args): # Here i test my embed messages 
-    embed_msgs = args.split(' \ ')
-    
-    embed = discord.Embed(
-        title=embed_msgs[0] if not embed_msgs[0] == 'None' else ' ',
-        description=embed_msgs[1] if not embed_msgs[1] == 'None' else ' '
-        )
-    await ctx.send(embed=embed)
+async def embed(ctx): # Here i test my embed messages 
+    pass
 
 
 
