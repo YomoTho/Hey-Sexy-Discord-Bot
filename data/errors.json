@@ -32,6 +32,26 @@
             "error": "Channel '\ud83c\udf10general-chat\ud83c\udf10' needs to be NSFW for this command to work.",
             "msg_ctx": ";nsfw",
             "user_id": 275192642101313536
+        },
+        "849251162153549855": {
+            "error": "Command \"ialist\" is not found",
+            "msg_ctx": ";ialist",
+            "user_id": 275192642101313536
+        },
+        "849256179871121438": {
+            "error": "Command \"warbs\" is not found",
+            "msg_ctx": ";warbs",
+            "user_id": 275192642101313536
+        },
+        "849256186250264577": {
+            "error": "Command raised an exception: HTTPException: 400 Bad Request (error code: 50035): Invalid Form Body\nIn embed.fields.1.value: Must be 1024 or fewer in length.\nIn embed.fields.2.value: Must be 1024 or fewer in length.",
+            "msg_ctx": ";warns",
+            "user_id": 275192642101313536
+        },
+        "849604084439711764": {
+            "error": "Command \"guess4\" is not found",
+            "msg_ctx": ";guess4",
+            "user_id": 275192642101313536
         }
     },
     "818568136907030559": {
@@ -40,5 +60,38 @@
             "msg_ctx": ";ttt <@&818547096507646004> <@!347357694761500673>",
             "user_id": 347357694761500673
         }
-    }
+    },
+    "848632564640907337": {
+        "848654876808445992": {
+            "error": "Command raised an exception: IndexError: list index out of range",
+            "msg_ctx": ";newrr 848654732519014451 \u2642\ufe0f <@&848650148167024651> / \u2640\ufe0f <@&848650072898928650>",
+            "user_id": 275192642101313536
+        },
+        "848655034509819964": {
+            "error": "Converting to \"int\" failed for parameter \"amount\".",
+            "msg_ctx": ";clear 3;",
+            "user_id": 275192642101313536
+        },
+        "848655214181482496": {
+            "error": "Command raised an exception: IndexError: list index out of range",
+            "msg_ctx": ";newrr 848654732519014451 \u2642\ufe0f <@&848650148167024651> / \u2640\ufe0f <@&848650072898928650>",
+            "user_id": 275192642101313536
+        },
+        "848965214769643531": {
+            "error": "Command \"listjson\" is not found",
+            "msg_ctx": ";listjson",
+            "user_id": 275192642101313536
+        },
+        "848965308849192960": {
+            "error": "Command \"virw_json\" is not found",
+            "msg_ctx": ";virw_json reactions.json",
+            "user_id": 275192642101313536
+        },
+        "848965343540019260": {
+            "error": "Command \"celar\" is not found",
+            "msg_ctx": ";celar 1",
+            "user_id": 275192642101313536
+        }
+    },
+    "842865990803128371": {}
 }
