@@ -138,7 +138,7 @@ async def check_time():
     await asyncio.sleep(1)
     
     while client.is_closed:     # TODO : Clean this code
-        server_stats_alarm = time(hour=22, minute=22)
+        server_stats_alarm = time(hour=23, minute=59)
         
         current_time = datetime.now(sa_timezone).strftime('%H:%M')
         current_time = str(current_time).split(':')
