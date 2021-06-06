@@ -1461,7 +1461,7 @@ async def gaytest(ctx, member:discord.Member=None):
     await ctx.send("%s is... %s" % (member.name, say))
 
 
-@client.command()
+@client.command(aliases=['g'])
 async def guess(ctx, user_guess:int):
     if user_guess >= 0 and user_guess <= 6:
         bot_guess = randint(0, 6)
@@ -1469,7 +1469,10 @@ async def guess(ctx, user_guess:int):
         embed = discord.Embed(description="I guess: **%i**\nYou guessed: **%i**"  % (bot_guess, user_guess))
         await ctx.send(embed=embed)
         if user_guess == bot_guess:
-            await ctx.send("Wow!")
+            exp = choice([600, 1000, 500, 400, 1200, 4000, 10, 1, 69, 666, 777, 999])
+            user = Leveling_System(ctx.author)
+            user += exp
+            await ctx.send("Wow! + **%i** exp" % exp)
     else:
         await ctx.send("You must guess between 0-6")
 
