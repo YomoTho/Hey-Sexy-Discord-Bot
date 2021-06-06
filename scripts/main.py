@@ -305,6 +305,12 @@ async def get_gay_test():
     return say
 
 
+async def send_lvl_up_msg(leveled_up):
+    leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
+    channel = Send_Message(data.get_useful_channel(cname='lu'))
+    await channel.send(leveled_up_msg)
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -374,9 +380,7 @@ async def on_message(message):
             user_rank_data = Leveling_System(message.author) # This is doing the leveling system thing
             leveled_up = user_rank_data + int(len(message.content) / 1.5)
             if leveled_up[0]:
-                leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] < 20 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
-                channel = Send_Message(data.get_useful_channel(cname='lu'))
-                await channel.send(leveled_up_msg)
+                await send_lvl_up_msg(leveled_up)
             if not message.content.startswith('%sr/' % command_prefix):
                 await client.process_commands(message)
             else:
@@ -1471,7 +1475,9 @@ async def guess(ctx, user_guess:int):
         if user_guess == bot_guess:
             exp = choice([600, 1000, 500, 400, 1200, 4000, 10, 1, 69, 666, 777, 999])
             user = Leveling_System(ctx.author)
-            user += exp
+            leveled_up = user + exp
+            if leveled_up[0]: # Check if user leveled up
+                await send_lvl_up_msg(leveled_up)
             await ctx.send("Wow! + **%i** exp" % exp)
     else:
         await ctx.send("You must guess between 0-6")
