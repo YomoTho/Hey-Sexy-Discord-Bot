@@ -306,7 +306,7 @@ async def get_gay_test():
 
 
 async def send_lvl_up_msg(leveled_up):
-    leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] == 69 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
+    leveled_up_msg = f"**{leveled_up[1] if leveled_up[3] != 69 else leveled_up[1].mention}** has level up from {leveled_up[2]} -> **{leveled_up[3]}**"
     channel = Send_Message(data.get_useful_channel(cname='lu'))
     await channel.send(leveled_up_msg)
 
