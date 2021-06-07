@@ -120,6 +120,7 @@ ttt_running = list()
 no_no_words = ['discord.gg/']
 sa_timezone = pytz.timezone('Africa/Johannesburg')
 last_deleted_message = dict()
+announce_message = None
 
 # Global variables ^^^
  
@@ -458,6 +459,12 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
 
                         with open(f"{data_folder}errors.json", 'w') as f:
                             json.dump(errors_data, f, indent=4)
+            elif payload.emoji.name == '✅':
+                for msg in announce_message:
+                    if payload.message_id == msg.id:
+                        await msg.delete()
+                        await announce_message[msg].delete()
+                        return
             else:
                 global ttt_running
                 if len(ttt_running) > 0:
@@ -1126,6 +1133,17 @@ async def announce(ctx, *, args=None):
         server_announcement_channel = data.get_useful_channel(cname='sa')   
 
         await server_announcement_channel.send('@everyone' if args == 'everyone' else args, embed=embed)
+
+        await ctx.message.add_reaction('✅')
+
+        global announce_message
+        announce_message = announce_message or {}
+        announce_message[ctx.message] = replied_message
+        await asyncio.sleep(10)
+        try:
+            del announce_message[ctx.message]
+        except KeyError:
+            pass
     else:
         await ctx.send("Reply to a message to be announced.")
 
