@@ -1536,6 +1536,7 @@ async def forward(ctx, member:discord.Member):
         embed.set_footer(text='Forwarded from: %s' % ctx.author)
 
         await member.send(embed=embed)
+        await ctx.message.add_reaction('✅')
     else:
         await ctx.send("Reply to a message to be forwarded.")
 
