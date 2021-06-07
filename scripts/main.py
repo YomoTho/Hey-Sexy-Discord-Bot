@@ -1343,7 +1343,7 @@ async def iqlist(ctx):
         try:
             users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
         except AttributeError:
-            users.append(client.get_user(int(user_id)))
+            users.append(str(client.get_user(int(user_id))))
 
     embed = discord.Embed(
         title='%s members IQ:' % ctx.guild,
