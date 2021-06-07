@@ -1519,6 +1519,27 @@ async def guess(ctx, user_guess:int):
         await ctx.send("You must guess between 0-6")
 
 
+@client.command()
+async def forward(ctx, member:discord.Member):
+    reference = ctx.message.reference
+    if not reference is None:
+        channel = client.get_channel(reference.channel_id)
+        replied_message = await channel.fetch_message(reference.message_id)
+
+        link = 'discord.com/channels/guild_id/channel_id/message_id'.split('/')
+        link[2] = str(replied_message.guild.id)
+        link[3] = str(replied_message.channel.id)
+        link[4] = str(replied_message.id)
+        link = 'https://%s' % ('/'.join(link))
+
+        embed = discord.Embed(description=replied_message.content, title='Message link', url=link)
+        embed.set_footer(text='Forwarded from: %s' % ctx.author)
+
+        await member.send(embed=embed)
+    else:
+        await ctx.send("Reply to a message to be forwarded.")
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
