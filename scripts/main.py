@@ -1104,12 +1104,30 @@ async def del_warn(ctx, id):
         await ctx.message.add_reaction('✅')
 
 
-@client.command(aliases=['server_update', 'announce', '__sa__'])
+#@client.command(aliases=['server_update', '__sa__'])
+#@commands.has_permissions(administrator=True)
+#async def server_announcement(ctx, *, args=None):
+#    server_announcement_channel = data.get_useful_channel(cname='sa')
+#    await server_announcement_channel.send(msg)
+#    await ctx.message.add_reaction('✅')
+
+
+@client.command()
 @commands.has_permissions(administrator=True)
-async def server_announcement(ctx, *, msg):
-    server_announcement_channel = data.get_useful_channel(cname='sa')
-    await server_announcement_channel.send(msg)
-    await ctx.message.add_reaction('✅')
+async def announce(ctx, *, args=None):
+    reference = ctx.message.reference
+    if not reference is None:
+        channel = client.get_channel(reference.channel_id)
+        replied_message = await channel.fetch_message(reference.message_id)
+
+        embed = discord.Embed(description=replied_message.content)
+        embed.set_author(name=replied_message.author, icon_url=replied_message.author.avatar_url)
+
+        server_announcement_channel = data.get_useful_channel(cname='sa')   
+
+        await server_announcement_channel.send('@everyone' if args == 'everyone' else args, embed=embed)
+    else:
+        await ctx.send("Reply to a message to be announced.")
 
 
 @client.command()
