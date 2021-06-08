@@ -313,6 +313,10 @@ async def send_lvl_up_msg(leveled_up):
     await channel.send(leveled_up_msg)
 
 
+async def command_success(ctx):
+    await ctx.message.add_reaction('✅')
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -1588,6 +1592,19 @@ async def mod_json_file(ctx, file_name:str):
     else:
         raise Exception("**%s does not end with '.json'**" % (file_name))
 
+
+@client.command()
+@commands.is_owner()
+async def set_prefix(ctx, new_prefix:str):
+    with open('%sconfig.json' % data_folder) as f:
+        config = json.load(f)
+
+    config['prefix'] = new_prefix
+
+    with open('%sconfig.json' % data_folder, 'w') as f:
+        json.dump(config, f, indent=4)
+
+    await command_success(ctx)
 
 
 if __name__ == '__main__':
