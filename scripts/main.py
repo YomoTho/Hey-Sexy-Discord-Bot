@@ -1518,10 +1518,11 @@ async def forward(ctx, member:discord.Member):
         link[4] = str(replied_message.id)
         link = 'https://%s' % ('/'.join(link))
 
-        embed = discord.Embed(description=replied_message.content, title='Message link', url=link)
-        embed.set_footer(text='Forwarded from: %s' % ctx.author)
+        embed = discord.Embed(description=replied_message.content)
+        embed.set_footer(text='Forwarded')
+        embed.set_author(name='Message link', url=link, icon_url=replied_message.author.avatar_url)
 
-        await member.send(embed=embed)
+        await member.send('From **%s**' % ctx.author, embed=embed)
         await ctx.message.add_reaction('✅')
     else:
         await ctx.send("Reply to a message to be forwarded.")
