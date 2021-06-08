@@ -29,7 +29,7 @@ with open(f'{data_folder}config.json') as f:
 
 intents = discord.Intents().all()
 client = commands.Bot(command_prefix=command_prefix, intents=intents)
-#client.remove_command('help')
+client.remove_command('help')
 
 # This class have data of the server, like server, server owner, id & Text Channels, etc
 
@@ -578,7 +578,7 @@ async def on_command_error(ctx, error):
 #DOWN HERE IS ALL THE COMMANDS \/ @client.command()
 
 
-@client.command()
+@client.command(category='Admin', description="Command testing")
 @commands.has_permissions(administrator=True)
 async def test(ctx): # Here i test commands
     return
@@ -612,8 +612,8 @@ async def test(ctx): # Here i test commands
     await ctx.send(file=file, embed=embed)
     
     
-@client.command()
-@commands.has_permissions(administrator=True)
+@client.command(category='Owner', description='To enable a text channel')
+@commands.is_owner()
 async def enable(ctx, channel : discord.TextChannel=None):
     if channel is None: 
         channel = ctx.channel
@@ -621,8 +621,8 @@ async def enable(ctx, channel : discord.TextChannel=None):
     await ctx.send(channel.enable())
     
     
-@client.command()
-@commands.has_permissions(administrator=True)
+@client.command(category='Owner', description='Disable a text channel')
+@commands.is_owner()
 async def disable(ctx, channel : discord.TextChannel=None):
     if channel is None: 
         channel = ctx.channel
@@ -630,7 +630,7 @@ async def disable(ctx, channel : discord.TextChannel=None):
     await ctx.send(channel.disable())
 
 
-@client.command(pass_context=True)
+@client.command(pass_context=True, description="Joins the voice channel", category='Voice')
 async def join(ctx):
     if ctx.author.voice:
         voice_channel = ctx.author.voice
@@ -639,7 +639,7 @@ async def join(ctx):
         await ctx.send("You not in a voice channel.")
 
 
-@client.command(pass_context=True, aliases=['leave'])
+@client.command(pass_context=True, aliases=['leave'], description='Leave the voice channel', category='Voice')
 async def disconnect(ctx):
     if ctx.author.voice:
         try:
@@ -652,14 +652,14 @@ async def disconnect(ctx):
         await ctx.send("You not in that voice channel. Bruh")
 
 
-@client.command()
+@client.command(category='Owner', description='Embed testing')
 @commands.is_owner()
 async def embed(ctx): # Here i test my embed messages 
     pass
 
 
 
-@client.command()
+@client.command(category='Owner', description="To DM someone as bot\nOr see the messages history, or delete messages")
 @commands.is_owner()
 async def dm(ctx, *args):
     if args[0] in ['history', 'hist']:
@@ -736,7 +736,7 @@ async def set_status(ctx, status_num):
     pass # TODO make it so a user can set the bot status
 
 
-@client.command(aliases=['cls_dm'])
+@client.command(aliases=['cls_dm'], category='Owner', description='Deletes the bot messages')
 @commands.is_owner()
 async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
     if ctx.author.id == server_owner.id:
@@ -746,20 +746,20 @@ async def cls_ur_msg(ctx, amount=50): # This will delete this bot message's
                 await msg.delete()
 
 
-@client.command()
+@client.command(category='Info', description="See what's your rank")
 async def rank(ctx, member : discord.Member=None):
     member = member or ctx.author
     user_rank = Leveling_System(member)
     await ctx.send(embed=await user_rank.rank_msg(member))
 
 
-@client.command()
+@client.command(category='Mod', description="Deletes messages in text channel")
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount : int):
     await ctx.channel.purge(limit=amount + 1)
 
 
-@client.command()
+@client.command(category='Mod', description="To kick a dumb fuck")
 @commands.has_permissions(kick_members=True)
 async def kick(ctx, member : discord.Member, *, reason=None):
     await member.kick(reason=reason)
@@ -767,7 +767,7 @@ async def kick(ctx, member : discord.Member, *, reason=None):
     await ctx.send(f'**{member}** kicked!')
 
 
-@client.command()
+@client.command(category='Mod', description='To ban a poes')
 @commands.has_permissions(ban_members=True)
 async def ban(ctx, member : discord.Member, *, reason=None):
     bans_says = ['**{}** is banned from this server.', 'Yes! That poes **{}** is banned from this server!']
@@ -776,7 +776,7 @@ async def ban(ctx, member : discord.Member, *, reason=None):
     await ctx.send(choice(bans_says).format(member))
 
 
-@client.command()
+@client.command(description="List all the members that got banned.", category='Mod')
 async def bans(ctx):
     banned_users = await ctx.guild.bans()
     if len(banned_users) > 0:
@@ -789,7 +789,7 @@ async def bans(ctx):
         await ctx.send("There's nobody banned in this server.")
 
 
-@client.command()
+@client.command(category='Mod', description="To unban a former member")
 @commands.has_permissions(ban_members=True)
 async def unban(ctx, id : int):
     try:
@@ -806,7 +806,7 @@ async def unban(ctx, id : int):
  #   if isinstance(error, discord.ext.commands.BadArgument): pass # Just do nothing.
 
 
-@client.command()
+@client.command(description="The bot's latency", category='Info')
 async def ping(ctx):
     await ctx.send(f'ping {round(client.latency * 1000)}ms')
 
@@ -903,13 +903,13 @@ async def ping(ctx):
 #        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
 
 
-@client.command()
+@client.command(category='Info', description="The total messages")
 async def msg_count(ctx):
     stats = TimeStats()
     await ctx.send(f"Total message's: {stats.cal_total_messages()}")
 
 
-@client.command()
+@client.command(category='Info', description="Get info of a member")
 async def info(ctx, member : discord.Member=None):
     member = member or ctx.author
 
@@ -931,13 +931,13 @@ async def info(ctx, member : discord.Member=None):
     await ctx.send(embed=embed)
     
     
-@client.command()
+@client.command(category='Info', description="See the user's profile pic")
 async def pfp(ctx, member : discord.Member=None):
     member = member or ctx.author
     await ctx.send(member.avatar_url)
     
 
-@client.command(aliases=['ttt'])
+@client.command(aliases=['ttt'], category='Fun', description="Tic-tac-toe game")
 async def tictactoe(ctx, player1, player2 : discord.Member=None):
     if player1 == 'bvb': # This stands for 'Bot vs Bot'
         player1 = client.get_user(816668604669755433) # This ID is local bot
@@ -997,7 +997,7 @@ async def tictactoe(ctx, player1, player2 : discord.Member=None):
                     break
     
     
-@client.command()
+@client.command(category='Admin', description="To warn a dumb fuck")
 @commands.has_permissions(administrator=True)
 async def warn(ctx, user : discord.Member, *, reason=None):
     if user.id == ctx.guild.owner.id:
@@ -1036,7 +1036,7 @@ async def warn(ctx, user : discord.Member, *, reason=None):
             json.dump(warnings, f, indent=4)   
 
 
-@client.command(aliases=['warns', 'warns_id'])
+@client.command(aliases=['warns', 'warns_id'], category='Admin', description="List all the members warnings")
 @commands.has_permissions(administrator=True)
 async def warnings(ctx, member : discord.Member=None):
     with open('%swarnings.json' % (data_folder)) as f:
@@ -1072,7 +1072,7 @@ async def warnings(ctx, member : discord.Member=None):
     await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(category='Owner', description="Deletes a memebr's warning")
 @commands.is_owner()
 async def del_warn(ctx, id):
     with open(f'{data_folder}warnings.json') as f:
@@ -1133,7 +1133,7 @@ async def del_warn(ctx, id):
 #    await ctx.message.add_reaction('✅')
 
 
-@client.command()
+@client.command(category='Admin', description='Reply to a message to be announced')
 @commands.has_permissions(administrator=True)
 async def announce(ctx, *, args=None):
     reference = ctx.message.reference
@@ -1160,40 +1160,6 @@ async def announce(ctx, *, args=None):
             pass
     else:
         await ctx.send("Reply to a message to be announced.")
-
-
-@client.command()
-async def _help(ctx):
-    embed = discord.Embed(title='Commands:', description='Prefix: "**;**"')
-    leveling_system_commands = """
-    **rank** | Show your rank. ";rank"
-    **buy** | You can buy roles ";buy role @role"
-    **sell** | You can sell roles ";sell role @role"
-    """
-    moderations_commands = """
-    **ban** | ban members. ";ban [@member] [reason]"
-    **bans** | show all banned members. ";bans"
-    **unban** | unban members. ";unban [member id]" 
-    **kick** | kick members. ";kick [@member] [reason]"
-    **warn** | warn members. ";warn [@member] [reason]"
-    **warns** | show all the warnings list. ";warns"
-    **del_warn** | remove's a member warnings.";del_warn [@member]"
-    **clear** | delete message's. ";clear [amount]"
-    **dm** | To dm member's (as bot). ";dm [@member] [your message]"
-    """
-    fun_commands = """
-    **ping** | show the bot latency. ";ping"
-    **pfp** | show a member profile pic. ";pfp [@member]"
-    **info** | show's info of a member. ";info [@member]"
-    **msg_count** | show's the total message's. ";msg_count"
-    **tictactoe** (ttt) | tic-tac-toe game. ";tictactoe [@member 1] [@member 2]"
-    """
-
-    embed.add_field(name='Leveling System:', value=leveling_system_commands, inline=False)
-    embed.add_field(name='MOD:', value=moderations_commands, inline=False)
-    embed.add_field(name='Fun commands:', value=fun_commands, inline=False)
-
-    await ctx.send(embed=embed)
 
 
 #@client.command()
@@ -1233,7 +1199,7 @@ async def _help(ctx):
 #    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
 
 
-@client.command()
+@client.command(category='Owner', description='Restart the bot')
 @commands.is_owner()
 async def reboot(ctx, args=None):
     await ctx.send("Rebooting...")
@@ -1245,7 +1211,7 @@ async def reboot(ctx, args=None):
 #async def stop(ctx):
 #    exit(0)
 
-@client.command()
+@client.command(category='Owner', description='Most photos to Instagram')
 @commands.is_owner()
 async def instagram(ctx, image_url, *, caption=" "):
     _insta = insta.Instagram_Bot(sys, requests, shutil, os)
@@ -1253,7 +1219,7 @@ async def instagram(ctx, image_url, *, caption=" "):
     await ctx.message.add_reaction('✅')
 
 
-@client.command()
+@client.command(category='Admin', description="It's not needed anymore")
 @commands.has_permissions(administrator=True)
 async def add_role(ctx, role : discord.Role, price, cname):
     with open(f'{data_folder}shop.json') as f:
@@ -1266,7 +1232,7 @@ async def add_role(ctx, role : discord.Role, price, cname):
         json.dump(shop, f, indent=2)
 
 
-@client.command()
+@client.command(description="See how many lines of code the bot have", category='Info')
 async def lines(ctx):
     lines = 0
 
@@ -1279,14 +1245,14 @@ async def lines(ctx):
     await ctx.send('I have **%i** lines of code.' % (lines))
 
 
-@client.command()
+@client.command(category='Info', description='Get the user ID')
 async def id(ctx, member : discord.Member=None):
     member = member or ctx.author
 
     await ctx.message.reply('**%i**' % (member.id))
 
 
-@client.command()
+@client.command(category='Admin', description="Reads the json file")
 @commands.has_permissions(administrator=True)
 async def view_json(ctx, file_name):
     if file_name.endswith('.json'):
@@ -1299,7 +1265,7 @@ async def view_json(ctx, file_name):
         raise Exception("**%s does not end with '.json'**" % (file_name))
 
 
-@client.command()
+@client.command(category='Admin', description="List all the json files")
 @commands.has_permissions(administrator=True)
 async def list_json(ctx):
     json_files = []
@@ -1310,12 +1276,12 @@ async def list_json(ctx):
         await ctx.send('\n'.join(json_files))
 
 
-@client.command()
+@client.command(category='Info', description="Just pass the user id in and you will see who is it")
 async def who(ctx, user_id : int):
     await ctx.message.reply('**%s**' % (client.get_user(user_id)))
 
 
-@client.command()
+@client.command(category='Info', description="See the members status")
 async def status(ctx, member : discord.Member=None, args=None):
     member = member or ctx.author
     try:
@@ -1340,7 +1306,7 @@ async def status(ctx, member : discord.Member=None, args=None):
         await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(category='Fun', description="IQ test, see how smort you are")
 async def iqtest(ctx):
     member = ctx.author
     
@@ -1349,7 +1315,7 @@ async def iqtest(ctx):
     await ctx.send("%s's IQ is: **%i**" % (member.name, iq))
 
 
-@client.command()
+@client.command(category='Info', description="List all the members IQ")
 async def iqlist(ctx):
     with open('%siq_scores.json' % data_folder) as f:
         iqscores = json.load(f)
@@ -1369,7 +1335,8 @@ async def iqlist(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(category='Admin', description="List all the Python files")
+@commands.has_permissions(administrator=True)
 async def list_scripts(ctx):
     py_files = [py_file.name for py_file in os.scandir() if py_file.name.endswith('.py') or py_file.name.endswith('.sh')]
     
@@ -1387,7 +1354,7 @@ async def list_scripts(ctx):
     await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(category='Info', description="See the last deleted message in a text channel")
 async def snipe(ctx):
     if ctx.channel.id in last_deleted_message:
         embed = discord.Embed(
@@ -1402,7 +1369,7 @@ async def snipe(ctx):
         await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
 
 
-@client.command(aliases=['listttt', 'list_tictactoe'])
+@client.command(category='Info', description="List all current running tic-tac-toe games")
 async def list_ttt(ctx):
     des = str()
     for ttt in ttt_running:
@@ -1413,8 +1380,7 @@ async def list_ttt(ctx):
     )
     await ctx.send(embed=embed)
 
-
-@client.command()
+@client.command(category='Owner', description='You know... spam someone :>')
 @commands.is_owner()
 async def spam(ctx, member : discord.Member, *args):
     if not member.bot:
@@ -1436,7 +1402,7 @@ async def spam(ctx, member : discord.Member, *args):
         await ctx.send("Cannot spam **%s**, because **it's a bot.**" % (member))
 
 
-@client.command()
+@client.command(category='Owner', description="Reaction roles: %snewrr <message_id> emoji @role / emoji @role / etc..." % command_prefix)
 @commands.is_owner()
 async def newrr(ctx, message_id:int, *, args:str):
     roles_channel = data.get_useful_channel(cname='r')
@@ -1458,7 +1424,7 @@ async def newrr(ctx, message_id:int, *, args:str):
     await ctx.message.delete()
 
 
-@client.command()
+@client.command(category='Info', description="See how long is the bot online for")
 async def uptime(ctx):
     current_time = datetime.now()
     cal_uptime = current_time - on_ready_time
@@ -1499,7 +1465,7 @@ async def uptime(ctx):
         await ctx.send(embed=embed)
 
 
-@client.command()
+@client.command(category='Owner', description='List all members or roles')
 @commands.is_owner()
 async def listall(ctx, members_or_role:str):
     if members_or_role.lower() == 'roles':
@@ -1512,7 +1478,7 @@ async def listall(ctx, members_or_role:str):
     await ctx.send(embed=discord.Embed(title='%i total:' % len(the_list), description='\n'.join([thing.mention for thing in the_list])))
 
 
-@client.command()
+@client.command(category='Fun', description='See how GAY someone is.')
 async def gaytest(ctx, member:discord.Member=None):
     member = member or ctx.author
 
@@ -1521,7 +1487,7 @@ async def gaytest(ctx, member:discord.Member=None):
     await ctx.send("%s is... %s" % (member.name, say))
 
 
-@client.command(aliases=['g'])
+@client.command(aliases=['g'], category='Fun', description='You must enter a number between 0-6 & if you and bot have the same number you get exp')
 async def guess(ctx, user_guess:int):
     if user_guess >= 0 and user_guess <= 6:
         bot_guess = randint(0, 6)
@@ -1539,7 +1505,7 @@ async def guess(ctx, user_guess:int):
         await ctx.send("You must guess between 0-6")
 
 
-@client.command()
+@client.command(description="Reply to a message a forward it to a member", category='Info')
 async def forward(ctx, member:discord.Member):
     reference = ctx.message.reference
     if not reference is None:
@@ -1561,7 +1527,7 @@ async def forward(ctx, member:discord.Member):
         await ctx.send("Reply to a message to be forwarded.")
 
 
-@client.command()
+@client.command(category='Owner', description='Modify the json files')
 @commands.is_owner()
 async def mod_json_file(ctx, file_name:str):
     if file_name.endswith('.json'):
@@ -1593,7 +1559,7 @@ async def mod_json_file(ctx, file_name:str):
         raise Exception("**%s does not end with '.json'**" % (file_name))
 
 
-@client.command()
+@client.command(category='Owner', description="Change the bot's prefix")
 @commands.is_owner()
 async def set_prefix(ctx, new_prefix:str):
     with open('%sconfig.json' % data_folder) as f:
@@ -1605,6 +1571,52 @@ async def set_prefix(ctx, new_prefix:str):
         json.dump(config, f, indent=4)
 
     await command_success(ctx)
+
+
+@client.command(category='Info')
+async def help(ctx, command_name:str=None):
+    categories = {}
+    command_category = ''
+    embed = discord.Embed()
+
+    for command in client.all_commands:
+        category = str(vars(client.all_commands[command])['__original_kwargs__'].get('category'))
+        description = str(vars(client.all_commands[command])['__original_kwargs__'].get('description'))
+        if not category in categories:
+            categories[category] = {}
+
+        categories[category][command] = {}
+        categories[category][command]['description'] = description
+
+    if command_name is None:
+        embed.title = 'Category:'
+        embed.set_footer(text='%shelp <category_name>' % command_prefix)
+        for cate in categories:
+            embed.add_field(name=cate, value=str(len(categories[cate])))
+    else:
+        try:
+            _list = categories[command_name]
+            embed.title = 'Commands:'
+            embed.description = '```\n%s```**%s** category' % ('\n'.join(_list), command_name)
+            embed.set_footer(text='%shelp <command_name>' % command_prefix)
+        except KeyError:
+            found = False
+            for category in categories:
+                if command_name in categories[category]:
+                    found = True
+                    command_category = category
+                    _list = command_name
+                    description = categories[category][command_name]['description']
+                    command_args = ' '.join(['<%s>' % arg for arg in list(vars(client.all_commands[_list])['params'])[1:]])
+                    _list = '%s%s %s' % (command_prefix, command_name, command_args)
+                    embed.description = '```\n%s```Description:\n**%s**\n\n**%s** category' % (_list, description, command_category)
+                    break
+            else:
+                if not found:
+                    return await ctx.send("Huh? help with what command!?")
+
+    await ctx.send(embed=embed)
+    
 
 
 if __name__ == '__main__':
