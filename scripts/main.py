@@ -317,6 +317,16 @@ async def command_success(ctx):
     await ctx.message.add_reaction('✅')
 
 
+def get_member(member:str) -> discord.Member:
+    try:
+        return client.get_user(int(member)) # Checks if member is an ID
+    except ValueError:
+        if member.startswith('<@!'): # Its a member
+            return client.get_user(int(member[3:-1]))
+        else:
+            raise Exception("'%s' member not found." % member)
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -578,39 +588,13 @@ async def on_command_error(ctx, error):
 #DOWN HERE IS ALL THE COMMANDS \/ @client.command()
 
 
-@client.command(category='Admin', description="Command testing")
-@commands.has_permissions(administrator=True)
-async def test(ctx): # Here i test commands
-    return
-    with open('%sserverDates.json' % (data_folder)) as f:
-        stats = json.load(f)
+@client.command(category='Owner', description="Command testing")
+@commands.is_owner()
+async def test(ctx, *members): # Here i test commands
+    members = [get_member(member) for member in members]
 
-    x, y, = [], []
+    await ctx.send('\n'.join([member.name for member in members]))
 
-    last_days = 7
-
-    for stat in list(stats)[-last_days:]:
-        x.append(str(stat)[-5:])
-        y.append(stats[stat]['total_messages'])
-
-    plt.plot(x, y)
-
-    plt.xlabel('x - axis')
-    plt.ylabel('y - axis')
-
-    plt.title('Total messages (Last %i days)' % last_days)
-
-    image_name = 'stat.png'
-
-    plt.savefig(image_name)
-
-    file = discord.File(image_name)
-
-    embed = discord.Embed(title='Stat')
-    embed.set_image(url="attachment://%s" % image_name)
-
-    await ctx.send(file=file, embed=embed)
-    
     
 @client.command(category='Owner', description='To enable a text channel')
 @commands.is_owner()
@@ -1506,7 +1490,10 @@ async def guess(ctx, user_guess:int):
 
 
 @client.command(description="Reply to a message a forward it to a member", category='Info')
-async def forward(ctx, member:discord.Member):
+async def forward(ctx, *members):
+    if members == ():
+        members = [str(ctx.author.id)]
+
     reference = ctx.message.reference
     if not reference is None:
         channel = client.get_channel(reference.channel_id)
@@ -1522,8 +1509,10 @@ async def forward(ctx, member:discord.Member):
         embed.set_footer(text='Forwarded')
         embed.set_author(name='Message link', url=link, icon_url=replied_message.author.avatar_url)
 
-        await member.send('From **%s**' % ctx.author, embed=embed)
-        await ctx.message.add_reaction('✅')
+        for member in members:
+            await get_member(member).send('From **%s**' % ctx.author, embed=embed)
+        else:
+            await ctx.message.add_reaction('✅')
     else:
         await ctx.send("Reply to a message to be forwarded.")
 
