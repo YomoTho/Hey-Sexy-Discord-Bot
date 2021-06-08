@@ -121,6 +121,7 @@ no_no_words = ['discord.gg/']
 sa_timezone = pytz.timezone('Africa/Johannesburg')
 last_deleted_message = dict()
 announce_message = None
+mod_files = None
 
 # Global variables ^^^
  
@@ -460,11 +461,20 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                         with open(f"{data_folder}errors.json", 'w') as f:
                             json.dump(errors_data, f, indent=4)
             elif payload.emoji.name == '✅':
-                for msg in announce_message:
-                    if payload.message_id == msg.id:
-                        await msg.delete()
-                        await announce_message[msg].delete()
-                        return
+                if not announce_message is None:
+                    for msg in announce_message:
+                        if payload.message_id == msg.id:
+                            await msg.delete()
+                            await announce_message[msg].delete()
+                            return
+                if not mod_files is None:
+                    if payload.message_id in mod_files:
+                        for filename in mod_files[payload.message_id]:
+                            with open('%s%s' % (data_folder, filename), 'w') as f:
+                                for line in mod_files[payload.message_id][filename]:
+                                    f.write('%s\n' % line)
+                            channel = client.get_channel(payload.channel_id)
+                            await channel.send('Done writing.')
             else:
                 global ttt_running
                 if len(ttt_running) > 0:
@@ -1277,7 +1287,10 @@ async def id(ctx, member : discord.Member=None):
 async def view_json(ctx, file_name):
     if file_name.endswith('.json'):
         with open('%s%s' % (data_folder, file_name)) as f:
-            await ctx.send("```json\n%s\n```" % (f.read()))
+            try:
+                await ctx.send("```json\n%s\n```" % (f.read()))
+            except Exception:
+                await ctx.send(file=discord.File('%s%s' % (data_folder, file_name)))
     else:
         raise Exception("**%s does not end with '.json'**" % (file_name))
 
@@ -1542,6 +1555,39 @@ async def forward(ctx, member:discord.Member):
         await ctx.message.add_reaction('✅')
     else:
         await ctx.send("Reply to a message to be forwarded.")
+
+
+@client.command()
+@commands.is_owner()
+async def mod_json_file(ctx, file_name:str):
+    if file_name.endswith('.json'):
+        with open('%s%s' % (data_folder, file_name)) as f:
+            current_file_content = f.read()
+
+        reference = ctx.message.reference
+        if not reference is None:
+            channel = client.get_channel(reference.channel_id)
+            replied_message = await channel.fetch_message(reference.message_id)
+        else:
+            return await ctx.send("Reply to a message (That's formatted to json)")
+
+        new_file_content = []
+
+        if replied_message.content.startswith('```json') and replied_message.content.endswith('```'):
+            for i in replied_message.content.split('\n')[1:-1]:
+                new_file_content.append(i)
+        else:
+            return await ctx.send("Format it in json.")
+
+        msg = await ctx.send("```json\n%s\n```:arrow_down::arrow_down:To:arrow_down::arrow_down:\n%s" % (current_file_content if len(current_file_content) < 4000 else '%s\n\n**Content too long**' % current_file_content[3900:], replied_message.content))
+        await msg.add_reaction('✅')
+        global mod_files
+        mod_files = mod_files or {}
+        mod_files[msg.id] = {}
+        mod_files[msg.id][file_name] = new_file_content
+    else:
+        raise Exception("**%s does not end with '.json'**" % (file_name))
+
 
 
 if __name__ == '__main__':
