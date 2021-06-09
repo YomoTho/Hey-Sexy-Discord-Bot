@@ -238,5 +238,35 @@
         "total_messages": 3,
         "member_joins": 0,
         "member_leaves": 0
+    },
+    "2021-06-04": {
+        "total_messages": 104,
+        "member_joins": 1,
+        "member_leaves": 0
+    },
+    "2021-06-05": {
+        "total_messages": 14,
+        "member_joins": 1,
+        "member_leaves": 0
+    },
+    "2021-06-06": {
+        "total_messages": 237,
+        "member_joins": 2,
+        "member_leaves": 2
+    },
+    "2021-06-07": {
+        "total_messages": 196,
+        "member_joins": 3,
+        "member_leaves": 2
+    },
+    "2021-06-08": {
+        "total_messages": 385,
+        "member_joins": 1,
+        "member_leaves": 1
+    },
+    "2021-06-09": {
+        "total_messages": 196,
+        "member_joins": 0,
+        "member_leaves": 0
     }
 }
