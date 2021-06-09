@@ -599,9 +599,7 @@ async def on_command_error(ctx, error):
 @client.command(category='Owner', description="Command testing")
 @commands.is_owner()
 async def test(ctx, *members): # Here i test commands
-    members = [get_member(member) for member in members]
-
-    await ctx.send('\n'.join([member.name for member in members]))
+    await ctx.send(str(members))
 
     
 @client.command(category='Owner', description='To enable a text channel')
