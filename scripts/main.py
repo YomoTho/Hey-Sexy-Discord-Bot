@@ -725,7 +725,10 @@ async def dm(ctx, *args):
             async def dmm(msg):
                 msg_cmd = ctx.message
                 if ctx.author.id == server_owner.id:
-                    to = Send_Message(user); await to.send(msg)
+                    to = Send_Message(user)
+                    async with user.typing():
+                        await asyncio.sleep((len(msg) / randint(2, 4)))
+                    await to.send(msg)
                     await msg_cmd.add_reaction('✅')
                     if not args[0].startswith('<@!'):
                         await ctx.send(f'To {user}')
