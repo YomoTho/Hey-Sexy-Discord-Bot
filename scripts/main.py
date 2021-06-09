@@ -1192,6 +1192,17 @@ async def announce(ctx, *, args=None):
 @client.command(category='Owner', description='Restart the bot')
 @commands.is_owner()
 async def reboot(ctx, args=None):
+    if args == 'update':
+        await ctx.send('Updating...')
+        os.system('echo $(git pull) > update.txt')
+        with open('update.txt') as f:
+            update_status = f.read()
+        
+        await ctx.send(update_status)
+        
+        with open('update.txt', 'w') as f:
+            pass
+
     await ctx.send("Rebooting...")
     sys.exit(f"1::{ctx.channel.id}")
 
