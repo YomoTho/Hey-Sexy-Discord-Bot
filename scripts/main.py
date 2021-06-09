@@ -1629,6 +1629,12 @@ async def add_exp(ctx, member:discord.Member, exp_amount:int):
         await send_lvl_up_msg(leveled_up)
 
 
+@client.command(category='Owner')
+@commands.is_owner()
+async def update(ctx):
+    await ctx.send(str(os.system('git pull')))
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
