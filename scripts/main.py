@@ -1569,7 +1569,7 @@ async def set_prefix(ctx, new_prefix:str):
     await command_success(ctx)
 
 
-@client.command(category='Info')
+@client.command(category='Info', description="To see all the commands:\n`%shelp all`" % command_prefix)
 async def help(ctx, command_name:str=None):
     categories = {}
     command_category = ''
@@ -1584,32 +1584,38 @@ async def help(ctx, command_name:str=None):
         categories[category][command] = {}
         categories[category][command]['description'] = description
 
-    if command_name is None:
-        embed.title = 'Category:'
-        embed.set_footer(text='%shelp <category_name>' % command_prefix)
-        for cate in categories:
-            embed.add_field(name=cate, value=str(len(categories[cate])))
+    if command_name == 'all':
+        embed.title = "All Commands:"
+        embed.set_footer(text='%shelp <command_name> or <category_name>' % command_prefix)
+        for category in categories:
+            embed.add_field(name=category, value="```\n%s```" % '\n'.join(categories[category]))
     else:
-        try:
-            _list = categories[command_name]
-            embed.title = 'Commands:'
-            embed.description = '```\n%s```**%s** category' % ('\n'.join(_list), command_name)
-            embed.set_footer(text='%shelp <command_name>' % command_prefix)
-        except KeyError:
-            found = False
-            for category in categories:
-                if command_name in categories[category]:
-                    found = True
-                    command_category = category
-                    _list = command_name
-                    description = categories[category][command_name]['description']
-                    command_args = ' '.join(['<%s>' % arg for arg in list(vars(client.all_commands[_list])['params'])[1:]])
-                    _list = '%s%s %s' % (command_prefix, command_name, command_args)
-                    embed.description = '```\n%s```Description:\n**%s**\n\n**%s** category' % (_list, description, command_category)
-                    break
-            else:
-                if not found:
-                    return await ctx.send("Huh? help with what command!?")
+        if command_name is None:
+            embed.title = 'Category:'
+            embed.set_footer(text='%shelp <category_name>' % command_prefix)
+            for cate in categories:
+                embed.add_field(name=cate, value=str(len(categories[cate])))
+        else:
+            try:
+                _list = categories[command_name]
+                embed.title = 'Commands:'
+                embed.description = '```\n%s```**%s** category' % ('\n'.join(_list), command_name)
+                embed.set_footer(text='%shelp <command_name>' % command_prefix)
+            except KeyError:
+                found = False
+                for category in categories:
+                    if command_name in categories[category]:
+                        found = True
+                        command_category = category
+                        _list = command_name
+                        description = categories[category][command_name]['description']
+                        command_args = ' '.join(['<%s>' % arg for arg in list(vars(client.all_commands[_list])['params'])[1:]])
+                        _list = '%s%s %s' % (command_prefix, command_name, command_args)
+                        embed.description = '```\n%s```Description:\n**%s**\n\n**%s** category' % (_list, description, command_category)
+                        break
+                else:
+                    if not found:
+                        return await ctx.send("Huh? help with what command!?")
 
     await ctx.send(embed=embed)
 
