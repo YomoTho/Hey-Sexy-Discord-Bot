@@ -335,6 +335,18 @@ def write_data_file(filename:str, content:dict):
         json.dump(content, f, indent=4)
 
 
+async def update_bot(ctx):
+    await ctx.send('Updating...')
+    os.system('echo $(git pull) > update.txt')
+    with open('update.txt') as f:
+        update_status = f.read()
+    
+    await ctx.send(update_status)
+    
+    with open('update.txt', 'w') as f:
+        pass
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -598,8 +610,8 @@ async def on_command_error(ctx, error):
 
 @client.command(category='Owner', description="Command testing")
 @commands.is_owner()
-async def test(ctx, *members): # Here i test commands
-    await ctx.send(str(members))
+async def test(ctx): # Here i test commands
+    await ctx.send("Testing Testing Test")
 
     
 @client.command(category='Owner', description='To enable a text channel')
@@ -1193,15 +1205,7 @@ async def announce(ctx, *, args=None):
 @commands.is_owner()
 async def reboot(ctx, args=None):
     if args == 'update':
-        await ctx.send('Updating...')
-        os.system('echo $(git pull) > update.txt')
-        with open('update.txt') as f:
-            update_status = f.read()
-        
-        await ctx.send(update_status)
-        
-        with open('update.txt', 'w') as f:
-            pass
+        await update_bot(ctx=ctx)
 
     await ctx.send("Rebooting...")
     sys.exit(f"1::{ctx.channel.id}")
@@ -1641,7 +1645,7 @@ async def add_exp(ctx, member:discord.Member, exp_amount:int):
 @client.command(category='Owner')
 @commands.is_owner()
 async def update(ctx):
-    await ctx.send(str(os.system('git pull')))
+    await update_bot(ctx=ctx)
 
 
 if __name__ == '__main__':
