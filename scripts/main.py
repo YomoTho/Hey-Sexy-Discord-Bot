@@ -2,6 +2,7 @@ import discord
 import json
 import os
 import asyncio
+from discord import channel
 import pytz
 import requests
 import sys
@@ -341,7 +342,7 @@ async def update_bot(ctx):
     with open('update.txt') as f:
         update_status = f.read()
     
-    await ctx.send(update_status)
+    await ctx.send('```\n%s```' % update_status)
     
     with open('update.txt', 'w') as f:
         pass
@@ -357,13 +358,14 @@ async def on_ready():
     on_ready_time = datetime.now()
     print(f"{client.user} is online @ {on_ready_time}")
     await store_data()
+    
     try:
-        if int(sys.argv[1:][0]) == 1:
-            with open(f'{data_folder}reboot_id') as f:
-                channel = client.get_channel(int(f.read().split('::')[1]))
-                await channel.send(f"Back online!")
-    except IndexError: pass
-
+        channel = client.get_channel(int(sys.argv[1:][0]))
+        if not channel is None:
+            await channel.send('Back Online!')
+    except Exception:
+        pass
+            
 
 @client.event
 async def on_message_delete(message):
@@ -1208,7 +1210,11 @@ async def reboot(ctx, args=None):
         await update_bot(ctx=ctx)
 
     await ctx.send("Rebooting...")
-    sys.exit(f"1::{ctx.channel.id}")
+    
+    with open('reboot_id', 'w') as f:
+        f.write(str(ctx.channel.id))
+
+    sys.exit(0)
 
 
 #@client.command()
