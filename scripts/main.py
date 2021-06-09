@@ -1612,7 +1612,15 @@ async def help(ctx, command_name:str=None):
                     return await ctx.send("Huh? help with what command!?")
 
     await ctx.send(embed=embed)
-    
+
+
+@client.command(category='Owner')
+@commands.is_owner()
+async def add_exp(ctx, member:discord.Member, exp_amount:int):
+    member_exp = Leveling_System(member)
+    leveled_up = member_exp + exp_amount
+    if leveled_up[0]:
+        await send_lvl_up_msg(leveled_up)
 
 
 if __name__ == '__main__':
