@@ -72,13 +72,11 @@ class Stats:
         self.last_days = 7
 
     def load_stats(self) -> dict:
-        with open('%sserverDates.json' % (data_folder)) as f:
-            return json.load(f)
+        return read_data_file(filename='serverDates.json')
 
 
     def get_stats(self) -> discord.File:
-        with open('../data/serverDates.json') as f:
-            stats = json.load(f)
+        stats = read_data_file('serverDates.json')
 
         dates, total_messgae, member_joins, member_leaves = [], [], [], []
 
@@ -160,8 +158,7 @@ async def get_tday_data(time_stats=None):
 
 
 def return_warnings(user : discord.Member, users=False, r_count=False):
-    with open(f'{data_folder}warnings.json') as f:
-        warnings = json.load(f)
+    warnings = read_data_file('warnings.json')
     if users:
         return warnings
     else:
@@ -325,6 +322,17 @@ def get_member(member:str) -> discord.Member:
             return client.get_user(int(member[3:-1]))
         else:
             raise Exception("'%s' member not found." % member)
+
+
+def read_data_file(filename:str) -> dict:
+    with open('%s%s' % (data_folder, filename)) as f:
+        content = json.load(f)
+    return content
+
+
+def write_data_file(filename:str, content:dict):
+    with open('%s%s' % (data_folder, filename), 'w') as f:
+        json.dump(content, f, indent=4)
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -1552,13 +1560,11 @@ async def mod_json_file(ctx, file_name:str):
 @client.command(category='Owner', description="Change the bot's prefix")
 @commands.is_owner()
 async def set_prefix(ctx, new_prefix:str):
-    with open('%sconfig.json' % data_folder) as f:
-        config = json.load(f)
+    config = read_data_file(filename='config.json')
 
     config['prefix'] = new_prefix
 
-    with open('%sconfig.json' % data_folder, 'w') as f:
-        json.dump(config, f, indent=4)
+    write_data_file(filename='config.json', content=config)
 
     await command_success(ctx)
 
