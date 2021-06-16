@@ -8,6 +8,7 @@ import sys
 import insta
 import shutil
 import matplotlib.pyplot as plt
+import inspect
 from typing import Union
 from Reddit_Cmd import Reddit
 from timeAndDateManager import TimeStats
@@ -1847,6 +1848,21 @@ async def pin(ctx):
         return await ctx.send(e)
     else:
         await rmsg.pin()
+
+
+@client.command(description='To view the source code of a command.', category='Owner')
+@commands.is_owner()
+async def source_code(ctx, command_name:str):
+    try:
+        command = client.all_commands[command_name]._callback
+        _source_code = inspect.getsource(command)
+
+        if len(_source_code) > 2000:
+            _source_code = '%s\n...' % _source_code[:1950]
+
+        await ctx.message.reply('```py\n%s```' % _source_code)
+    except KeyError as e:
+        raise Exception("Command %s not found." % e)
 
 
 if __name__ == '__main__':
