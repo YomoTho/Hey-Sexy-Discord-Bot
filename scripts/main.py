@@ -1838,6 +1838,17 @@ async def update(ctx):
     await update_bot(ctx=ctx)
 
 
+@client.command(category='Admin')
+@commands.has_permissions(administrator=True)
+async def pin(ctx):
+    try:
+        rmsg = await Reference(ctx.message).get_reference()
+    except Reference.NoneReference as e:
+        return await ctx.send(e)
+    else:
+        await rmsg.pin()
+
+
 if __name__ == '__main__':
     client.loop.create_task(check_time())
     
