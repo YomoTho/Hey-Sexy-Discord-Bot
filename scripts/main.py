@@ -1853,8 +1853,7 @@ async def pin(ctx):
         await rmsg.pin()
 
 
-@client.command(description='To view the source code of a command.', category='Owner')
-@commands.is_owner()
+@client.command(description='To view the source code of a command.', category='Info')
 async def source_code(ctx, command_name:str):
     try:
         command = client.all_commands[command_name]._callback
