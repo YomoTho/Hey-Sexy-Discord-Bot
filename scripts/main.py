@@ -2,13 +2,13 @@ import discord
 import json
 import os
 import asyncio
-from discord import channel
 import pytz
 import requests
 import sys
 import insta
 import shutil
 import matplotlib.pyplot as plt
+from typing import Union
 from Reddit_Cmd import Reddit
 from timeAndDateManager import TimeStats
 from datetime import datetime, time
@@ -109,6 +109,34 @@ class Stats:
         return file
 
 
+class Reference:
+    class NoneReference(Exception): pass
+
+    def __init__(self, message:discord.Message) -> None:
+        self.message = message
+        self.reference = message.reference
+
+        if self.reference is None:
+            raise self.NoneReference("You didn't reply to a message.")
+
+
+    async def get_reference(self):
+        self.channel = client.get_channel(self.reference.channel_id)
+
+        message = await self.channel.fetch_message(self.reference.message_id)
+
+        return message
+
+
+    async def __aenter__(self):
+        self.channel = client.get_channel(self.reference.channel_id)
+
+        return await self.channel.fetch_message(self.reference.message_id)
+
+    async def __aexit__(self, *args):
+        return False
+
+
 # Global variables
 
 data = Data(client)
@@ -121,6 +149,7 @@ sa_timezone = pytz.timezone('Africa/Johannesburg')
 last_deleted_message = dict()
 announce_message = None
 mod_files = None
+dm_messages = []
 
 # Global variables ^^^
  
@@ -336,6 +365,15 @@ def write_data_file(filename:str, content:dict):
         json.dump(content, f, indent=4)
 
 
+def create_message_link(guild_id, channel_id, message_id):
+    link = 'discord.com/channels/guild_id/channel_id/message_id'.split('/')
+    link[2] = str(guild_id)
+    link[3] = str(channel_id)
+    link[4] = str(message_id)
+    link = 'https://%s' % ('/'.join(link))
+    return link
+
+
 async def update_bot(ctx):
     await ctx.send('Updating...')
     os.system('echo $(git pull) > update.txt')
@@ -346,6 +384,86 @@ async def update_bot(ctx):
     
     with open('update.txt', 'w') as f:
         pass
+
+
+async def on_dm_message(message):
+    if message.author.id == server_owner.id:
+        await client.process_commands(message)
+        return
+    
+    if not message.author.bot:
+        global dm_messages
+        content = await commet_lines(message.content)
+        
+        if len(message.embeds) != 0 and message.content.startswith('https://'):
+            for embed in message.embeds:
+                url = embed.to_dict()['url']
+                embed = discord.Embed(description='%s\n﹂ %s' % (content, message.id))
+                embed.set_author(name=message.author, icon_url=message.author.avatar_url, url=create_message_link('@me', message.channel.id, message.id))
+                embed.set_footer(text=message.author.id)
+                msg = await server_owner.send(embed=embed)
+                await msg.reply(url)
+
+                dm_messages.append(msg.id)
+            else:
+                return
+
+        embed = discord.Embed(description='%s\n﹂ %s' % (content, message.id), color=discord.Color.blue())
+        embed.set_footer(text=message.author.id)
+        embed.set_author(name=message.author, icon_url=message.author.avatar_url, url=create_message_link('@me', message.channel.id, message.id))
+        msg = await server_owner.send(embed=embed)
+
+        dm_messages.append(msg.id)
+
+
+async def human_like_send(member:Union[discord.member.Member, discord.channel.TextChannel], message:str):
+    if not message.startswith('https://'):
+        async with member.typing():
+            await asyncio.sleep(len(message) / 10)
+
+    await member.send(message)
+
+
+async def get_history(ctx, member:discord.Member, limit:int):
+    member_dm_history_msg = await member.history(limit=limit).flatten()
+
+    embed = discord.Embed(title='DM history:')
+    embed.set_footer(text=str(member.id))
+    embed.set_author(name=member, icon_url=member.avatar_url)
+
+    for message in member_dm_history_msg[::-1]:
+        content = await commet_lines(message.content)
+        embeds = message.embeds
+
+        value = '%s%s' % (content, '' if len(embeds) == 0 else '\n`%s`' % str(embeds))
+
+        embed.add_field(name=message.author, value='%s\n﹂ %i' % (value, message.id), inline=False)
+    else:
+        await ctx.send(embed=embed)
+
+
+async def view_message(ctx, member:discord.Member, message_id:int):
+    message = await member.fetch_message(message_id)
+
+    embeds = message.embeds
+    attachments = message.attachments
+    
+
+    if not len(embeds) == 0:
+        for embed in embeds:
+            if message.content.startswith('https://'):
+                url = embed.to_dict()['url']
+                await ctx.message.reply(url)
+            else:
+                await ctx.message.reply(embed=embed)
+    elif not len(attachments) == 0:
+        await ctx.message.reply("Attachments: %s" % message.attachments)
+    else:
+        await ctx.message.reply(str(message))
+
+
+async def commet_lines(message_content):
+    return '\n'.join(['> %s' % line for line in message_content.split('\n')])
 
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
@@ -395,19 +513,7 @@ async def on_message_delete(message):
 @client.event
 async def on_message(message):
     if isinstance(message.channel, discord.DMChannel):
-        if not message.author.bot:
-            if message.content.startswith(command_prefix) and message.author.id == server_owner.id:
-                await client.process_commands(message)
-                return
-            
-            if message.content.startswith('https://tenor.com/'):
-                msg = f"From {message.author}\n{message.content}\n{message.author.id}"
-                await server_owner.send(msg)
-            else:
-                embed = discord.Embed(title=message.content, color=discord.Color.blue())
-                embed.set_footer(text=message.author.id)
-                embed.set_author(name=message.author, icon_url=message.author.avatar_url)
-                await server_owner.send(embed=embed)
+        await on_dm_message(message)
     else:
         if any(word in message.content for word in no_no_words):
             await message.delete()
@@ -613,8 +719,13 @@ async def on_command_error(ctx, error):
 @client.command(category='Owner', description="Command testing")
 @commands.is_owner()
 async def test(ctx): # Here i test commands
-    await ctx.send("Testing Testing Test")
-
+    try:
+        rmsg = await Reference(ctx.message).get_reference()
+    except Reference.NoneReference as e:
+        await ctx.send(e)
+    else:
+        await rmsg.reply(rmsg.content)
+    
     
 @client.command(category='Owner', description='To enable a text channel')
 @commands.is_owner()
@@ -665,77 +776,151 @@ async def embed(ctx): # Here i test my embed messages
 
 @client.command(category='Owner', description="To DM someone as bot\nOr see the messages history, or delete messages")
 @commands.is_owner()
-async def dm(ctx, *args):
-    if args[0] in ['history', 'hist']:
-        async def hist(user : discord.Member, limit=10):
-            messages_from_user = await user.history(limit=limit).flatten()
-            embed = discord.Embed(
-                title='DM History',
-                color=discord.Color.blue()
-            )
-            embed.set_author(name=user, icon_url=user.avatar_url)
-            messages_dict = dict()
-            for message in messages_from_user:
-                messages_dict[message.id] = {}
-                messages_dict[message.id]['content'] = message.content
-                messages_dict[message.id]['author'] = f'{message.author} [ msg id: {message.id} ]' if message.author.id == client.user.id else message.author
-            else:
-                messages_author = list()
-                messages_content = list()
-                for message in messages_dict:
-                    messages_author.append(messages_dict[message]['author'])
-                    messages_content.append(messages_dict[message]['content'])
-                else:
-                    messages_author = messages_author[::-1]; messages_content = messages_content[::-1]
-                    for index, message in enumerate(messages_content):
-                        if message == '' or message == ' ':
-                            message = "<not found.>"
-                        embed.add_field(name=messages_author[index], value=f'{message}\n' + '-' * 60, inline=False)
-                    await ctx.send(embed=embed)
-        try: _limit = int(args[2])
-        except IndexError: _limit = 10
-        await hist(client.get_user(int(args[1][3:-1] if args[1].startswith('<@!') else args[1])), _limit)
-    elif args[0] in ['del', 'delete']:
-        async def delete_messages(user : discord.Member, msg_ids):
-            messages = await user.history(limit=50).flatten()
-            msg_cmd = ctx.message
-            right_messages = list()
+async def dm(ctx, argument : Union[discord.Member, discord.TextChannel, str], *, args : Union[discord.Member, str]=None):
+    def to_(member:discord.Member) -> discord.Embed:
+        return discord.Embed().set_author(name=member, icon_url=member.avatar_url)
 
-            for message in messages:
-                right_messages.append([msg_id for msg_id in msg_ids if message.id == int(msg_id)])
-            else:
-                right_messages = list(filter(lambda a: a != [], right_messages))
-                for message in messages:
-                    for to_del_msg in right_messages:
-                        if message.id == int(to_del_msg[0]):
-                            await message.delete()
-                else:
-                    await msg_cmd.add_reaction('✅')
     
-        ids = args[2:]
-        user_id = int(args[1][3:-1]) if args[1].startswith('<@!') else int(args[1])
-        await delete_messages(client.get_user(user_id), ids)
-    else:
-        if args[0].startswith('<#'): # Check if it's a channel
-            channel_id = int(args[0][2:-1])
-            channel = client.get_channel(channel_id)
-            await channel.send(' '.join(word for word in args[1:]))
-        else:
-            user = client.get_user(int(args[0][3:-1] if args[0].startswith('<@!') else args[0]))
-            async def dmm(msg):
-                msg_cmd = ctx.message
-                if ctx.author.id == server_owner.id:
-                    to = Send_Message(user)
-                    async with user.typing():
-                        await asyncio.sleep((len(msg) / randint(2, 4)))
-                    await to.send(msg)
-                    await msg_cmd.add_reaction('✅')
-                    if not args[0].startswith('<@!'):
-                        await ctx.send(f'To {user}')
-                else:
-                    await msg_cmd.add_reaction('⛔')
+    if isinstance(argument, (discord.member.Member, discord.channel.TextChannel)):
+        if args is None: return await ctx.send("You can't send empty message.")
+
+        await human_like_send(argument, args)
+        if type(argument) is discord.member.Member:
+            await ctx.message.reply(embed=to_(member=argument))
+    elif isinstance(argument, str):
+        if argument in ['hist', 'history']:
+            if isinstance(args, discord.member.Member):
+                limit = 10
+                member = args
+            else:
+                _args = args.split(' ')
+                member = discord.utils.get((server).members, id=int(_args[0]))
+                limit = int(_args[1])
+
+            await get_history(ctx, member, limit)
+        elif argument in ['del', 'delete']:
+            try:
+                rmsg = await Reference(ctx.message).get_reference()
+            except Reference.NoneReference:
+                _args = args.split(' ')
+                member_id = int(_args[0])
+                messages_id = _args[1:]
+
+                member = client.get_user(member_id)
+            else:
+                embed_dict = rmsg.embeds[0].to_dict()
+                member_id = int(embed_dict['footer']['text'])
+                messages_id = args.split(' ')
                 
-            await dmm(' '.join(word for word in args[1:]))
+                member = client.get_user(member_id)
+            finally:
+                for msg_id in messages_id:
+                    msg = await member.fetch_message(int(msg_id))
+
+                    await msg.delete()
+                else:
+                    await command_success(ctx)
+        elif argument in ['view', '-d']:
+            try:
+                rmsg = await Reference(ctx.message).get_reference()
+            except Reference.NoneReference as e:
+                await ctx.send(e)
+            else:
+                embed = rmsg.embeds[0].to_dict()
+                member_id = int(embed['footer']['text'])
+                member = client.get_user(member_id)
+                message_id = int(args or embed['description'].split(' ')[-1]) 
+                await view_message(ctx, member, message_id)
+        else:
+            try:
+                rmsg = await Reference(ctx.message).get_reference()
+            except Reference.NoneReference as e:
+                return await ctx.send(e)
+            else:
+                if rmsg.id in dm_messages:
+                    embed = rmsg.embeds[0]
+                    embed_dict = embed.to_dict()
+
+                    member_id = int(embed_dict['footer']['text'])
+                    message_id = int(embed_dict['description'].split(' ')[-1])
+
+                    member = client.get_user(member_id)
+
+                    message_to_send = ' '.join([argument, args or ''])
+
+                    async with member.typing():
+                        await asyncio.sleep(len(message_to_send) / 10)
+
+                    user_msg = await member.fetch_message(message_id)
+
+                    await user_msg.reply(message_to_send)
+
+                    await command_success(ctx)
+                    #await ctx.message.reply(embed=to_(member))
+    else:
+        print('huh?')
+        print(type(argument))
+    
+    
+    
+    
+    
+    
+    
+    
+    #if isinstance(arg_1, (discord.member.Member, discord.channel.TextChannel)):
+    #    if arg_2 is None:
+    #        return await ctx.send("You can't send an empty message.")
+#
+    #    await human_like_send(arg_1, arg_2)
+    #elif isinstance(arg_1, str):
+    #    if arg_1 in ['hist', 'history']:
+    #        
+    #    elif arg_1 in ['del', 'delete']:
+    #        pass
+    #    elif arg_1 == 'view':
+    #        pass
+    #    else:
+    #        pass
+    #else:
+    #    print('huh?')
+    #    print(type(arg_1))
+    
+
+
+
+
+
+    """
+    if do_what in ['hist', 'history']:
+        
+    elif do_what in ['del', 'delete']:
+        try:
+            async with Reference(ctx.message) as msg:
+                rmsg = msg
+        except Reference.NoneReference:
+            args = msg_to_send.split(' ')
+            member = get_member(int(args[0]))
+            message_ids = args[1:]
+        else:
+            member_id = int(rmsg.embeds[0].to_dict()['footer']['text'])
+            member = client.get_user(member_id)
+            message_ids = msg_to_send.split(' ')
+        finally:
+            for msg_id in message_ids:
+                message = await member.fetch_message(int(msg_id))
+                if message.author.id == client.user.id:
+                    await message.delete()
+                else:
+                    await ctx.send("I can't delete %s messgae." % message.author)
+            else:
+                await command_success(ctx)
+    elif do_what == 'view':
+        
+    else:
+        if msg_to_send is None:
+            msg_to_send = ''
+        await send_dm(ctx, do_what, msg_to_send)"""
 
 
 @client.command()
@@ -1529,11 +1714,7 @@ async def forward(ctx, *members):
         channel = client.get_channel(reference.channel_id)
         replied_message = await channel.fetch_message(reference.message_id)
 
-        link = 'discord.com/channels/guild_id/channel_id/message_id'.split('/')
-        link[2] = str(replied_message.guild.id)
-        link[3] = str(replied_message.channel.id)
-        link[4] = str(replied_message.id)
-        link = 'https://%s' % ('/'.join(link))
+        link = create_message_link(replied_message.guild.id, replied_message.channel.id, replied_message.id)
 
         embed = discord.Embed(description=replied_message.content)
         embed.set_footer(text='Forwarded')
