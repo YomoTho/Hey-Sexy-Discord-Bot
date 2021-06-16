@@ -1859,10 +1859,16 @@ async def source_code(ctx, command_name:str):
         command = client.all_commands[command_name]._callback
         _source_code = inspect.getsource(command)
 
-        if len(_source_code) > 2000:
-            _source_code = '%s\n...' % _source_code[:1950]
+        source_file = 'source_code.py'
+        with open(source_file, 'w') as f:
+            f.write(_source_code)
+        
+        file = discord.File(source_file)
+        
+        await ctx.send(embed=discord.Embed(description='**%s** source code:' % command_name, colour=discord.Colour.green()), file=file)
 
-        await ctx.message.reply('```py\n%s```' % _source_code)
+        with open(source_file, 'w') as f:
+            f.write('')
     except KeyError as e:
         raise Exception("Command %s not found." % e)
 
