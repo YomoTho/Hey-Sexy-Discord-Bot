@@ -181,7 +181,7 @@ class Money(Leveling_System):
         self.member = member    # Here it gets the user (member)
         self.users = self.load()  
         self.user_money = self.users[str(self.member.id)]['money'] # This is getting the user amount of money
-        self.shop = self.get_shop()
+        #self.shop = self.get_shop()
         self.r = self.load()[str(self.member.id)]['r']  # The r stands for "ress"
     
     def __add__(self, income):
@@ -194,9 +194,9 @@ class Money(Leveling_System):
 
         return self.user_money, self.r
     
-    def get_shop(self):
-        with open(f'{data_folder}shop.json') as f:
-            return json.load(f)
+    #def get_shop(self):
+    #    with open(f'{data_folder}shop.json') as f:
+    #        return json.load(f)
 
     def buy(self, role=None, liverank=None):
         if not role is None:
