@@ -1106,7 +1106,7 @@ async def msg_count(ctx):
 
 
 @client.command(category='Info', description="Get info of a member")
-async def info(ctx, member : discord.Member=None):
+async def mi(ctx, member : discord.Member=None):
     member = member or ctx.author
 
     created = member.created_at.strftime(f"%A, %B %d %Y @ %H:%M %p")
