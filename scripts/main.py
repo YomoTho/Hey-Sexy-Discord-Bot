@@ -484,6 +484,9 @@ async def on_ready():
             await channel.send('Back Online!')
     except Exception:
         pass
+
+    activity = discord.Game(name="%s%s" % (command_prefix, help._callback.__name__), type=3)
+    await client.change_presence(activity=activity)
             
 
 @client.event
