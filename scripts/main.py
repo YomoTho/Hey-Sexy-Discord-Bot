@@ -1001,7 +1001,7 @@ async def unban(ctx, id : int):
 
 @client.command(description="The bot's latency", category='Info')
 async def ping(ctx):
-    await ctx.send(f'ping {round(client.latency * 1000)}ms')
+    await ctx.message.reply(embed=discord.Embed(description=f'**{round(client.latency * 1000)}**ms', colour=discord.Color.blue()))
 
 
 #@client.command()
