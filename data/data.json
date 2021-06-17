@@ -43,6 +43,10 @@
     "818560649189654589": {
       "name": "rules",
       "cname": "rules"
+    },
+    "854883960881283103": {
+      "name": "on_raised_error",
+      "cname": "ore"
     }
   },
   "roles": {

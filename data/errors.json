@@ -1,22 +1,8 @@
 {
-    "818574185088548904": {
-        "851619319238230057": {
-            "error": "Command \"view_kson\" is not found",
-            "msg_ctx": ";view_kson liverank.json",
-            "user_id": 275192642101313536
-        },
-        "851622271482593310": {
-            "error": "Command \"pign\" is not found",
-            "msg_ctx": ";;pign",
-            "user_id": 275192642101313536
-        }
-    },
-    "834888173498138644": {},
-    "851535628948865064": {
-        "852201948601122867": {
-            "error": "Command \"hel\" is not found",
-            "msg_ctx": ";hel",
-            "user_id": 275192642101313536
-        }
-    }
+    "errors": {},
+    "do_not_raise": [
+        "<class 'discord.ext.commands.errors.CommandInvokeError'>",
+        "<class 'discord.ext.commands.errors.MissingRequiredArgument'>",
+        "<class 'discord.ext.commands.errors.CommandNotFound'>"
+    ]
 }

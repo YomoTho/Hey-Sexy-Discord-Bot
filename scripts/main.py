@@ -250,6 +250,11 @@ async def check_time():
             await channel.send(file=stats.get_stats(), embed=embed_2)          
 
             total_seconds = ((24 * 60) * 60)
+
+            # Clean up errors
+            error_data = read_data_file('errors.json')
+            error_data['errors'] = {}
+            write_data_file('errors.json', error_data)
         else:
             total_seconds = ((h_left * 60) * 60) + (m_left * 60)
         
@@ -268,23 +273,6 @@ async def rank_msg(member : discord.Member):
         embed.add_field(name='Roles:', value=' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone'), inline=False)
         embed.set_author(name=member, icon_url=member.avatar_url)
         return embed
-
-
-async def save_command_error(ctx, error):
-    with open(f'{data_folder}errors.json') as f:
-        errors_data = json.load(f)
-
-    await ctx.message.add_reaction('❌')
-
-    if not str(ctx.channel.id) in errors_data:
-        errors_data[str(ctx.channel.id)] = {}
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)] = {}
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['error'] = str(error)
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['msg_ctx'] = ctx.message.content
-    errors_data[str(ctx.channel.id)][str(ctx.message.id)]['user_id'] = ctx.author.id
-
-    with open(f'{data_folder}errors.json', 'w') as f:
-        json.dump(errors_data, f, indent=4)
 
 
 async def member_leave_process(member):
@@ -477,6 +465,16 @@ async def clear_screen(ctx):
     print(ctx.channel, ctx.author)
 
 
+def make_error_message(error_msg, url='') -> discord.Embed:
+    return discord.Embed(
+        title=':x: Error:',
+        description='> ' + error_msg,
+        url=url,
+        colour=discord.Color.from_rgb(255, 0, 0)
+    )
+
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -600,22 +598,22 @@ async def on_raw_reaction_add(payload : discord.RawReactionActionEvent):
                 await user.add_roles(role)
         else:
             if payload.emoji.name == '❌':
-                with open(f"{data_folder}errors.json") as f:
-                    errors_data = json.load(f)
-                
-                if str(payload.channel_id) in errors_data:
-                    if str(payload.message_id) in errors_data[str(payload.channel_id)]:
-                        dumb_user = client.get_user(errors_data[str(payload.channel_id)][str(payload.message_id)]['user_id'])
-                        embed = discord.Embed(title=" :x: Error:", description=f"{errors_data[str(payload.channel_id)][str(payload.message_id)]['error']}", color=0xff001c)
-                        embed.set_author(name=dumb_user, icon_url=dumb_user.avatar_url)
-                        message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
-                        
-                        await message.reply(embed=embed)
+                errors_data = read_data_file('errors.json')
 
-                        del errors_data[str(payload.channel_id)][str(payload.message_id)]
+                if str(payload.message_id) in errors_data['errors']:
+                    error_msg = errors_data['errors'][str(payload.message_id)]['error']
+                    error_type = errors_data['errors'][str(payload.message_id)]['type']
 
-                        with open(f"{data_folder}errors.json", 'w') as f:
-                            json.dump(errors_data, f, indent=4)
+                    embed = make_error_message(error_msg)
+                    embed.set_footer(text=error_type)
+
+                    message = await client.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+                    await message.reply(embed=embed)
+
+                    del errors_data['errors'][str(payload.message_id)]
+
+                    write_data_file('errors.json', errors_data)
             elif payload.emoji.name == '✅':
                 if not announce_message is None:
                     for msg in announce_message:
@@ -670,51 +668,33 @@ async def on_raw_reaction_remove(payload:discord.RawReactionActionEvent):
 
 @client.event
 async def on_command_error(ctx, error):
-    async def yes(e=error):
-        await save_command_error(ctx, e)
+    error_filename = 'errors.json'
+
+    errors = read_data_file(error_filename)
+
+    if not 'errors' in errors:
+        errors['errors'] = {}    
     
-    if isinstance(error, discord.ext.commands.MissingRequiredArgument):
-        await yes()
-    elif isinstance(error, discord.ext.commands.NSFWChannelRequired):
-        await yes()
-    elif isinstance(error, discord.ext.commands.CommandNotFound):
-        await yes()
-    elif isinstance(error, discord.ext.commands.MissingPermissions):
-        await yes()
-    elif isinstance(error, discord.ext.commands.NotOwner):
-        await yes(e="You not the owner.")
-    else:
-        if ctx.message.content.startswith('.dm hist'):
-            if str(error) == "Command raised an exception: IndexError: tuple index out of range":
-                await yes(e="Missing Required Argument.")
-            elif str(error) == "Command raised an exception: AttributeError: 'ClientUser' object has no attribute 'history'":
-                await yes()
-            elif str(error).startswith("Command raised an exception: ValueError: invalid literal for int() with base 10"):
-                await yes()
-            elif str(error) == "Command raised an exception: HTTPException: 400 Bad Request (error code: 50007): Cannot send messages to this user":
-                await yes()
-            elif str(error) == "You do not own this bot.":
-                await yes()
-            else:
-                print(str(error))
-        elif ctx.message.content.startswith('.dm'):
-            if str(error) == "Command raised an exception: AttributeError: 'ClientUser' object has no attribute 'send'":
-                await yes(e="The bot can't send messages to itself.")
-            elif str(error) == "Command raised an exception: HTTPException: 400 Bad Request (error code: 50007): Cannot send messages to this user":
-                await yes(e="Cannot send messages to this user.")
-            elif str(error).startswith("Command raised an exception: ValueError: invalid literal for int() with base 10:"):
-                if str(error)[-23:-1].startswith('<@&'): # Checks if this is a role
-                    await yes(e="Can't send messages to roles.")
-                else:
-                    await yes()
-                    raise error
-            elif str(error) == "You do not own this bot.":
-                await yes()
-            else:                                                                  
-                print(str(error))
-        else:
-            await yes()
-            raise error
+    errors['errors'][str(ctx.message.id)] = {}
+    errors['errors'][str(ctx.message.id)]['error'] = str(error)
+    errors['errors'][str(ctx.message.id)]['type'] = str(type(error))
+
+    if not 'do_not_raise' in errors:
+        errors['do_not_raise'] = []
+
+    write_data_file(error_filename, errors)
+
+    await ctx.message.add_reaction('❌')
+
+    if not str(type(error)) in errors['do_not_raise']:
+        error_channel = data.get_useful_channel('ore')
+
+        embed = make_error_message(str(error), url=create_message_link(ctx.guild.id, ctx.channel.id, ctx.message.id))
+        embed.set_footer(text=str(type(error)))
+
+        await error_channel.send(embed=embed)
+        
+        raise error
     
     
 
@@ -1880,6 +1860,34 @@ async def source_code(ctx, command_name:str):
             f.write('')
     except KeyError as e:
         raise Exception("Command %s not found." % e)
+
+
+@client.command(category='Owner', description="Reply to a error message and ot won't be raised.")
+@commands.is_owner()
+async def dnr(ctx):
+    try:
+        # My own class that returns the replied message.
+        rmsg = await Reference(ctx.message).get_reference()
+    except Reference.NoneReference as e: 
+        # If the user didn't reply to a message
+        return await ctx.message.reply(e)
+    else:
+        # If the user has replied to a message
+        embed_footer = str(rmsg.embeds[0].to_dict()['footer']['text'])
+        
+        if embed_footer.startswith('<class') and embed_footer.endswith('>'):
+            error_data = read_data_file('errors.json')
+
+            if embed_footer in error_data['do_not_raise']:
+                return await ctx.send("It's already 'dnr'")
+
+            error_data['do_not_raise'].append(embed_footer)
+
+            write_data_file('errors.json', error_data)
+
+            await command_success(ctx)
+        else:
+            await ctx.send("'%s' does not look like an type." % embed_footer)
 
 
 if __name__ == '__main__':
