@@ -164,16 +164,19 @@ class Leveling_System:
         
         
     async def update_live_rank(self, data):
-        if data.load_config()['update_live_rank']:
-            with open(f'{data_folder}liverank.json') as f:
-                liverank_users = json.load(f)
-                
-            if str(self.member.id) in liverank_users:
-                live_rank_channel = data.get_useful_channel(cname='lr')
-                if not live_rank_channel is None:
-                    msg_id = liverank_users[str(self.member.id)]['msg_id']
-                    msg = await live_rank_channel.fetch_message(msg_id)
-                    await msg.edit(embed=await self.rank_msg(self.member))
+        try:
+            if data.load_config()['update_live_rank']:
+                with open(f'{data_folder}liverank.json') as f:
+                    liverank_users = json.load(f)
+                    
+                if str(self.member.id) in liverank_users:
+                    live_rank_channel = data.get_useful_channel(cname='lr')
+                    if not live_rank_channel is None:
+                        msg_id = liverank_users[str(self.member.id)]['msg_id']
+                        msg = await live_rank_channel.fetch_message(msg_id)
+                        await msg.edit(embed=await self.rank_msg(self.member))
+        except RuntimeError:
+            pass # Probably session is closed
 
 
 class Money(Leveling_System):
