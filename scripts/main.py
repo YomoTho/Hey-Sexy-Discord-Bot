@@ -467,6 +467,16 @@ async def commet_lines(message_content):
     return '\n'.join(['> %s' % line for line in message_content.split('\n')])
 
 
+async def _exit():
+    await reddit.reddit.close()
+    await client.close()
+
+
+async def clear_screen(ctx):
+    os.system('clear')
+    print(ctx.channel, ctx.author)
+
+
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
 @client.event
@@ -1397,16 +1407,21 @@ async def announce(ctx, *, args=None):
 
 @client.command(category='Owner', description='Restart the bot')
 @commands.is_owner()
-async def reboot(ctx, args=None):
-    if args == 'update':
-        await update_bot(ctx=ctx)
+async def reboot(ctx, *args):
+    arguments = {'update': update_bot, 'clear': clear_screen}
 
+    for arg in args:
+        try:
+            await arguments[arg](ctx)
+        except KeyError as e:
+            raise Exception("Argument %s not found." % e)
+    
     await ctx.send("Rebooting...")
     
     with open('reboot_id', 'w') as f:
         f.write(str(ctx.channel.id))
 
-    sys.exit(0)
+    await _exit()
 
 
 #@client.command()
@@ -1834,12 +1849,6 @@ async def add_exp(ctx, member:discord.Member, exp_amount:int):
     leveled_up = member_exp + exp_amount
     if leveled_up[0]:
         await send_lvl_up_msg(leveled_up)
-
-
-@client.command(category='Owner')
-@commands.is_owner()
-async def update(ctx):
-    await update_bot(ctx=ctx)
 
 
 @client.command(category='Admin')
