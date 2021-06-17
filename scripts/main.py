@@ -763,8 +763,8 @@ async def disconnect(ctx):
 
 @client.command(category='Owner', description='Embed testing')
 @commands.is_owner()
-async def embed(ctx): # Here i test my embed messages 
-    pass
+async def embed(ctx, channel:discord.TextChannel, *, msg): # Here i test my embed messages 
+    await channel.send(embed=discord.Embed(description=msg))
 
 
 
