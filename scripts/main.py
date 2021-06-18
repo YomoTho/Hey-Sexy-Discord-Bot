@@ -366,12 +366,12 @@ def create_message_link(guild_id, channel_id, message_id):
 
 
 async def update_bot(ctx):
-    await ctx.send('Updating...')
-    os.system('echo $(git pull) > update.txt')
+    await ctx.send("**Updating...**")
+    _code = os.system('echo $(git pull) > update.txt')
     with open('update.txt') as f:
         update_status = f.read()
     
-    await ctx.send('```\n%s```' % update_status)
+    await ctx.send(embed=discord.Embed(title='Update status:', description='```\n%s```' % update_status).set_footer(text='exit_code: %s' % _code))
     
     with open('update.txt', 'w') as f:
         pass
@@ -485,13 +485,14 @@ async def on_ready():
     global reddit
     reddit = Reddit()
     on_ready_time = datetime.now()
-    print(f"{client.user} is online @ {on_ready_time}")
+    text = f"**{client.user}** is online @ **{on_ready_time}**" 
+    print(text)
     await store_data()
     
     try:
         channel = client.get_channel(int(sys.argv[1:][0]))
         if not channel is None:
-            await channel.send('Back Online!')
+            await channel.send(embed=discord.Embed(description=text))
     except Exception:
         pass
 
