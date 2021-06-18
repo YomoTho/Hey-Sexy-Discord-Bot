@@ -539,11 +539,14 @@ async def on_message(message):
             leveled_up = user_rank_data + int(len(message.content) / 1.5)
             if leveled_up[0]:
                 await send_lvl_up_msg(leveled_up)
-            if not message.content.startswith('%sr/' % command_prefix):
-                await client.process_commands(message)
-            else:
-                ctx = message.content.split('/')[1]
-                await reddit_command(await client.get_context(message), *ctx.split(' '))
+            
+            if message.content.startswith('%sr/' % command_prefix):
+                _content = message.content.split('/')
+                _content[0] = ''.join([_content[0], '/'])
+                message.content = ' '.join(_content)
+            
+            await client.process_commands(message)
+
             await user_rank_data.update_live_rank(data)
 
 
@@ -1888,6 +1891,11 @@ async def dnr(ctx):
             await command_success(ctx)
         else:
             await ctx.send("'%s' does not look like an type." % embed_footer)
+
+
+@client.command(name='r/', category='Info', description="Get reddit posts")
+async def r(ctx,subreddit:str, loop:int=1):
+    await reddit_command(ctx, subreddit, loop)
 
 
 if __name__ == '__main__':
