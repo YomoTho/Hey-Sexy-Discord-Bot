@@ -184,7 +184,6 @@ async def get_tday_data(time_stats=None):
     
     Members joined: **{total_new_joins}**
     Members leaved: **{total_member_leaves}**
-
     Today's total message's: **{total_tday_msgs}**
     """
     return total_members, total_humans, total_bots, total_new_joins, total_member_leaves, total_tday_msgs
@@ -1199,43 +1198,6 @@ async def announce(ctx, *, args=None):
         await ctx.send("Reply to a message to be announced.")
 
 
-#@client.command()
-#async def meme(ctx, limit : int=30, loop=1): # TODO make title have url
-#    await Reddit_Command(ctx, 'memes', limit, loop, os.getenv, choice, requests, discord)
-#
-#
-#@client.command()
-#@commands.is_nsfw()
-#async def nsfw(ctx, subr='nsfw', limit : int=30, loop=1, args=None):
-#    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-#
-#
-#@client.command()
-#async def food(ctx, limit : int=30, loop : int=1, args=None):
-#    await Reddit_Command(ctx, 'foodporn', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-#
-#
-#@client.command(aliases=['cats', 'cat', 'kittens', 'pussy'])
-#async def kitten(ctx, limit : int=30, loop : int=1, args=None):
-#    await Reddit_Command(ctx, 'kitten', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-#
-#
-#@client.command(aliases=['dogs', 'puppy', 'puppies'])
-#async def dog(ctx, limit : int=30, loop : int=1, args=None):
-#    await Reddit_Command(ctx, 'dog' if not ctx.message.content.split(' ')[0] == 'puppies' else 'puppies', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-#
-#
-#@client.command()
-#async def dankmeme(ctx, limit : int=30, loop=1, args=None):
-#    await Reddit_Command(ctx, 'dankmemes', limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
-#@client.command()
-#@commands.is_owner()
-#async def r(ctx, subr, limit : int=30, loop : int=1, args=None):
-#    await Reddit_Command(ctx, subr, limit, loop, os.getenv, choice, requests, discord, True if args == '-f' else False)
-
-
 @client.command(category='Owner', description='Restart the bot')
 @commands.is_owner()
 async def reboot(ctx, *args):
@@ -1254,11 +1216,6 @@ async def reboot(ctx, *args):
 
     await _exit()
 
-
-#@client.command()
-#@commands.is_owner()
-#async def stop(ctx):
-#    exit(0)
 
 @client.command(category='Owner', description='Most photos to Instagram')
 @commands.is_owner()
