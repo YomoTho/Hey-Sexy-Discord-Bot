@@ -111,14 +111,16 @@ class Stats:
 
 
 class Reference:
-    class NoneReference(Exception): pass
+    class NoneReference(Exception): 
+        def __init__(self, description:str=None) -> None:
+            super().__init__(description or "You didn't reply to a message.")
 
     def __init__(self, message:discord.Message) -> None:
         self.message = message
         self.reference = message.reference
 
         if self.reference is None:
-            raise self.NoneReference("You didn't reply to a message.")
+            raise self.NoneReference()
 
 
     async def get_reference(self):
@@ -1708,24 +1710,22 @@ async def forward(ctx, *members):
     if members == ():
         members = [str(ctx.author.id)]
 
-    reference = ctx.message.reference
-    if not reference is None:
-        channel = client.get_channel(reference.channel_id)
-        replied_message = await channel.fetch_message(reference.message_id)
-
-        link = create_message_link(replied_message.guild.id, replied_message.channel.id, replied_message.id)
-
-        embed = discord.Embed(description=replied_message.content)
+    try:
+        rmsg = await Reference(ctx.message).get_reference()
+    except Reference.NoneReference as e:
+        return await ctx.message.reply(e)
+    else:
+        link = create_message_link(rmsg.guild.id, rmsg.channel.id, rmsg.id)
+        
+        embed = discord.Embed(description=rmsg.content)
         embed.set_footer(text='Forwarded')
-        embed.set_author(name='Message link', url=link, icon_url=replied_message.author.avatar_url)
+        embed.set_author(name='Message link', url=link, icon_url=rmsg.author.avatar_url)
 
         for member in members:
             await get_member(member).send('From **%s**' % ctx.author, embed=embed)
         else:
-            await ctx.message.add_reaction('✅')
-    else:
-        await ctx.send("Reply to a message to be forwarded.")
-
+            await command_success(ctx)
+    
 
 @client.command(category='Owner', description='Modify the json files')
 @commands.is_owner()
