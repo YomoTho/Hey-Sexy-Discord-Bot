@@ -862,67 +862,6 @@ async def dm(ctx, argument : Union[discord.Member, discord.TextChannel, str], *,
     else:
         print('huh?')
         print(type(argument))
-    
-    
-    
-    
-    
-    
-    
-    
-    #if isinstance(arg_1, (discord.member.Member, discord.channel.TextChannel)):
-    #    if arg_2 is None:
-    #        return await ctx.send("You can't send an empty message.")
-#
-    #    await human_like_send(arg_1, arg_2)
-    #elif isinstance(arg_1, str):
-    #    if arg_1 in ['hist', 'history']:
-    #        
-    #    elif arg_1 in ['del', 'delete']:
-    #        pass
-    #    elif arg_1 == 'view':
-    #        pass
-    #    else:
-    #        pass
-    #else:
-    #    print('huh?')
-    #    print(type(arg_1))
-    
-
-
-
-
-
-    """
-    if do_what in ['hist', 'history']:
-        
-    elif do_what in ['del', 'delete']:
-        try:
-            async with Reference(ctx.message) as msg:
-                rmsg = msg
-        except Reference.NoneReference:
-            args = msg_to_send.split(' ')
-            member = get_member(int(args[0]))
-            message_ids = args[1:]
-        else:
-            member_id = int(rmsg.embeds[0].to_dict()['footer']['text'])
-            member = client.get_user(member_id)
-            message_ids = msg_to_send.split(' ')
-        finally:
-            for msg_id in message_ids:
-                message = await member.fetch_message(int(msg_id))
-                if message.author.id == client.user.id:
-                    await message.delete()
-                else:
-                    await ctx.send("I can't delete %s messgae." % message.author)
-            else:
-                await command_success(ctx)
-    elif do_what == 'view':
-        
-    else:
-        if msg_to_send is None:
-            msg_to_send = ''
-        await send_dm(ctx, do_what, msg_to_send)"""
 
 
 @client.command()
@@ -995,106 +934,10 @@ async def unban(ctx, id : int):
     else:
         await ctx.message.add_reaction('✅')
 
-#@unban.error
-#async def unban_error(ctx, error):
- #   if isinstance(error, discord.ext.commands.BadArgument): pass # Just do nothing.
-
 
 @client.command(description="The bot's latency", category='Info')
 async def ping(ctx):
     await ctx.message.reply(embed=discord.Embed(description=f'**{round(client.latency * 1000)}**ms', colour=discord.Color.blue()))
-
-
-#@client.command()
-#async def buy(ctx, *args):
-#    if ctx.channel == data.get_useful_channel(cname='sh') or ctx.author.id == data.get_owner().id:
-#        try:
-#            if args[0] in 'role':
-#                try:
-#                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
-#                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-#                    if role in ctx.author.roles:
-#                        await ctx.send('You already have this role. lol')
-#                        return
-#                except ValueError:
-#                    if args[1].startswith('<@!'):
-#                        await ctx.send(f"You can't buy {args[1]}, dum dum")
-#                    else:
-#                        await ctx.send(f"Huh, who!?")
-#                else:
-#                    buyer = Money(ctx.author)
-#                    buying = buyer.buy(role=role)
-#                    if next(buying):
-#                        await ctx.author.add_roles(role)
-#                        if next(buying):
-#                            await ctx.message.add_reaction('✅')
-#                        else:
-#                            await ctx.send("Something went wrong here.")
-#                    else:
-#                        await ctx.send(f"You don't have enough money to buy this role.")
-#            elif args[0] in ['lr', 'liverank']:     # TODO add live rank
-#                buyer = Money(ctx.author)
-#                buying = buyer.buy(liverank=1)
-#                if next(buying):
-#                    live_rank_channel = data.get_useful_channel(cname='lr')
-#                    user_rank = Leveling_System(ctx.author)
-#                    liverank_msg = await live_rank_channel.send(f'{ctx.author.mention} live rank', embed=await user_rank.rank_msg(ctx.author))
-#                    
-#                    with open(f'{data_folder}liverank.json', 'r') as f:
-#                        liverank_users = json.load(f)
-#                    
-#                    liverank_users[ctx.author.id] = {}
-#                    liverank_users[ctx.author.id]['msg_id'] = liverank_msg.id
-#                    liverank_users[ctx.author.id]['channel_id'] = liverank_msg.channel.id
-#                    
-#                    with open(f'{data_folder}liverank.json', 'w') as f:
-#                        json.dump(liverank_users, f, indent=2)
-#                        
-#                    if next(buying):     # Take money
-#                        await ctx.message.add_reaction('✅')
-#            else:
-#                raise IndexError
-#        except IndexError:
-#            await ctx.send("Not like that, type in: ';buy role {@role}' (e.p ';buy role <@&818591361837695010>')")
-#        except Exception as e:
-#            await ctx.message.add_reaction('❌')
-#            await ctx.send(e)
-#    else:
-#        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
-#
-#
-#@client.command()
-#async def sell(ctx, *args):
-#    if ctx.channel == data.get_useful_channel(cname='sh'):
-#        try:
-#            if args[0] == 'role':
-#                try:
-#                    role_id = args[1].replace('<@&', ''); role_id = role_id.replace('>', '')
-#                    role = discord.utils.get(ctx.guild.roles, id=int(role_id))
-#                except ValueError:
-#                    if args[1].startswith('<@!'):
-#                        await ctx.send(f"You can't sell {args[1]}, dum dum")
-#                    else:
-#                        await ctx.send(f"Huh!?")
-#                else:
-#                    try:
-#                        seller_user = Money(ctx.author) # Here we define the member
-#                        seller = seller_user.sell(role) # This function is a generator
-#                        if next(seller): # If the user can sell this role, then it will return True
-#                            await ctx.author.remove_roles(role)
-#                            await ctx.message.add_reaction('✅')
-#                    except Exception as e:
-#                        await ctx.send(e)
-#                    else:
-#                        # If verything went good then it will save, the changes
-#                        money_update = next(seller) # This will save and return info
-#                        await ctx.send(f"You had ${money_update[0]}, then sell '{role.name}' for ${money_update[2]}. Now you have $**{money_update[1]}**.")
-#            else:
-#                raise IndexError
-#        except IndexError:
-#            await ctx.send("Not like that dummy, type in: ';sell role {@role}' \n(e.p: ';sell role <@&818591361837695010>')")
-#    else:
-#        await ctx.send(f"You can only buy/sell stuff in {data.get_useful_channel(cname='sh').mention}")
 
 
 @client.command(category='Info', description="The total messages")
