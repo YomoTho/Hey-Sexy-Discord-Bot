@@ -47,7 +47,7 @@ class Reddit:
 
             self.all_post = []
 
-            async for submission in self.subreddit.hot(limit=limit):
+            async for submission in self.subreddit.top(limit=limit):
                 self.all_post.append(submission)
             else:
                 if self.all_post[0].over_18:
