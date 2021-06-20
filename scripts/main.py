@@ -1053,9 +1053,8 @@ async def disconnect(ctx):
 @client.command(category='Owner', description='Embed testing')
 @commands.is_owner()
 async def embed(ctx, channel:discord.TextChannel, *, title_msg): # Here i test my embed messages 
-    title, msg = title_msg.split(':')
+    title, msg = title_msg.split('\\')
     await channel.send(embed=discord.Embed(title=title, description=msg, colour=discord.Color.blue()))
-    await ctx.message.delete()
 
 
 
