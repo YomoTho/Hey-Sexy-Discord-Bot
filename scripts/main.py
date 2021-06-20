@@ -756,6 +756,9 @@ async def on_command_error(ctx, error):
 
 @client.event
 async def on_message_edit(before, after):
+    if before.content == after.content:
+        return
+    
     channel = Send_Message.audit_log()
 
     embed = discord.Embed(description="%s edited a message in %s" % (after.author.mention, after.channel.mention), colour=discord.Color.blue())
