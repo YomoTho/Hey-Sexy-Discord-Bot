@@ -627,7 +627,8 @@ async def on_member_join(member):
 @client.event
 async def on_member_remove(member):
     task = asyncio.create_task(member_leave_process(member))
-    embed = discord.Embed(description=f'**{member}** left this server.')
+    embed = discord.Embed(description=f'**{member.mention}** left **{server}**.', colour=discord.Color.from_rgb(255, 0, 0))
+    embed.set_author(name=member, icon_url=member.avatar_url)
     await Send_Message(data.get_useful_channel('ntl')).send(embed=embed)
 
 
