@@ -547,6 +547,8 @@ async def on_ready():
     activity = discord.Game(name="%s%s" % (command_prefix, help._callback.__name__), type=3)
     await client.change_presence(activity=activity)
 
+    await remind_to_bump.start()
+
 
 @client.event
 async def on_message_delete(message):
@@ -1011,6 +1013,13 @@ async def on_voice_state_update(member, before, after):
     embed.description = des
 
     await a_channel.send(embed=embed)
+
+
+@tasks.loop(hours=2)
+async def remind_to_bump():
+    channel = data.get_useful_channel(cname='s')
+
+    await channel.send("%s bump!" % server_owner.mention)
 
 
 
