@@ -953,6 +953,9 @@ async def on_guild_role_update(before, after):
         
         embed.add_field(name=name, value=value, inline=False)
 
+    if len(embed.fields) == 0:
+        return
+
     await a_channel.send(embed=embed)
 
 
