@@ -67,6 +67,10 @@ class Send_Message(Data):
     async def send(self, *args, **kwargs):
         await self.channel.send(*args, **kwargs)
 
+    @classmethod
+    def audit_log(cls):
+        return cls(data.get_useful_channel('al'))
+
 
 class Stats:
     def __init__(self) -> None:
@@ -475,6 +479,51 @@ def make_error_message(error_msg, url='') -> discord.Embed:
     )
 
 
+async def channel_create_embed(channel) -> discord.Embed:
+    channel_type = channel.type
+    channel_category = channel.category
+
+    des = "%s channel %s create in **%s** category" % (channel_type, channel.mention, channel_category)
+
+    return discord.Embed(description=des, colour=discord.Color.from_rgb(0, 255, 0))
+
+
+async def channel_delete_embed(channel) -> discord.Embed:
+    channel_type = channel.type
+    channel_category = channel.category
+
+    des = "%s channel **%s** deleted in **%s** category" % (channel_type, channel, channel_category)
+
+    return discord.Embed(description=des, colour=discord.Color.from_rgb(255, 0, 0))
+
+
+async def role_create_embed(role) -> discord.Embed:
+    des = "name: **%s**: %s" % (role, role.mention)
+
+    return discord.Embed(title="Role created:", description=des, colour=discord.Color.from_rgb(0, 255, 0))
+
+
+async def role_delete_embed(role) -> discord.Embed:
+    des = "name: **%s**" % role
+
+    return discord.Embed(title="Role deleted:", description=des, colour=discord.Color.from_rgb(255, 0, 0))
+
+
+async def get_changes(before, after) -> dict:
+    list_before = inspect.getmembers(before)
+    list_after = inspect.getmembers(after)
+
+    changes = {}
+
+    for idx, attr in enumerate(list_after):
+        before_attr = list_before[idx]
+        if not attr[0].startswith('_') and not str(type(attr[1])) in ["<class 'method'>", "<class 'method-wrapper'>"]:
+            if not attr[1] == before_attr[1]:
+                changes[attr[0]] = [before_attr[1], attr[1]]
+
+    return changes
+
+
 
 # FORM HERE DOWN, THIS IS THE @client.event & @tasks functions
 
@@ -503,10 +552,11 @@ async def on_ready():
 async def on_message_delete(message):
     check_if_reaction_role_message(str(message.id))
 
-    channel = Send_Message(data.get_useful_channel('al'))
+    channel = Send_Message.audit_log()
 
     embed = discord.Embed(
-        description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention)
+        description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention),
+        colour=discord.Color.from_rgb(255, 0, 0)
     )
     embed.add_field(name='Message:', value=message.content, inline=False)
     current_time = str(datetime.now(sa_timezone).strftime('%H:%M'))
@@ -701,7 +751,241 @@ async def on_command_error(ctx, error):
         
         raise error
     
+
+@client.event
+async def on_message_edit(before, after):
+    channel = Send_Message.audit_log()
+
+    embed = discord.Embed(description="%s edited a message in %s" % (after.author.mention, after.channel.mention), colour=discord.Color.blue())
+    embed.set_author(name='message_link', url=create_message_link(after.guild.id, after.channel.id, after.id), icon_url=after.author.avatar_url)
+    embed.add_field(name="Before:", value=await commet_lines(before.content), inline=False)
+    embed.add_field(name="After:", value=await commet_lines(after.content), inline=False)
+
+    await channel.send(embed=embed)
+
+
+@client.event 
+async def on_private_channel_delete(channel):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await channel_delete_embed(channel))
+
+
+@client.event
+async def on_private_channel_create(channel):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await channel_create_embed(channel))
+
+
+@client.event
+async def on_guild_channel_delete(channel):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await channel_delete_embed(channel))
+
+
+@client.event 
+async def on_guild_channel_create(channel):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await channel_create_embed(channel))
+
+
+@client.event
+async def on_guild_channel_update(before, after):
+    a_channel = Send_Message.audit_log()
+
+    list_before = inspect.getmembers(before)
+    list_after = inspect.getmembers(after)
+
+    changes = await get_changes(before, after)
+
+    embed = discord.Embed(title="Channel update:", description=after.mention, colour=discord.Color.blue())
+
+    if "members" in changes and "changed_roles" in changes:
+        del changes["members"]
     
+    if 'overwrites' in changes:
+        del changes['overwrites']
+
+    for name, val in changes.items():
+        if type(val[1]) in [list, tuple]:
+            len_before, len_after = len(val[0]), len(val[1])
+            if len_after > len_before:
+                added_thing = [i.mention for i in val[1] if not i in val[0]]
+                value = "Added: %s" % ' '.join(added_thing)
+            elif len_after < len_before:
+                removed_thing = [i.mention for i in val[0] if not i in val[1]]
+                value = "Removed: %s" % ' '.join(removed_thing)
+            else:
+                value = 'Huh'
+        else:
+            value = '%s -> **%s**' % (val[0], val[1])
+        
+        embed.add_field(name=name, value=value, inline=False)
+
+    await a_channel.send(embed=embed)
+        
+
+@client.event
+async def on_member_update(before, after):
+    a_channel = Send_Message.audit_log()
+
+    embed = discord.Embed(colour=discord.Color.blue())
+    embed.set_author(name=after, icon_url=after.avatar_url)
+
+    if before.nick != after.nick:
+        embed.add_field(name='Nickname change:', value="%s -> **%s**" % (before.nick, after.nick), inline=False)
+    
+    if before.roles != after.roles:
+        len_before, len_after = len(before.roles), len(after.roles)
+        if len_after > len_before:
+            added_thing = [i.mention for i in after.roles if not i in before.roles]
+            value = "Added: %s" % ' '.join(added_thing)
+        elif len_after < len_before:
+            removed_thing = [i.mention for i in before.roles if not i in after.roles]
+            value = "Removed: %s" % ' '.join(removed_thing)
+        else:
+            value = 'Huh'
+
+        embed.add_field(name='Role change:', value=value, inline=False)
+    
+    if before.pending != after.pending:
+        embed.add_field(name='Pending change:', value="%s -> **%s**" % (before.pending, after.pending), inline=False)
+
+    if len(embed.fields) == 0:
+        return
+
+    await a_channel.send(embed=embed)
+
+
+@client.event
+async def on_user_update(before, after):
+    a_channel = Send_Message.audit_log()
+
+    embed = discord.Embed(colour=discord.Color.blue())
+    embed.set_author(name=after, icon_url=after.avatar_url)
+
+    if before.avatar != after.avatar:
+        embed.description = "**Avatar change:**"
+        embed.add_field(name='Old avatar:', value=before.avatar_url, inline=False)
+        embed.add_field(name='New avatar:', value=after.avatar_url, inline=False)
+    
+    if before.name != after.name:
+        embed.add_field(name='Username change:', value="%s -> **%s**" % (before.username, after.avusernameatar), inline=False)
+    
+    if before.discriminator != after.discriminator:
+        embed.add_field(name='Discriminator change:', value="%s -> **%s**" % (before.discriminator, after.discriminator), inline=False)
+
+    if len(embed.fields) == 0:
+        return
+
+    await a_channel.send(embed=embed)
+
+
+@client.event
+async def on_guild_update(before, after):
+    a_channel = Send_Message.audit_log()
+
+    changes = await get_changes(before, after)
+
+    embed = discord.Embed(title="Server update:", description=after, colour=discord.Color.blue())
+    embed.set_thumbnail(url=after.icon_url)
+
+    if 'features' in changes:
+        del changes['features']
+
+    for name, val in changes.items():
+        if type(val[1]) in [list, tuple]:
+            len_before, len_after = len(val[0]), len(val[1])
+            if len_after > len_before:
+                added_thing = [i for i in val[1] if not i in val[0]]
+                value = "Added: %s" % ' '.join(added_thing)
+            elif len_after < len_before:
+                removed_thing = [i for i in val[0] if not i in val[1]]
+                value = "Removed: %s" % ' '.join(removed_thing)
+            else:
+                value = str(val)
+        else:
+            value = '%s -> **%s**' % (val[0], val[1])
+        
+        embed.add_field(name=name, value=value, inline=False)
+
+    await a_channel.send(embed=embed)
+
+
+@client.event
+async def on_guild_role_create(role):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await role_create_embed(role))
+
+
+@client.event
+async def on_guild_role_delete(role):
+    a_channel = Send_Message.audit_log()
+
+    await a_channel.send(embed=await role_delete_embed(role))
+
+
+@client.event
+async def on_guild_role_update(before, after):
+    a_channel = Send_Message.audit_log()
+
+    changes = await get_changes(before, after) 
+
+    embed = discord.Embed(title="Role update:", description=after.mention, colour=discord.Color.blue())
+
+    for name, val in changes.items():
+        if type(val[1]) in [list, tuple]:
+            len_before, len_after = len(val[0]), len(val[1])
+            if len_after > len_before:
+                added_thing = [i for i in val[1] if not i in val[0]]
+                value = "Added: %s" % ' '.join(added_thing)
+            elif len_after < len_before:
+                removed_thing = [i for i in val[0] if not i in val[1]]
+                value = "Removed: %s" % ' '.join(removed_thing)
+            else:
+                value = str(val)
+        else:
+            value = '%s -> **%s**' % (val[0], val[1])
+        
+        embed.add_field(name=name, value=value, inline=False)
+
+    await a_channel.send(embed=embed)
+
+
+@client.event
+async def on_member_ban(guild, user):
+    sa_channel = data.get_useful_channel(cname='sa')
+
+    await sa_channel.send(embed=discord.Embed(title='Member banned!', description="%s is banned from **%s**" % (user.mention, guild), colour=discord.Color.from_rgb(255, 0, 0)).set_author(name=user, icon_url=user.avatar_url))
+
+
+@client.event
+async def on_member_unban(guild, user):
+    sa_channel = data.get_useful_channel(cname='sa')
+
+    await sa_channel.send(embed=discord.Embed(title='Member unban!', description="%s is unban from **%s**" % (user.mention, guild), colour=discord.Color.from_rgb(0, 255, 0)).set_author(name=user, icon_url=user.avatar_url))
+
+
+@client.event
+async def on_invite_create(invite):
+    a_channel = Send_Message.audit_log()
+
+    des = "**Created by:** %s\n\nmax_age: **%s**s\nmax_uses: **%s**\n\nChannel: %s\n\nUrl: %s" % (invite.inviter.mention, invite.max_age, invite.max_uses, invite.channel.mention, invite)
+
+    await a_channel.send(embed=discord.Embed(title="Invite created", description=des, colour=discord.Color.from_rgb(0, 255, 0)))
+
+
+@client.event
+async def on_invite_delete(invite):
+    a_channel = Send_Message.audit_log()
+
+    des = "**Channel:** %s\n\nUrl: %s" % (invite.channel.mention, invite)
+
+    await a_channel.send(embed=discord.Embed(title="Invite deleted", description=des, colour=discord.Color.from_rgb(255, 0, 0)))
 
 
 #UP HERE ALL THE @client.event ^^ 
@@ -914,7 +1198,7 @@ async def bans(ctx):
     if len(banned_users) > 0:
         embed = discord.Embed(title=f'{len(banned_users)} Banned Member(s)', color=discord.Color.from_rgb(255, 0, 0))
         for ban_usr in banned_users:
-            embed.add_field(name=f'{ban_usr.user}  [ ID: {ban_usr.user.id} ]', value=f'Reason: **{ban_usr.reason}**')
+            embed.add_field(name=f'{ban_usr.user}  [ ID: {ban_usr.user.id} ]', value=f'Reason: **{ban_usr.reason}**', inline=False)
         else:
             await ctx.send(embed=embed)
     else:
