@@ -613,13 +613,12 @@ async def on_member_join(member):
         await member.add_roles(data.get_role('bots'))
 
     embed = discord.Embed(
-        title=f"Welcome {member.name} to {member.guild}",
-        description=f"The rules: {rules_channel.mention}\n\nTo get roles, look in {roles_channel.mention}\n\nAny help? ask {client.get_user(int(data.server_owner_id)).mention}" if not member.bot else "This is a bot.",
+        title='New member!',
+        description=f"Welcome **{member.name}**, to **{server}**!\n\nThe rules: {rules_channel.mention}\nAny help, ask/DM {server_owner.mention}\n\nThank you for joining :heart:",
         color=discord.Color.blue()
     )
-    embed.set_footer(text=f'{member.guild}')
     embed.set_thumbnail(url=member.avatar_url)
-    embed.add_field(name='Info:', value='IQ: **%i**\n%s' % (await get_iq(member), await get_gay_test()), inline=False)
+    embed.add_field(name='Info:', value='IQ: **%i**\nGay: %s' % (await get_iq(member), await get_gay_test()), inline=False)
     channel = Send_Message(data.get_useful_channel('w'))
     await channel.send(member.mention, embed=embed)
 
