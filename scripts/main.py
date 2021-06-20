@@ -546,7 +546,7 @@ async def on_ready():
 
     activity = discord.Game(name="%s%s" % (command_prefix, help._callback.__name__), type=3)
     await client.change_presence(activity=activity)
-            
+
 
 @client.event
 async def on_message_delete(message):
@@ -991,12 +991,39 @@ async def on_invite_delete(invite):
     await a_channel.send(embed=discord.Embed(title="Invite deleted", description=des, colour=discord.Color.from_rgb(255, 0, 0)))
 
 
+@client.event
+async def on_voice_state_update(member, before, after):
+    a_channel = Send_Message.audit_log()
+
+    embed = discord.Embed()
+    embed.set_author(name=member, icon_url=member.avatar_url)
+    
+    if before.channel is None:
+        des = "Joined %s" % after.channel.mention
+        embed.color = discord.Color.from_rgb(0, 255, 0)
+    elif after.channel is None:
+        des = "Left %s" % before.channel.mention
+        embed.color = discord.Color.from_rgb(255, 0, 0)
+    else:
+        des = "%s moved to -> %s" % (before.channel.mention, after.channel.mention)
+        embed.color = discord.Color.blue()
+
+    embed.description = des
+
+    await a_channel.send(embed=embed)
+
+
+
 #UP HERE ALL THE @client.event ^^ 
 
 
+
+
 #########################################################
 
 #########################################################
+
+
 
 
 #DOWN HERE IS ALL THE COMMANDS \/ @client.command()
