@@ -310,8 +310,28 @@
         "member_leaves": 2
     },
     "2021-06-18": {
-        "total_messages": 160,
+        "total_messages": 304,
+        "member_joins": 5,
+        "member_leaves": 4
+    },
+    "2021-06-19": {
+        "total_messages": 64,
+        "member_joins": 4,
+        "member_leaves": 4
+    },
+    "2021-06-20": {
+        "total_messages": 258,
+        "member_joins": 19,
+        "member_leaves": 15
+    },
+    "2021-06-21": {
+        "total_messages": 233,
         "member_joins": 3,
-        "member_leaves": 2
+        "member_leaves": 3
+    },
+    "2021-06-22": {
+        "total_messages": 114,
+        "member_joins": 5,
+        "member_leaves": 4
     }
 }
