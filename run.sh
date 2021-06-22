@@ -2,7 +2,7 @@
 
 function main()
 {
-    python3 scripts/main.py
+    clear; python3 scripts/main.py
 }
 
-main()
+main
