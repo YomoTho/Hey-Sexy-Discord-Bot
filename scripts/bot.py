@@ -174,13 +174,14 @@ class CBF:
 
 
 class Bot(commands.Bot, CBF):
-    def __init__(self, command_prefix, **options):
+    def __init__(self, command_prefix, args:tuple, **options):
         super().__init__(command_prefix, **options)
         self.categories = {'OWNER': {}, 'NSFW': {}, 'NC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
         self.prefix = None
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')
         self.server = None
+        self.args = args
 
 
     @staticmethod
@@ -200,6 +201,13 @@ class Bot(commands.Bot, CBF):
         self.load_categories()
         self.prefix = await self.get_prefix()
         self.server = Server(self)
+
+        if not self.args == ():
+            try:
+                channel = self.get_channel(int(self.args[0]))
+                await channel.send("Back online!")
+            except AttributeError:
+                pass
 
         print(self.user, 'is online.')
 
@@ -262,3 +270,6 @@ class Bot(commands.Bot, CBF):
 
             await asyncio.sleep(66)
  
+    async def _exit(self):
+        await self.reddit.reddit.close()
+        await self.close()

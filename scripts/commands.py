@@ -1,24 +1,182 @@
 import discord
+import os
 from discord import Color
 from discord.ext import commands
 try:
-    from scripts.data import Data, MyChannel, Server, Reference
+    from scripts.data import Data, MyChannel, Reference
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
-    from data import Data, MyChannel, Server, Reference
+    from data import Data, MyChannel, Reference
 
 
 
-class Commands:
+class Bot_Commands:
     def __init__(self, client) -> None:
         self.client = client
-        command = client.command
-        reference = Reference(client)
+        self.reference = Reference(client)
 
+
+    def command(self, *args, **kwargs):
+        return self.client.command(*args, **kwargs)
+
+
+
+class Owner_Commands(Bot_Commands):
+    def __init__(self, client) -> None:
+        super().__init__(client)
+
+        
+        @self.command(help='Command testing')
+        @commands.is_owner()
+        async def test(ctx, *args, **kwargs):
+            await ctx.send("%s %s" % (args, kwargs))
+
+
+        @self.command(help='Server add text channel')
+        @commands.is_owner()
+        async def sat(ctx, channel:discord.TextChannel, cname:str):
+            client.server.add_text_channel(channel, cname)
+            
+            await client.command_success(ctx.message)
+
+
+        @self.command(help='Enable text channels')
+        @commands.is_owner()
+        async def enable(ctx, *channels):
+            channels = self.get_channels_from_tuple(*channels)
+            reply = []
+            for channel in channels:
+                reply.append(MyChannel(channel).enable())
+            else:
+                await ctx.send('\n'.join(reply))
+
+
+        @self.command(help='Disable text channels')
+        @commands.is_owner()
+        async def disable(ctx, *channels):
+            channels = self.get_channels_from_tuple(*channels)
+            reply = []
+            for channel in channels:
+                reply.append(MyChannel(channel).disable())
+            else:
+                await ctx.send('\n'.join(reply))
+
+
+        @self.command(help='List disabled channels')
+        @commands.is_owner()
+        async def listd(ctx):
+            reply = []
+            with Data.R('config') as config:
+                for ch_id in config['disabled_channels']:
+                    reply.append(client.get_channel(ch_id).mention)
+
+            return await ctx.send(
+                embed=discord.Embed(
+                    title='Disabled Text Channels:',
+                    description='\n'.join(reply),
+                    colour=Color.from_rgb(255, 0, 0)
+                )
+            )
+
+
+        @self.command(help='Restart the bot')
+        @commands.is_owner()
+        async def reboot(ctx, *args):
+            arguments = {'update': self.update_bot, 'clear': self.clear_sceen}
+
+            for arg in args:
+                try:
+                    await arguments[arg](ctx)
+                except KeyError as e:
+                    raise Exception("Argument %s not found." % e)
+            
+            await ctx.send("Rebooting...")
+            
+            with open('reboot_id', 'w') as f:
+                f.write(str(ctx.channel.id))
+
+            await client._exit()
+
+
+
+    """
+    Commands functions:
+    """
+
+    # reboot command
+    async def update_bot(self, ctx):
+        await ctx.send("**Updating...**")
+        _code = os.system('echo $(git pull) > update.txt')
+        with open('update.txt') as f:
+            update_status = f.read()
+        
+        await ctx.send(embed=discord.Embed(title='Update status:', description='```\n%s```' % update_status).set_footer(text='exit_code: %s' % _code))
+        
+        with open('update.txt', 'w') as f:
+            pass
+
+    
+    # reboot command
+    async def clear_sceen(self, ctx):
+        os.system('clear')
+        print(ctx.channel, ctx.author)
+
+
+    # enable disable commands
+    def get_channels_from_tuple(self, *channels):
+        _channels = []
+        for channel in channels:
+            if channel.startswith('<#') and channel.endswith('>'):
+                _channels.append(self.client.get_channel(int(channel[2:-1])))
+            else:
+                raise Exception("%s is not a channel." % channel)
+        else:
+            return _channels
+
+
+
+class Nsfw_Commands(Bot_Commands):
+    def command(self, *args, **kwargs):
+        return super().command(*args, category='NSFW', **kwargs)
+
+    def __init__(self, client) -> None:
+        super().__init__(client)
+
+
+        @self.command(help='r/boobs')
+        @commands.is_nsfw()
+        async def boobs(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'boobs', limit)
+
+
+        @self.command(help='r/ass')
+        @commands.is_nsfw()
+        async def ass(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'ass', limit)
+
+
+
+class Reddit_Commands(Bot_Commands):
+    def command(self, *args, **kwargs):
+        return super().command(*args, category='REDDIT', **kwargs)
+
+    def __init__(self, client) -> None:
+        super().__init__(client)
+
+
+        @self.command(name='r/', help='Get post from reddit.')
+        async def r(ctx, subreddit:str, limit:int=1):
+            await self.client.reddit(ctx, subreddit, limit)
+
+
+
+class Nc_Commands(Bot_Commands):
+    def __init__(self, client) -> None:
+        super().__init__(client)
         
         """
         No category commands:
         """
-        @command(help="To see this message.")
+        @self.command(help="To see this message.")
         async def help(ctx, command:str=None):
             member = ctx.author
             categories = client.categories.copy()
@@ -68,7 +226,7 @@ class Commands:
             await ctx.send(embed=embed)
 
 
-        @command()
+        @self.command(help="My latency")
         async def ping(ctx):
             return await ctx.message.reply(
                 embed=discord.Embed(
@@ -77,95 +235,10 @@ class Commands:
                 )
             )
 
-        # ----------------------------------------------------------------------------
-        # ^^^   No category End   ^^^
-        # ----------------------------------------------------------------------------
-        
-        
-        """
-        NSFW commands:
-        """
-        @command(help='r/boobs')
-        @commands.is_nsfw()
-        async def boobs(ctx, limit:int=1):
-            await self.client.reddit(ctx, 'boobs', limit)
-
-
-        @command(help='r/ass')
-        @commands.is_nsfw()
-        async def ass(ctx, limit:int=1):
-            await self.client.reddit(ctx, 'ass', limit)
-
-        # ----------------------------------------------------------------------------
-        # ^^^   NSFW  ^^^
-        # ----------------------------------------------------------------------------
-
-
-        """
-        Reddit commands
-        """
-
-        @command(name='r/', help='Get post from reddit.', category='REDDIT')
-        async def r(ctx, subreddit:str, limit:int=1):
-            await self.client.reddit(ctx, subreddit, limit)
-
-        # ----------------------------------------------------------------------------
-        # ^^^   Reddit   ^^^
-        # ----------------------------------------------------------------------------
-
-
-        """
-        Owner commands
-        """
-
-        @command()
-        @commands.is_owner()
-        async def test(ctx, *args, **kwargs):
-            try:
-                rmsg = await reference(ctx.message)
-            except reference.NoneReference as e:
-                await ctx.message.reply(e)
-            else:
-                await rmsg.reply('yuppp')
-
-
-        @command(aliases=['sat'])
-        @commands.is_owner()
-        async def server_add_tc(ctx, channel:discord.TextChannel, cname:str):
-            client.server.add_text_channel(channel, cname)
-            
-            await client.command_success(ctx.message)
-
-
-        @command()
-        @commands.is_owner()
-        async def enable(ctx, *channels):
-            channels = self.get_channels_from_tuple(*channels)
-            reply = []
-            for channel in channels:
-                reply.append(MyChannel(channel).enable())
-            else:
-                await ctx.send('\n'.join(reply))
-
-
-        @command()
-        @commands.is_owner()
-        async def disable(ctx, *channels):
-            channels = self.get_channels_from_tuple(*channels)
-            reply = []
-            for channel in channels:
-                reply.append(MyChannel(channel).disable())
-            else:
-                await ctx.send('\n'.join(reply))
-
-        # ----------------------------------------------------------------------------
-        # ^^^   Owner   ^^^
-        # ----------------------------------------------------------------------------
 
     """
     Commands functions:
     """
-
 
     # help command
     def help_category_check(self, ctx, member:discord.Member, categories:dict) -> dict:
@@ -228,17 +301,6 @@ class Commands:
     def list_commands(self, commands) -> str:
         return '\n'.join([self.left_right(str(cmd), commands[cmd]['help']) for cmd in commands])
 
-    
-    def get_channels_from_tuple(self, *channels):
-        _channels = []
-        for channel in channels:
-            if channel.startswith('<#') and channel.endswith('>'):
-                _channels.append(self.client.get_channel(int(channel[2:-1])))
-            else:
-                raise Exception("%s is not a channel." % channel)
-        else:
-            return _channels
-    
 
 
 
@@ -247,65 +309,3 @@ class Commands:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"""
-
-
-        @command(help='The bots latency')
-        async def ping(ctx):
-            await ctx.message.reply(embed=discord.Embed(description="**%i**ms" % round(client.latency * 1000), colour=Color.blue()))
-
-
-        @command()
-        @commands.has_permissions(administrator=True)
-        async def test(ctx):
-            print('testing test')
-
-
-        @command(help='r/boobs')
-        @commands.is_nsfw()
-        async def boobs(ctx, limit:int=1):
-            await ctx.send("BOOBS!")
-
-
-        @command(help='r/ass')
-        @commands.is_nsfw()
-        async def ass(ctx, limit:int=1):
-            await ctx.semd('ass!')
-
-
-
-
-        @command()
-        @commands.is_owner()
-        async def listd(ctx):
-            reply = []
-            with Data.R('config') as config:
-                for ch_id in config['disabled_channels']:
-                    reply.append(client.get_channel(ch_id).mention)
-            
-            await ctx.send('\n'.join(reply))
-
-
-        @command()
-        @commands.is_owner()
-        async def set_prefix(ctx, new_prefix):
-            with Data.RW('config') as config:
-                config['prefixes'][str(ctx.guild.id)] = new_prefix
-            """
