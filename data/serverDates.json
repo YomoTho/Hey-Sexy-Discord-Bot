@@ -330,8 +330,13 @@
         "member_leaves": 3
     },
     "2021-06-22": {
-        "total_messages": 114,
-        "member_joins": 5,
-        "member_leaves": 4
+        "total_messages": 130,
+        "member_joins": 6,
+        "member_leaves": 5
+    },
+    "2021-06-23": {
+        "total_messages": 28,
+        "member_joins": 1,
+        "member_leaves": 1
     }
 }
