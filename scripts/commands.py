@@ -27,8 +27,8 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx, *args, **kwargs):
-            await ctx.send("%s %s" % (args, kwargs))
+        async def test(ctx, member:discord.Member):
+            pass
 
 
         @self.command(help='Server add text channel')
@@ -132,6 +132,32 @@ class Owner_Commands(Bot_Commands):
         else:
             return _channels
 
+
+class Admin_Commands(Bot_Commands):
+    def is_admin(self):
+        def wrapper(ctx):
+            return ctx.author.guild_permissions.administrator
+        return commands.check(wrapper)
+            
+
+
+    def command(self, *args, **kwargs):
+        return super().command(*args, category='ADMIN', **kwargs)
+
+
+    def __init__(self, client) -> None:
+        super().__init__(client)
+
+
+        @self.command()
+        @self.is_admin()
+        async def pin(ctx):
+            try:
+                rmsg = await self.reference(ctx.message)
+            except Reference.NoneReference as e:
+                return await ctx.send(e)
+            else:
+                await rmsg.pin()
 
 
 class Nsfw_Commands(Bot_Commands):
