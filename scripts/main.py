@@ -14,6 +14,8 @@ def main(*args):
         intents=discord.Intents().all()
     )
     client.load_commands(Commands)    
+    
+    client.loop.create_task(client.stats())
 
     client.run()
 

@@ -1,7 +1,7 @@
 import json
 import os
 import discord
-
+import matplotlib.pyplot as plt
 
 
 class Data:
@@ -32,6 +32,18 @@ class Data:
         if self.write:
             with open(self.fp, 'w') as f:
                 json.dump(self.content, f, indent=4)
+
+
+    def clean_erros(self):
+        if self.filename == 'errors.json':
+            errors = self.load()
+
+            errors['errors'] = {}
+
+            self.dump(errors)
+
+            print("Done cleaning errors.")
+            
     
     @classmethod
     def R(cls, filename:str):
@@ -75,11 +87,11 @@ class MyChannel:
                 config['disabled_channels'].append(self.id)
                 return "%s **disabled**" % self.channel.mention
 
-    def check(*args, **kwargs):
-        async def wrapper(self, func):
+    def check(func):
+        async def wrapper(self, *args, **kwargs):
             config = Data.read('config')
             if not self.channel.id in config['disabled_channels']:
-                return await func(*args, **kwargs)
+                return await func(self, *args, **kwargs)
             else:
                 print("Not able to.")
         return wrapper
@@ -90,7 +102,11 @@ class MyChannel:
 
 
 class Server:
-    def __init__(self, guild):
+    def __init__(self, client):
+        with Data.R('server.json') as server_data:
+            guild = client.get_guild(server_data['server_id'])
+
+        self.client = client
         self.guild = guild
         self.id = guild.id
         self.name = guild.name
@@ -98,11 +114,13 @@ class Server:
         self.text_channels = guild.text_channels
         self.get_role = guild.get_role
         self.roles = guild.roles
+        self.icon_url = guild.icon_url
+        self.stats_filename = 'stats.png'
     
 
     def get_channel(self, channel_id:int=None, **kwargs):
         if channel_id is not None:
-            return super().get_channel(channel_id)
+            self.client.get_channel(channel_id)
         else:
             cname = kwargs.get('cname')
 
@@ -110,9 +128,9 @@ class Server:
                 raise Exception("Keyword argument 'cname' not found")
 
             with Data.R('server.json') as server_data:
-                for channel_id, _cname in server_data['channels'].keys():
-                    if cname == _cname:
-                        return self.get_channel(int(channel_id))
+                for channel_id, value in server_data['TC'].items():
+                    if cname == value['cname']:
+                        return self.client.get_channel(int(channel_id))
                 else:
                     return None
 
@@ -127,10 +145,43 @@ class Server:
             server_data['TC'][str(channel.id)]['name'] = channel.name
             server_data['TC'][str(channel.id)]['cname'] = cname
 
-
     
     def get_role(self, role_id):
-        return super().get_role(role_id)
+        pass
+
+
+    def get_server_stats(self) -> discord.File:
+        self.last_days = 7
+
+        stats_data = Data.read('server_stats.json')
+
+        dates, total_messgae, member_joins, member_leaves = [], [], [], []
+
+        for stat in list(stats_data)[-self.last_days:]:
+            dates.append(str(stat)[-5:])
+            total_messgae.append(stats_data[stat]['total_messages'])
+            member_joins.append(stats_data[stat]['member_joins'])
+            member_leaves.append(stats_data[stat]['member_leaves'])
+
+        fig, (ax1, ax2) = plt.subplots(1, 2)
+        fig.suptitle("The Last %i days" % self.last_days)
+        ax1.plot(dates, member_joins, label='member_joins', color='green')
+        ax1.plot(dates, member_leaves, label='member_leaves', color='red')
+        ax1.set_title('Member joins')
+        ax1.legend()
+        ax2.plot(dates, total_messgae)
+        ax2.set_title('Total messages')
+
+        fig.set_size_inches(10, 5)
+        ax2.grid(color = 'green', linestyle = '--', linewidth = 0.5)
+        ax1.grid(color = 'green', linestyle = '--', linewidth = 0.5)
+        fig.savefig(self.stats_filename)
+
+        file = discord.File(self.stats_filename)
+
+        return file
+
+
 
 
 

@@ -1,10 +1,13 @@
-from sys import prefix
 import discord
 import asyncpraw
 import os
 import random
+import pytz
+import asyncio
+from discord import colour
 from discord.ext import commands
 from dotenv import load_dotenv
+from datetime import datetime
 try:
     from scripts.data import Data, MyChannel, Server
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
@@ -86,8 +89,9 @@ class CBF:
         pass
 
 
-    def load_commands(self, command_class):
-        command_class(self)
+    def load_commands(self, *command_classes):
+        for cmd_cls in command_classes:
+            cmd_cls(self)
 
 
     async def command_failed(self, message:discord.Message) -> None:
@@ -145,6 +149,29 @@ class CBF:
         return message_content
 
 
+    def get_stats(self, td_date) -> dict:
+        embed = discord.Embed(title=td_date, colour=colour.Color.purple())
+        embed.set_author(name=self.server.name, icon_url=self.server.icon_url)
+        embed.set_thumbnail(url=self.server.icon_url)
+
+        with Data.R('server_stats.json') as stats_data:
+            today_stats = stats_data[td_date]
+            total_messages = today_stats['total_messages']
+            member_joins = today_stats['member_joins']
+            member_leaves = today_stats['member_leaves']
+
+        embed.add_field(name="Joins/Leaves:", value='Joins: **%i**\nLeaves: **%i**' % (member_joins, member_leaves), inline=False)
+        embed.add_field(name="Messages:", value="Total messages: **%i**" % (total_messages))
+        embed.set_author(name=self.server.name, icon_url=self.server.icon_url) 
+        embed.set_image(url='attachment://%s' % self.server.stats_filename)
+        embed.set_footer(text='Members count: %i' % len(self.server.guild.members))
+
+        file = self.server.get_server_stats()
+
+        return {'file': file, 'embed': embed}
+
+
+
 
 class Bot(commands.Bot, CBF):
     def __init__(self, command_prefix, **options):
@@ -152,6 +179,8 @@ class Bot(commands.Bot, CBF):
         self.categories = {'OWNER': {}, 'NSFW': {}, 'NC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
         self.prefix = None
+        self.sa_timezone = pytz.timezone('Africa/Johannesburg')
+        self.server = None
 
 
     @staticmethod
@@ -170,6 +199,7 @@ class Bot(commands.Bot, CBF):
     async def on_ready(self):
         self.load_categories()
         self.prefix = await self.get_prefix()
+        self.server = Server(self)
 
         print(self.user, 'is online.')
 
@@ -204,8 +234,31 @@ class Bot(commands.Bot, CBF):
 
 
     async def stats(self):
-        return
+        """
+        Every day it will post server stats
+        """
+
         await self.wait_until_ready()
 
+        await asyncio.sleep(1) # Just waiting for on_ready() to finnish
+
+        server_stats_channel = MyChannel(self.server.get_channel(cname='ss'))
+            
         while self.is_closed:
-            pass
+            current_time = datetime.today()
+
+            today_date = current_time.strftime('%Y-%m-%d')
+
+            server_stats_alarm = current_time.replace(day=current_time.day+1, hour=00, minute=00)
+            #server_stats_alarm = current_time
+
+            wait_time = (server_stats_alarm - current_time).seconds
+
+            await asyncio.sleep(wait_time)
+
+            await server_stats_channel.send(**self.get_stats(today_date))
+
+            Data.errors().clean_erros()
+
+            await asyncio.sleep(66)
+ 

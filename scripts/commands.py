@@ -77,7 +77,9 @@ class Commands:
                 )
             )
 
-        # No category End.
+        # ----------------------------------------------------------------------------
+        # ^^^   No category End   ^^^
+        # ----------------------------------------------------------------------------
         
         
         """
@@ -94,7 +96,9 @@ class Commands:
         async def ass(ctx, limit:int=1):
             await self.client.reddit(ctx, 'ass', limit)
 
-        # NSFW End.
+        # ----------------------------------------------------------------------------
+        # ^^^   NSFW  ^^^
+        # ----------------------------------------------------------------------------
 
 
         """
@@ -105,7 +109,9 @@ class Commands:
         async def r(ctx, subreddit:str, limit:int=1):
             await self.client.reddit(ctx, subreddit, limit)
 
-        # Reddit End.
+        # ----------------------------------------------------------------------------
+        # ^^^   Reddit   ^^^
+        # ----------------------------------------------------------------------------
 
 
         """
@@ -121,6 +127,40 @@ class Commands:
                 await ctx.message.reply(e)
             else:
                 await rmsg.reply('yuppp')
+
+
+        @command(aliases=['sat'])
+        @commands.is_owner()
+        async def server_add_tc(ctx, channel:discord.TextChannel, cname:str):
+            client.server.add_text_channel(channel, cname)
+            
+            await client.command_success(ctx.message)
+
+
+        @command()
+        @commands.is_owner()
+        async def enable(ctx, *channels):
+            channels = self.get_channels_from_tuple(*channels)
+            reply = []
+            for channel in channels:
+                reply.append(MyChannel(channel).enable())
+            else:
+                await ctx.send('\n'.join(reply))
+
+
+        @command()
+        @commands.is_owner()
+        async def disable(ctx, *channels):
+            channels = self.get_channels_from_tuple(*channels)
+            reply = []
+            for channel in channels:
+                reply.append(MyChannel(channel).disable())
+            else:
+                await ctx.send('\n'.join(reply))
+
+        # ----------------------------------------------------------------------------
+        # ^^^   Owner   ^^^
+        # ----------------------------------------------------------------------------
 
     """
     Commands functions:
@@ -188,7 +228,16 @@ class Commands:
     def list_commands(self, commands) -> str:
         return '\n'.join([self.left_right(str(cmd), commands[cmd]['help']) for cmd in commands])
 
-
+    
+    def get_channels_from_tuple(self, *channels):
+        _channels = []
+        for channel in channels:
+            if channel.startswith('<#') and channel.endswith('>'):
+                _channels.append(self.client.get_channel(int(channel[2:-1])))
+            else:
+                raise Exception("%s is not a channel." % channel)
+        else:
+            return _channels
     
 
 
@@ -242,27 +291,6 @@ class Commands:
 
 
 
-        @command()
-        @commands.is_owner()
-        async def enable(ctx, *channels):
-            channels = await self.get_channels_from_tuple(*channels)
-            reply = []
-            for channel in channels:
-                reply.append(MyChannel(channel).enable())
-            else:
-                await ctx.send('\n'.join(reply))
-
-
-        @command()
-        @commands.is_owner()
-        async def disable(ctx, *channels):
-            channels = await self.get_channels_from_tuple(*channels)
-            reply = []
-            for channel in channels:
-                reply.append(MyChannel(channel).disable())
-            else:
-                await ctx.send('\n'.join(reply))
-
 
         @command()
         @commands.is_owner()
@@ -280,23 +308,4 @@ class Commands:
         async def set_prefix(ctx, new_prefix):
             with Data.RW('config') as config:
                 config['prefixes'][str(ctx.guild.id)] = new_prefix
-
-
-        @command(aliases=['sat'])
-        @commands.is_owner()
-        async def server_add_tc(ctx, channel:discord.TextChannel, cname:str):
-            server = Server(ctx.guild)
-            server.add_text_channel(channel, cname)
-            
-            await client.command_success(ctx.message)
-            
-        
-    async def get_channels_from_tuple(self, *channels):
-        _channels = []
-        for channel in channels:
-            if channel.startswith('<#') and channel.endswith('>'):
-                _channels.append(self.client.get_channel(int(channel[2:-1])))
-            else:
-                raise Exception("%s is not a channel." % channel)
-        else:
-            return _channels"""
+            """
