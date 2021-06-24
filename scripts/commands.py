@@ -2,10 +2,13 @@ import discord
 import os
 import random
 import asyncio
+import inspect
 from discord import Color
 from discord import colour
 from discord.ext import commands
 from games import TicTacToe
+from datetime import datetime
+from typing import Union
 try:
     from scripts.data import Data, MyChannel, Reference
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
@@ -21,6 +24,10 @@ class Bot_Commands:
 
     def command(self, *args, **kwargs):
         return self.client.command(*args, **kwargs)
+
+
+    async def command_success(self, message:discord.Message) -> None:
+        await message.add_reaction('✅')
 
 
 
@@ -103,6 +110,250 @@ class Owner_Commands(Bot_Commands):
             await client._exit()
 
 
+        @self.command()
+        @commands.is_owner()
+        async def del_warn(ctx, id):
+            warnings = Data.read('warnings.json')
+
+            if id.startswith('<@!'):
+                id = id[3:-1]
+
+            async def delete_warn(member_id, message_id):
+                member = client.get_user(int(member_id))
+                messages = await member.history(limit=100).flatten()
+                for msg in messages:
+                    if int(message_id) == msg.id:
+                        await msg.delete()
+                        return 0
+                return 1
+
+            async def delete_warns(member_id, messages_id : list):
+                member = client.get_user(int(member_id))
+                messages = await member.history(limit=100).flatten()
+                for msg in messages:
+                    if str(msg.id) in messages_id:
+                        await msg.delete()
+                else:
+                    del warnings[member_id]
+                    return 0
+
+            exit_code = 1
+            if str(id) in warnings:
+                exit_code = await delete_warns(id, [msg_id for msg_id in warnings[id]])
+            else:
+                try:
+                    for user_id in warnings:
+                        if str(id) in warnings[user_id]:
+                            if await delete_warn(user_id, id) == 0:
+                                del warnings[user_id][str(id)]
+                                exit_code = 0
+                        if warnings[user_id] == {}:
+                            del warnings[user_id]
+                            exit_code = 0
+                except RuntimeError:
+                    pass
+
+            if exit_code == 1:
+                await ctx.send('**%s** not found.' % (id))
+            else:
+                Data('warnings.json').dump(warnings)
+
+                await self.client.command_success(ctx.message)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def embed(ctx, channel:discord.TextChannel, *, title_msg): # Here i test my embed messages 
+            title, msg = title_msg.split('\\')
+            await channel.send(
+                embed=discord.Embed(
+                    title=title, 
+                    description=msg, 
+                    colour=discord.Color.blue()
+                )
+            )
+
+
+        @self.command()
+        @commands.is_owner()
+        async def dm(ctx, argument : Union[discord.Member, discord.TextChannel, str], *, args : Union[discord.Member, str]=None):
+            def to_(member:discord.Member) -> discord.Embed:
+                return discord.Embed().set_author(name=member, icon_url=member.avatar_url)
+
+            
+            if isinstance(argument, (discord.member.Member, discord.channel.TextChannel)):
+                if args is None: return await ctx.send("You can't send empty message.")
+
+                await self.human_like_send(argument, args)
+                if type(argument) is discord.member.Member:
+                    await ctx.message.reply(embed=to_(member=argument))
+            elif isinstance(argument, str):
+                if argument in ['hist', 'history']:
+                    if isinstance(args, discord.member.Member):
+                        limit = 10
+                        member = args
+                    else:
+                        _args = args.split(' ')
+                        member = discord.utils.get((ctx.guild).members, id=int(_args[0]))
+                        limit = int(_args[1])
+
+                    await self.get_history(ctx, member, limit)
+                elif argument in ['del', 'delete']:
+                    try:
+                        rmsg = await self.reference(ctx.message)
+                    except Reference.NoneReference:
+                        _args = args.split(' ')
+                        member_id = int(_args[0])
+                        messages_id = _args[1:]
+
+                        member = client.get_user(member_id)
+                    else:
+                        embed_dict = rmsg.embeds[0].to_dict()
+                        member_id = int(embed_dict['footer']['text'])
+                        messages_id = args.split(' ')
+                        
+                        member = client.get_user(member_id)
+                    finally:
+                        for msg_id in messages_id:
+                            msg = await member.fetch_message(int(msg_id))
+
+                            await msg.delete()
+                        else:
+                            await self.command_success(ctx.message)
+                elif argument in ['view', '-d']:
+                    try:
+                        rmsg = await self.reference(ctx.message)
+                    except Reference.NoneReference as e:
+                        await ctx.send(e)
+                    else:
+                        embed = rmsg.embeds[0].to_dict()
+                        member_id = int(embed['footer']['text'])
+                        member = client.get_user(member_id)
+                        message_id = int(args or embed['description'].split(' ')[-1]) 
+                        await self.view_message(ctx, member, message_id)
+                else:
+                    try:
+                        rmsg = await self.reference(ctx.message)
+                    except Reference.NoneReference as e:
+                        return await ctx.send(e)
+                    else:
+                        embed = rmsg.embeds[0]
+                        embed_dict = embed.to_dict()
+
+                        member_id = int(embed_dict['footer']['text'])
+                        message_id = int(embed_dict['description'].split(' ')[-1])
+
+                        member = client.get_user(member_id)
+
+                        message_to_send = ' '.join([argument, args or ''])
+
+                        async with member.typing():
+                            await asyncio.sleep(len(message_to_send) / 10)
+
+                        user_msg = await member.fetch_message(message_id)
+
+                        await user_msg.reply(message_to_send)
+
+                        await self.command_success(ctx.message)
+            else:
+                print('huh?')
+                print(type(argument))
+
+
+        @self.command()
+        @commands.is_owner()
+        async def cleardm(ctx, amount=50): # This will delete this bot message's
+            messages = await ctx.history(limit=amount).flatten()
+            for msg in messages:
+                if msg.author == client.user:
+                    await msg.delete()
+
+
+        @self.command()
+        @commands.is_owner()
+        async def spam(ctx, member : discord.Member, *args):
+            if not member.bot:
+                if args[0] == 'file':
+                    file_content = None
+                    with open(args[1]) as f:
+                        file_content = f.readlines()
+                    await ctx.send("Going to spam **%s**\nFile: **%s**, **%i** lines." % (member.name, args[1], len(file_content)))
+                    for line in file_content:
+                        try:
+                            await member.send(line)
+                        except discord.errors.HTTPException:
+                            pass
+                else:
+                    for _ in range(int(args[1])):
+                        await member.send(args[0])
+                await ctx.send('Done spamming **%s**' % member)
+            else:
+                await ctx.send("Cannot spam **%s**, because **it's a bot.**" % (member))
+
+
+        @self.command()
+        @commands.is_owner()
+        async def newrr(ctx, *, args:str):
+            #roles_channel = self.server_get_channel(cname='r')
+
+            try:
+                message = await self.reference(ctx.message)
+            except Reference.NoneReference as e:
+                return await ctx.send(e)
+            else:            
+                blocks = Data.read('reactions.json')
+                blocks[str(message.id)] = {}
+                
+                for block in args.split(' / '):
+                    emoji_and_role = block.split(' ')
+                    blocks[str(message.id)][emoji_and_role[0]] = int(emoji_and_role[1][3:-1])
+                    await message.add_reaction(emoji_and_role[0])
+                else:
+                    Data('reactions.json').dump(blocks)
+
+                await ctx.message.delete()
+
+
+        @self.command()
+        @commands.is_owner()
+        async def listall(ctx, members_or_role:str):
+            if members_or_role.lower() == 'roles':
+                the_list = [role for role in ctx.guild.roles if not str(role) == '@everyone']
+            elif members_or_role.lower() == 'members':
+                the_list = ctx.guild.members 
+            else:
+                return await ctx.send("List all WHAT?")
+
+            await ctx.send(embed=discord.Embed(title='%i total:' % len(the_list), description='\n'.join([thing.mention for thing in the_list])))
+
+
+        @self.command()
+        @commands.is_owner()
+        async def dnr(ctx):
+            try:
+                # My own class that returns the replied message.
+                rmsg = await self.reference(ctx.message)
+            except Reference.NoneReference as e: 
+                # If the user didn't reply to a message
+                return await ctx.message.reply(e)
+            else:
+                # If the user has replied to a message
+                embed_footer = str(rmsg.embeds[0].to_dict()['footer']['text'])
+                
+                if embed_footer.startswith('<class') and embed_footer.endswith('>'):
+                    error_data = Data.read('errors.json')
+
+                    if embed_footer in error_data['do_not_raise']:
+                        return await ctx.send("It's already 'dnr'")
+
+                    error_data['do_not_raise'].append(embed_footer)
+
+                    Data('errors.json').dump(error_data)
+
+                    await self.command_success(ctx.message)
+                else:
+                    await ctx.send("'%s' does not look like an type." % embed_footer)
+
 
     """
     Commands functions:
@@ -137,6 +388,55 @@ class Owner_Commands(Bot_Commands):
                 raise Exception("%s is not a channel." % channel)
         else:
             return _channels
+
+
+    # dm command
+    async def human_like_send(self, member:Union[discord.member.Member, discord.channel.TextChannel], message:str):
+        if not message.startswith('https://'):
+            async with member.typing():
+                await asyncio.sleep(len(message) / 10)
+
+        await member.send(message)
+
+
+    # dm command
+    async def get_history(self, ctx, member:discord.Member, limit:int):
+        member_dm_history_msg = await member.history(limit=limit).flatten()
+
+        embed = discord.Embed(title='DM history:')
+        embed.set_footer(text=str(member.id))
+        embed.set_author(name=member, icon_url=member.avatar_url)
+
+        for message in member_dm_history_msg[::-1]:
+            content = await self.client.commet_lines(message.content)
+            embeds = message.embeds
+
+            value = '%s%s' % (content, '' if len(embeds) == 0 else '\n`%s`' % str(embeds))
+
+            embed.add_field(name=message.author, value='%s\n﹂ %i' % (value, message.id), inline=False)
+        else:
+            await ctx.send(embed=embed)
+    
+
+
+    async def view_message(self, ctx, member:discord.Member, message_id:int):
+        message = await member.fetch_message(message_id)
+
+        embeds = message.embeds
+        attachments = message.attachments
+        
+
+        if not len(embeds) == 0:
+            for embed in embeds:
+                if message.content.startswith('https://'):
+                    url = embed.to_dict()['url']
+                    await ctx.message.reply(url)
+                else:
+                    await ctx.message.reply(embed=embed)
+        elif not len(attachments) == 0:
+            await ctx.message.reply("Attachments: %s" % message.attachments)
+        else:
+            await ctx.message.reply(str(message))
 
 
 class Admin_Commands(Bot_Commands):
@@ -200,7 +500,150 @@ class Admin_Commands(Bot_Commands):
             await self.client.command_success(ctx.message)
 
 
-    
+        @self.command()
+        @self.is_admin()
+        async def warn(ctx, user : discord.Member, *, reason=None):
+            if user.id == ctx.guild.owner.id:
+                await ctx.send("Fuck you! %s" % ctx.author.mention)
+                return 
+            
+            warnings = Data.read('warnings.json')
+            
+            reason_text = f"Reason: **{reason}**" if not reason == None else f"Reason: {reason}"
+
+            if str(user.id) in warnings:
+                warnings_count = len([warn for warn in warnings[str(user.id)]]) + 1
+                reason_text = '%s\n%s' % (reason_text, 'This is your %ith warning.' % (warnings_count))
+
+            embed = discord.Embed(
+                title=f"**⚠️ !!! YOU HAVE BEEN WARN !!!** ⚠️",
+                description=reason_text,
+                color=discord.Color.red()
+            )
+            embed.set_footer(text=f'{ctx.guild} • owner: {ctx.guild.owner}')
+            
+            try:
+                warning_message = await user.send(embed=embed)
+            except discord.errors.HTTPException as e:
+                raise Exception('**%s**' % (e))
+            else:
+                try:
+                    await ctx.send('Warning sent.')
+                except:
+                    pass
+
+                if not str(user.id) in warnings: warnings[str(user.id)] = {}
+                warnings[str(user.id)][str(warning_message.id)] = reason
+
+                Data('warnings.json').dump(warnings)
+
+
+        @self.command(aliases=['warns', 'warns_id'])
+        @self.is_admin()
+        async def warnings(ctx, member : discord.Member=None):
+            warnings = Data.read('warnings.json')
+            
+            embed = discord.Embed(
+                title="Warning List",
+                color=discord.Color.red()
+            )
+            if member is None:
+                for user_id in warnings:
+                    user = client.get_user(int(user_id))
+                    if ctx.message.content.startswith('%swarns_id' % (self.client.prefix)): user = '%s (%i)' % (user.name, user.id)
+                    user_reasons = []
+                    for msg_id in warnings[user_id]:
+                        if ctx.message.content.startswith('%swarns_id' % (self.client.prefix)):
+                            user_reasons.append('• `%s` ~ (%s)' % (str(warnings[user_id][msg_id]), msg_id))    
+                        else:
+                            user_reasons.append('• `%s`' % (str(warnings[user_id][msg_id])))
+                    user_reasons = '\n'.join(user_reasons)
+                    embed.add_field(name='%s, reason(s):' % user, value=user_reasons, inline=False)
+            else:
+                user_reasons = []
+                for msg_id in warnings[str(member.id)]:
+                    if ctx.message.content.startswith('%swarns_id' % (self.client.prefix)):
+                        user_reasons.append('• `%s` ~ (%s)' % (str(warnings[str(member.id)][msg_id]), msg_id))    
+                    else:
+                        user_reasons.append('• `%s`' % (str(warnings[str(member.id)][msg_id])))
+                user_reasons = '\n'.join(user_reasons)
+                if ctx.message.content.startswith('%swarns_id' % (self.client.prefix)): member = '%s (%i)' % (member.name, member.id)
+                embed.add_field(name='%s, reason(s):' % member, value=user_reasons, inline=False)
+
+            await ctx.send(embed=embed)
+
+
+        @self.command()
+        @self.is_admin()
+        async def announce(ctx, *, args=None):
+            try:
+                replied_message = await self.reference(ctx.message)
+            except Reference.NoneReference as e:
+                await ctx.message.reply(e)
+            else:
+                embed = discord.Embed(description=replied_message.content)
+                embed.set_author(name=replied_message.author, icon_url=replied_message.author.avatar_url)
+
+                server_announcement_channel = self.client.server.get_channel(cname='sa')   
+
+                await server_announcement_channel.send('@everyone' if args == 'everyone' else args, embed=embed)
+
+                await self.client.command_success(ctx.message)
+
+
+        @self.command()
+        @self.is_admin()
+        async def view_json(ctx, file_name):
+            if file_name.endswith('.json'):
+                with open('%s%s' % (Data.data_folder, file_name)) as f:
+                    try:
+                        await ctx.send("```json\n%s\n```" % (f.read()))
+                    except Exception:
+                        await ctx.send(file=discord.File('%s%s' % (Data.data_folder, file_name)))
+            else:
+                raise Exception("**%s does not end with '.json'**" % (file_name))
+
+
+        @self.command()
+        @self.is_admin()
+        async def list_json(ctx):
+            json_files = []
+            for f in os.scandir(Data.data_folder):
+                if f.name.endswith('.json'):
+                    json_files.append(f.name)
+            else:
+                await ctx.send(
+                    embed=discord.Embed(
+                        title='All json files:',
+                        description='```%s```' % '\n'.join(json_files)
+                    )
+                )
+
+
+        @self.command()
+        @self.is_admin()
+        async def list_scripts(ctx):
+            py_files = [py_file.name for py_file in os.scandir('scripts/') if py_file.name.endswith('.py')]
+            
+            for idx, file in enumerate(py_files):
+                lines = 0
+                with open('scripts/' + file) as f:
+                    for line in f.readlines():
+                        lines += 1
+                py_files[idx] = '`%s` : **%i** lines' % (file, lines)
+
+            embed = discord.Embed(
+                title="All the script files:",
+                description='\n'.join(py_files)
+            )
+            await ctx.send(embed=embed)
+
+
+    """
+    Command functions:
+    """
+
+
     def is_admin(self):
         def wrapper(ctx):
             return ctx.author.guild_permissions.administrator
@@ -318,7 +761,7 @@ class Fun_Commands(Bot_Commands):
         async def iqtest(ctx, member:discord.Member=None):
             member = member or ctx.author
             
-            iq = self.get_iq(member, see_only=True)
+            iq = self.client.get_iq(member, see_only=True)
 
             embed = discord.Embed(description='IQ: **%i**' % iq, colour=Color.blue())
             embed.set_author(name=member, icon_url=member.avatar_url)
@@ -330,7 +773,7 @@ class Fun_Commands(Bot_Commands):
         async def gaytest(ctx, member:discord.Member=None):
             member = member or ctx.author
 
-            say = self.get_gay_test()
+            say = self.client.get_gay_test()
 
             embed = discord.Embed(description=say, colour=Color.from_rgb(255,105,180))
             embed.set_author(name=member, icon_url=member.avatar_url)
@@ -358,43 +801,6 @@ class Fun_Commands(Bot_Commands):
     """
     Command functions
     """
-
-    # iqtest command
-    def get_iq(self, member:discord.Member, see_only:bool=False) -> int:
-        iqscores = Data.read('iq_scores.json')
-
-        if not see_only:
-            luck = random.randint(0, 10)
-            low, high = 0, 10
-            if luck == 9:
-                low, high = 10, 420
-
-            if str(member.id) in iqscores:
-                if luck == 9:
-                    if random.randint(0, 10) != 9: low, high = 0, 10
-                    iq = random.randint(low, high)
-                else:
-                    iq = iqscores[str(member.id)]
-            else:
-                iq = random.randint(low, high)
-
-            iqscores[str(member.id)] = iq
-
-            Data('iq_scores.json').dump(iqscores)
-        else:
-            iq = iqscores[str(member.id)]
-
-        return iq
-
-
-    def get_gay_test(self):
-        says = random.choice(['**100%** GAY!', 'yea kinda gay', 'nope! **100%** straight', '**69%** gay'])
-
-        rand_say = f'**{random.randint(0, 100)}**% gay'
-
-        say = random.choice([rand_say, says])
-
-        return say
 
 
 class Nc_Commands(Bot_Commands):
@@ -464,6 +870,218 @@ class Nc_Commands(Bot_Commands):
             )
 
 
+        @self.command()
+        async def mi(ctx, member : discord.Member=None):
+            member = member or ctx.author
+
+            created = member.created_at.strftime(f"%A, %B %d %Y @ %H:%M %p")
+            joined = member.joined_at.strftime(f"%A, %B %d %Y @ %H:%M %p")
+            roles = ' '.join(a.mention for a in member.roles[::-1] if not a.name == '@everyone')
+
+            line1 = f"Account created at: **{created}**"
+            line2 = f"Joined this server at: **{joined}**"
+            line3 = f"Roles: {roles}"
+
+            embed = discord.Embed(
+                title=f"{member} info:",
+                description=f"{line1}\n\n{line2}\n\n{line3}",
+                color=discord.Color.blue()
+            )
+            embed.set_thumbnail(url=member.avatar_url)
+
+            await ctx.send(embed=embed)
+
+
+        @self.command()
+        async def pfp(ctx, member : discord.Member=None):
+            member = member or ctx.author
+            await ctx.send(member.avatar_url)
+
+
+        @self.command()
+        async def lines(ctx):
+            lines = 0
+
+            for file in os.scandir('scripts/'):
+                if file.name.endswith('.py'):
+                    with open('scripts/' + file.name) as f:
+                        lines += len(f.readlines())
+
+            await ctx.send(
+                embed=discord.Embed(
+                    description='I have **%i** lines of code.' % (lines),
+                    colour=Color.blue()
+                )
+            )
+
+
+        @self.command()
+        async def id(ctx, member : discord.Member=None):
+            member = member or ctx.author
+
+            await ctx.message.reply('**%i**' % (member.id))
+
+
+        @self.command()
+        async def who(ctx, user_id : int):
+            await ctx.message.reply('**%s**' % (client.get_user(user_id)))
+
+
+        @self.command()
+        async def status(ctx, member : discord.Member=None, args=None): # TODO: Make it better
+            member = member or ctx.author 
+            try:
+                t = str(member.activities[0].type).replace('ActivityType.', '')
+                t = '%s%s' % (t[0].upper(), t[1:])
+                des = '%s **%s**' % (t, str(member.activities[0].name))
+                if args == '-d':
+                    try:
+                        des = '%s\n**%s**\n%s' % (des, member.activities[1].name, member.activities[2].details)
+                    except IndexError:
+                        try:
+                            des = '%s\nGame: **%s**' % (des, member.activities[1].name)
+                        except IndexError:
+                            pass
+            except IndexError:
+                await ctx.send("Nothing.")
+            else:
+                embed = discord.Embed(
+                    title="%s's status:" % member.name,
+                    description=des
+                )
+                await ctx.send(embed=embed)
+
+
+        @self.command()
+        async def iqlist(ctx):
+            iqscores = Data.read('iq_scores.json')
+
+            users = []
+            
+            for user_id in iqscores:
+                try:
+                    users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
+                except AttributeError:
+                    users.append(str(client.get_user(int(user_id))))
+
+            embed = discord.Embed(
+                title='%s members IQ:' % ctx.guild,
+                description='\n'.join(users)
+            )
+            await ctx.send(embed=embed)
+
+
+        @self.command()
+        async def snipe(ctx):
+            if ctx.channel.id in self.client.last_deleted_message:
+                embed = discord.Embed(
+                    description="Last deleted message in %s from %s @ **%s**:" % (ctx.channel.mention, 
+                    client.get_user(self.client.last_deleted_message[ctx.channel.id]['user']).mention,
+                    self.client.last_deleted_message[ctx.channel.id]['time']
+                    ),
+                    colour=Color.from_rgb(255, 0, 0)
+                )
+                embed.add_field(name='Message:', value=self.client.last_deleted_message[ctx.channel.id]['content'], inline=False)
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
+
+
+        @self.command()
+        async def list_ttt(ctx):
+            des = str()
+            for ttt in self.client.ttt_running:
+                des = '%s\n%s' % (des, ttt)
+            embed = discord.Embed(
+                title='All running tic-tac-toe games:', 
+                description=des
+            )
+            await ctx.send(embed=embed)
+
+
+        @self.command()
+        async def uptime(ctx): #TODO: cleanup code
+            current_time = datetime.now()
+            cal_uptime = current_time - self.client.on_ready_time
+            
+            async def over_a_day(cal):
+                cal = str(cal).split(', ')
+                if len(cal) == 1: 
+                    raise AttributeError
+                cal[1] = cal[1].split('.')[0].split(':')
+                cal[1][0] = '**%s**hrs' % str(cal[1][0])
+                cal[1][1] = '**%s**m' % str(cal[1][1])
+                cal[1][2] = '& **%s**s' % str(cal[1][2])
+                cal[1] = ', '.join(cal[1])
+                cal = ', '.join(cal)
+                return cal
+
+            async def less_than_a_day(cal):
+                cal = str(cal).split('.')[0].split(':')
+                if cal[0] == '0' and cal[1] == '00':
+                    return '**%s** seconds' % (cal[2])
+                elif cal[0] == '0':
+                    return '**%s**m & **%s**s' % (cal[1], cal[2])
+                else:
+                    cal[0] = '**%s**hrs' % (cal[0])
+                    cal[1] = '**%s**m' % (cal[1])
+                    cal[2] = '& **%s**s' % (cal[2])
+                    cal = ', '.join(cal)
+                    return cal
+            
+            try:
+                cal_uptime = await over_a_day(str(cal_uptime))
+            except AttributeError:
+                cal_uptime = await less_than_a_day(str(cal_uptime))
+            finally:
+                embed = discord.Embed(colour=Color.blue())
+                embed.set_author(name=client.user, icon_url=client.user.avatar_url)
+                embed.add_field(name='Uptime:', value=cal_uptime)
+                await ctx.send(embed=embed)
+
+
+        @self.command()
+        async def forward(ctx, *members):
+            if members == ():
+                members = [str(ctx.author.id)]
+
+            try:
+                rmsg = await self.reference(ctx.message)
+            except Reference.NoneReference as e:
+                return await ctx.message.reply(e)
+            else:
+                link = rmsg.jump_url
+                
+                embed = discord.Embed(description=rmsg.content)
+                embed.set_footer(text='Forwarded')
+                embed.set_author(name='Message link', url=link, icon_url=rmsg.author.avatar_url)
+
+                for member in members:
+                    await self.get_member(member).send('From **%s**' % ctx.author, embed=embed)
+                else:
+                    await self.command_success(ctx.message)
+
+
+        @self.command()
+        async def code(ctx, command_name:str):
+            try:
+                command = client.all_commands[command_name]._callback
+            except KeyError as e:
+                raise Exception("Command %s not found." % e)
+            else:
+                _source_code = inspect.getsource(command)
+
+                source_file = 'source_code.py'
+                with open(source_file, 'w') as f:
+                    f.write(_source_code)
+                
+                file = discord.File(source_file)
+                
+                await ctx.send(embed=discord.Embed(description='**%s** source code:' % command_name, colour=discord.Colour.green()), file=file)
+
+                with open(source_file, 'w') as f:
+                    f.write('')
+
     """
     Commands functions:
     """
@@ -530,6 +1148,14 @@ class Nc_Commands(Bot_Commands):
         return '\n'.join([self.left_right(str(cmd), commands[cmd]['help']) for cmd in commands])
 
 
+    def get_member(self, member:str) -> discord.Member:
+        try:
+            return self.client.get_user(int(member)) # Checks if member is an ID
+        except ValueError:
+            if member.startswith('<@!'): # Its a member
+                return self.client.get_user(int(member[3:-1]))
+            else:
+                raise Exception("'%s' member not found." % member)
 
 
 

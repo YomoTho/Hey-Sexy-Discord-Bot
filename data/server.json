@@ -12,6 +12,18 @@
         "818563784103690271": {
             "name": "\u3010\ud83d\udcca\u3011server-stats",
             "cname": "ss"
+        },
+        "818560379117895740": {
+            "name": "\u3010\ud83d\udce3\u3011server-announcement",
+            "cname": "sa"
+        },
+        "818560649189654589": {
+            "name": "\u3010\ud83d\udcda\u3011rules",
+            "cname": "rules"
+        },
+        "838035243222564925": {
+            "name": "audit-log",
+            "cname": "al"
         }
     }
 }

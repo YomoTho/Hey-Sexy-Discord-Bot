@@ -2,6 +2,7 @@ import json
 import os
 import discord
 import matplotlib.pyplot as plt
+from datetime import datetime
 
 
 class Data:
@@ -111,6 +112,7 @@ class Server:
         self.id = guild.id
         self.name = guild.name
         self.owner_id = guild.owner_id
+        self.owner = client.get_user(int(self.owner_id))
         self.text_channels = guild.text_channels
         self.get_role = guild.get_role
         self.roles = guild.roles
@@ -118,21 +120,16 @@ class Server:
         self.stats_filename = 'stats.png'
     
 
-    def get_channel(self, channel_id:int=None, **kwargs):
-        if channel_id is not None:
-            self.client.get_channel(channel_id)
-        else:
-            cname = kwargs.get('cname')
+    def get_channel(self, cname:str=None):
+        if cname is None:
+            raise Exception("Keyword argument 'cname' not found")
 
-            if cname is None:
-                raise Exception("Keyword argument 'cname' not found")
-
-            with Data.R('server.json') as server_data:
-                for channel_id, value in server_data['TC'].items():
-                    if cname == value['cname']:
-                        return self.client.get_channel(int(channel_id))
-                else:
-                    return None
+        with Data.R('server.json') as server_data:
+            for channel_id, value in server_data['TC'].items():
+                if cname == value['cname']:
+                    return self.client.get_channel(int(channel_id))
+            else:
+                return None
 
 
     def add_text_channel(self, channel:discord.TextChannel, cname:str):
@@ -182,9 +179,6 @@ class Server:
         return file
 
 
-
-
-
 class Reference:
     class NoneReference(Exception): 
         def __init__(self, description:str=None) -> None:
@@ -219,3 +213,62 @@ class Reference:
 
     async def __aexit__(self, *args):
         return False
+
+
+class TimeStats:
+    def __init__(self):
+        self.current_date = self.get_current_date()
+        self.data = self.get_data()
+        self.add_date()
+
+    
+    def get_current_date(self): # This will return the current date
+        return datetime.now().date()
+
+
+    def add_date(self): # If it's a new date then it will create the date
+        if not str(self.current_date) in self.data: 
+            self.data[str(self.current_date)] = {}
+            self.data[str(self.current_date)]['total_messages'] = 0
+            self.data[str(self.current_date)]['member_joins'] = 0
+            self.data[str(self.current_date)]['member_leaves'] = 0
+            self.save_data(self.data)
+
+
+    def get_data(self):
+        return Data.read('server_stats.json')
+
+
+    def save_data(self, data):
+        Data('server_stats.json').dump(data)
+
+
+    def member_join(self): # This will add 1 when a member joins the server
+        self.data[str(self.current_date)]['member_joins'] += 1
+        self.save_data(self.data)
+
+    
+    def member_leave(self): # This will add 1 when a member leaves the serevr
+        self.data[str(self.current_date)]['member_leaves'] += 1
+        self.save_data(self.data)
+
+
+    def on_message(self): # This will add 1 when a message been send
+        self.data[str(self.current_date)]['total_messages'] += 1
+        self.save_data(self.data)
+
+    
+    def cal_total_messages(self):
+        total_messages = 0
+        for msg in self.data:
+            total_messages += self.data[msg]['total_messages']
+        else:
+            with open(f'{Data.data_folder}data.json') as f:
+                server_data = json.load(f)
+            
+            server_data['total_messages'] = total_messages
+            
+            with open(f'{Data.data_folder}data.json', 'w') as f:
+                json.dump(server_data, f, indent=2)
+            
+            return total_messages

@@ -16,7 +16,7 @@ def main(*args):
     )
     client.load_commands(Owner_Commands, Nc_Commands, Nsfw_Commands, Reddit_Commands, Admin_Commands, Fun_Commands)    
     
-    #client.loop.create_task(client.stats())
+    client.loop.create_task(client.stats())
 
     client.run()
         

@@ -9,9 +9,9 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from datetime import datetime
 try:
-    from scripts.data import Data, MyChannel, Server
+    from scripts.data import Data, MyChannel, Server, TimeStats
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
-    from data import Data, MyChannel, Server
+    from data import Data, MyChannel, Server, TimeStats
 
 
 
@@ -171,6 +171,55 @@ class CBF:
         return {'file': file, 'embed': embed}
 
 
+    def get_iq(self, member:discord.Member, see_only:bool=False) -> int:
+        iqscores = Data.read('iq_scores.json')
+
+        if not see_only:
+            luck = random.randint(0, 10)
+            low, high = 0, 10
+            if luck == 9:
+                low, high = 10, 420
+
+            if str(member.id) in iqscores:
+                if luck == 9:
+                    if random.randint(0, 10) != 9: low, high = 0, 10
+                    iq = random.randint(low, high)
+                else:
+                    iq = iqscores[str(member.id)]
+            else:
+                iq = random.randint(low, high)
+
+            iqscores[str(member.id)] = iq
+
+            Data('iq_scores.json').dump(iqscores)
+        else:
+            iq = iqscores[str(member.id)]
+
+        return iq
+
+
+    def get_gay_test(self):
+        says = random.choice(['**100%** GAY!', 'yea kinda gay', 'nope! **100%** straight', '**69%** gay'])
+
+        rand_say = f'**{random.randint(0, 100)}**% gay'
+
+        say = random.choice([rand_say, says])
+
+        return say
+
+
+    def check_if_reaction_role_message(self, message_id:str):
+        messages = Data.read('reactions.json')
+
+        if message_id in messages:
+            del messages[message_id]
+
+            Data('reactions.json').dump(messages)
+
+
+    async def commet_lines(self, message_content):
+        return '\n'.join(['> %s' % line for line in message_content.split('\n')])
+
 
 
 class Bot(commands.Bot, CBF):
@@ -183,6 +232,7 @@ class Bot(commands.Bot, CBF):
         self.server = None
         self.args = args
         self.ttt_running = list()
+        self.last_deleted_message = dict()
 
     @staticmethod
     async def get_prefix(message=None):
@@ -197,10 +247,12 @@ class Bot(commands.Bot, CBF):
         return super().run(os.getenv('TOKEN'), **kwargs)
 
     
+    # event
     async def on_ready(self):
         self.load_categories()
         self.prefix = await self.get_prefix()
-        self.server = Server(self)
+        self.server = Server(self)        
+        self.audit_log_channel = self.server.get_channel(cname='al')
 
         if not self.args == ():
             try:
@@ -211,18 +263,52 @@ class Bot(commands.Bot, CBF):
 
         print(self.user, 'is online.')
 
+        self.on_ready_time = datetime.now()
 
+
+    # event
     async def on_message(self, message):
         if message.author.bot: return
 
-        if message.content.startswith('%sr/' % await self.get_prefix()): # This is for the reddit command
-            _content = message.content.split('/')
-            _content[0] = ''.join([_content[0], '/'])
-            message.content = ' '.join(_content)
+        if isinstance(message.channel, discord.DMChannel):
+            await self.on_dm_message(message)
+        else:
+            if message.content.startswith('%sr/' % await self.get_prefix()): # This is for the reddit command
+                _content = message.content.split('/')
+                _content[0] = ''.join([_content[0], '/'])
+                message.content = ' '.join(_content)
 
-        await self.process_commands(message)
+            await self.process_commands(message)
 
 
+    # event
+    async def on_message_delete(self, message):
+        self.check_if_reaction_role_message(str(message.id))
+
+        channel = MyChannel(self.audit_log_channel)
+
+        embed = discord.Embed(
+            description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention),
+            colour=discord.Color.from_rgb(255, 0, 0)
+        )
+        embed.add_field(name='Message:', value=message.content, inline=False)
+        current_time = str(datetime.now(self.sa_timezone).strftime('%H:%M'))
+        if int(current_time.split(':')[0]) > 12:
+            current_time = '%i:%i %s' % (int(current_time.split(':')[0]) - 12, int(current_time.split(':')[1]), 'PM')
+        else:
+            current_time = '%s %s' % (current_time, 'AM')
+
+        embed.set_footer(text=current_time)
+        
+        await channel.send(embed=embed)
+        
+        self.last_deleted_message[message.channel.id] = {}
+        self.last_deleted_message[message.channel.id]['user'] = message.author.id
+        self.last_deleted_message[message.channel.id]['content'] = message.content
+        self.last_deleted_message[message.channel.id]['time'] = current_time
+
+
+    # event
     async def on_command_error(self, ctx, exception):
         with Data.errors(write=True) as errors:
             if not 'errors' in errors:
@@ -241,10 +327,126 @@ class Bot(commands.Bot, CBF):
             raise exception
 
 
+    # event
+    async def on_member_join(self, member):
+        stats = TimeStats()
+        stats.member_join()
+
+        rules_channel = self.server.get_channel(cname='rules')
+        if member.bot:
+            await member.add_roles(discord.utils.get(self.server.guild.roles, id=820084294361415691)) # This ID is Bots role
+
+        embed = discord.Embed(
+            title='New member!',
+            description=f"Welcome **{member.name}**, to **{self.server.name}**!\n\nThe rules: {rules_channel.mention}\nAny help, ask/DM {self.server.owner.mention}\n\nThank you for joining :heart:",
+            color=discord.Color.blue()
+        )
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.add_field(name='Info:', value='IQ: **%i**\nGay: %s' % (self.get_iq(member), self.get_gay_test()), inline=False)
+        
+        channel = MyChannel(self.server.get_channel(cname='wj'))
+        await channel.send(member.mention, embed=embed)
+
+
+    # event
+    async def on_member_remove(self, member):
+        stats = TimeStats()
+        stats.member_leave()
+
+        self.delete_member_iq(member)
+
+        print(f"{member} has left the server.")
+        
+        embed = discord.Embed(description=f'**{member.mention}** left **{self.server.name}**.', colour=discord.Color.from_rgb(255, 0, 0))
+        embed.set_author(name=member, icon_url=member.avatar_url)
+        
+        await MyChannel(self.server.get_channel(cname='ntl')).send(embed=embed)
+
+
+    # event
+    async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent): # TODO: MAKE IT BETTER!
+        return
+        if not payload.user_id == self.user.id:
+            if payload.channel_id == self.server.get_channel(cname='r').id:
+                import json
+                with open('%sreactions.json' % Data.data_folder) as f:
+                    messages = json.load(f)
+
+                if str(payload.message_id) in messages:
+                    if str(payload.emoji) in messages[str(payload.message_id)]:
+                        role_id = messages[str(payload.message_id)][str(payload.emoji)]
+                        role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=int(role_id))
+                        user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
+                        await user.add_roles(role)
+                else:
+                    pass
+            elif payload.channel_id == self.server.get_channel(cname='rules').id:
+                if str(payload.message_id) == '823307869746495568': # This ID is the rules message's ID
+                    user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
+                    role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=int(data.get_role(cname='humans').id))
+                    await user.add_roles(role)
+            else:
+                if payload.emoji.name == '❌':
+                    errors_data = read_data_file('errors.json')
+
+                    if str(payload.message_id) in errors_data['errors']:
+                        error_msg = errors_data['errors'][str(payload.message_id)]['error']
+                        error_type = errors_data['errors'][str(payload.message_id)]['type']
+
+                        embed = make_error_message(error_msg)
+                        embed.set_footer(text=error_type)
+
+                        message = await self.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+                        await message.reply(embed=embed)
+
+                        del errors_data['errors'][str(payload.message_id)]
+
+                        write_data_file('errors.json', errors_data)
+                elif payload.emoji.name == '✅':
+                    if not announce_message is None:
+                        for msg in announce_message:
+                            if payload.message_id == msg.id:
+                                await msg.delete()
+                                await announce_message[msg].delete()
+                                return
+                    if not mod_files is None:
+                        if payload.message_id in mod_files:
+                            for filename in mod_files[payload.message_id]:
+                                with open('%s%s' % (data_folder, filename), 'w') as f:
+                                    for line in mod_files[payload.message_id][filename]:
+                                        f.write('%s\n' % line)
+                                channel = self.get_channel(payload.channel_id)
+                                await channel.send('Done writing.')
+                else:
+                    global ttt_running
+                    if len(ttt_running) > 0:
+                        try:
+                            for ttt_game in ttt_running:
+                                if payload.emoji.name in ttt_game.reactions:
+                                    if payload.message_id == ttt_game.game_msg.id:
+                                        if payload.user_id == ttt_game.turn.id:
+                                            await ttt_game.move(payload.emoji)
+                                elif payload.emoji.name == '🔄':
+                                    if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
+                                        if not ttt_game.whos_turn_msg is None:
+                                            if payload.message_id == ttt_game.whos_turn_msg.id:
+                                                ttt_running.remove(ttt_game)
+                                                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                                                ttt_game.destroy = False
+                        except NameError:
+                            pass
+
+
     async def stats(self):
         """
         Every day it will post server stats
         """
+
+        config = Data.read('config.json')
+
+        if not config['stats']:
+            return
 
         await self.wait_until_ready()
 
@@ -270,6 +472,44 @@ class Bot(commands.Bot, CBF):
 
             await asyncio.sleep(66)
  
+
     async def _exit(self):
         await self.reddit.reddit.close()
         await self.close()
+
+
+    async def on_dm_message(self, message):
+        if message.author.id == self.server.owner_id:
+            await self.process_commands(message)
+            return
+        
+        if not message.author.bot:
+            content = await self.commet_lines(message.content)
+            
+            if len(message.embeds) != 0 and message.content.startswith('https://'):
+                for embed in message.embeds:
+                    url = embed.to_dict()['url']
+                    embed = discord.Embed(description='%s\n﹂ %s' % (content, message.id))
+                    embed.set_author(name=message.author, icon_url=message.author.avatar_url, url=message.jump_url)
+                    embed.set_footer(text=message.author.id)
+                    msg = await self.server.owner.send(embed=embed)
+                    await msg.reply(url)
+                else:
+                    return
+
+            embed = discord.Embed(description='%s\n﹂ %s' % (content, message.id), color=discord.Color.blue())
+            embed.set_footer(text=message.author.id)
+            embed.set_author(name=message.author, icon_url=message.author.avatar_url, url=message.jump_url)
+            msg = await self.server.owner.send(embed=embed)
+
+
+
+    def delete_member_iq(self, member:discord.Member):
+        """
+        Delete's the user's ID & IQ in iq_scores.json
+        """
+        with Data.RW('iq_scores.json') as data:
+            try:
+                del data[str(member.id)]
+            except KeyError as e:
+                print("%s  %s has no IQ" % (member, e))
