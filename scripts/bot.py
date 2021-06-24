@@ -182,7 +182,7 @@ class Bot(commands.Bot, CBF):
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')
         self.server = None
         self.args = args
-
+        self.ttt_running = list()
 
     @staticmethod
     async def get_prefix(message=None):
