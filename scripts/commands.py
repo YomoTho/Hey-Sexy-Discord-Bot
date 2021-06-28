@@ -36,12 +36,10 @@ class Owner_Commands(Bot_Commands):
         super().__init__(client)
 
         
-        @self.command(help='Command testing')
+        @self.command()
         @commands.is_owner()
-        async def test(ctx, member:discord.Member):
-            print('web_status', member.web_status)
-            print('desktop_status', member.desktop_status)
-            print('is_on_mobile', member.is_on_mobile())
+        async def test(ctx:commands.Context):
+            print(ctx.invoked_subcommand)
 
 
         @self.command(help='Server add text channel')
@@ -757,7 +755,7 @@ class Fun_Commands(Bot_Commands):
                             break
 
 
-        @self.command(help="IQ test")
+        @self.command(help="IQ test", aliases=['iq'])
         async def iqtest(ctx, member:discord.Member=None):
             member = member or ctx.author
             
@@ -769,7 +767,7 @@ class Fun_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command(help="Gay test")
+        @self.command(help="Gay test", aliases=['gay'])
         async def gaytest(ctx, member:discord.Member=None):
             member = member or ctx.author
 
@@ -810,7 +808,7 @@ class Nc_Commands(Bot_Commands):
         """
         No category commands:
         """
-        @self.command(help="To see this message.")
+        @self.command(help=".help [command_name]", des="To help you with the other commands.")
         async def help(ctx, command:str=None):
             member = ctx.author
             categories = client.categories.copy()
@@ -928,28 +926,54 @@ class Nc_Commands(Bot_Commands):
 
 
         @self.command()
-        async def status(ctx, member : discord.Member=None, args=None): # TODO: Make it better
-            member = member or ctx.author 
-            try:
-                t = str(member.activities[0].type).replace('ActivityType.', '')
-                t = '%s%s' % (t[0].upper(), t[1:])
-                des = '%s **%s**' % (t, str(member.activities[0].name))
-                if args == '-d':
-                    try:
-                        des = '%s\n**%s**\n%s' % (des, member.activities[1].name, member.activities[2].details)
-                    except IndexError:
-                        try:
-                            des = '%s\nGame: **%s**' % (des, member.activities[1].name)
-                        except IndexError:
-                            pass
-            except IndexError:
-                await ctx.send("Nothing.")
+        async def status(ctx: commands.Context, member: Union[discord.Member, str]=None, args=None):
+            if isinstance(member, str):
+                args = member
+                member = ctx.author
+            
+            def get_nice_type(_type):
+                _type = str(_type).split('.')[1]
+                _type = str(_type[0].upper() + _type[1:])
+                return _type
+
+
+            status_icon = {
+                'online': 'https://emoji.gg/assets/emoji/9166_online.png',
+                'dnd': 'https://emoji.gg/assets/emoji/7907_DND.png',
+                'offline': 'https://emoji.gg/assets/emoji/7445_status_offline.png',
+                'idle': 'https://i.redd.it/kp69do60js151.png'
+            }
+
+            member = member or ctx.author
+            _status = member.status
+
+            if str(_status) == 'dnd':
+                _status = 'Do Not Disturb'
+
+            activities = member.activities
+
+            embed = discord.Embed(colour=Color.blue())
+            embed.set_author(name=member, icon_url=member.avatar_url)
+            embed.set_footer(text=_status, icon_url=status_icon[str(member.status)])
+
+            if args == 'more':
+                status = '\n'.join(['%s **%s**' % (get_nice_type(act.type), act) for act in activities])
+
+                embed.description = status
+            elif args == '-d':
+                embed.description = str(activities)
             else:
-                embed = discord.Embed(
-                    title="%s's status:" % member.name,
-                    description=des
-                )
-                await ctx.send(embed=embed)
+                if not len(activities) == 0:
+                    _type = get_nice_type(activities[0].type)
+                    _game = activities[0].name
+
+                    if not _type == "Playing":
+                        if not activities[0].emoji is None:
+                            _game = "%s %s" % (activities[0].emoji, _game)
+
+                    embed.description="%s **%s**" % (_type, _game)
+
+            await ctx.send(embed=embed)
 
 
         @self.command()
