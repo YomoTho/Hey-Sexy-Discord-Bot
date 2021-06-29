@@ -368,87 +368,20 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent): # TODO: MAKE IT BETTER!
-        if payload.user_id == self.user.id:
+    async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent):
+        if self.get_user(payload.user_id).bot is True: # This checking if the user is a bot, if so return.
             return
 
         if payload.message_id in self.reactions_command:
             delete = await self.reactions_command[payload.message_id](payload)
-            if delete:
+            
+            if delete is True:
                 del self.reactions_command[payload.message_id]
-
-
-            """
-        if not payload.user_id == self.user.id:
-            if payload.channel_id == self.server.get_channel(cname='r').id:
-                import json
-                with open('%sreactions.json' % Data.data_folder) as f:
-                    messages = json.load(f)
-
-                if str(payload.message_id) in messages:
-                    if str(payload.emoji) in messages[str(payload.message_id)]:
-                        role_id = messages[str(payload.message_id)][str(payload.emoji)]
-                        role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=int(role_id))
-                        user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
-                        await user.add_roles(role)
-                else:
-                    pass
-            elif payload.channel_id == self.server.get_channel(cname='rules').id:
-                if str(payload.message_id) == '823307869746495568': # This ID is the rules message's ID
-                    user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
-                    role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=int(data.get_role(cname='humans').id))
-                    await user.add_roles(role)
-            else:
-                if payload.emoji.name == '❌':
-                    errors_data = read_data_file('errors.json')
-
-                    if str(payload.message_id) in errors_data['errors']:
-                        error_msg = errors_data['errors'][str(payload.message_id)]['error']
-                        error_type = errors_data['errors'][str(payload.message_id)]['type']
-
-                        embed = make_error_message(error_msg)
-                        embed.set_footer(text=error_type)
-
-                        message = await self.get_channel(payload.channel_id).fetch_message(payload.message_id)
-
-                        await message.reply(embed=embed)
-
-                        del errors_data['errors'][str(payload.message_id)]
-
-                        write_data_file('errors.json', errors_data)
-                elif payload.emoji.name == '✅':
-                    if not announce_message is None:
-                        for msg in announce_message:
-                            if payload.message_id == msg.id:
-                                await msg.delete()
-                                await announce_message[msg].delete()
-                                return
-                    if not mod_files is None:
-                        if payload.message_id in mod_files:
-                            for filename in mod_files[payload.message_id]:
-                                with open('%s%s' % (data_folder, filename), 'w') as f:
-                                    for line in mod_files[payload.message_id][filename]:
-                                        f.write('%s\n' % line)
-                                channel = self.get_channel(payload.channel_id)
-                                await channel.send('Done writing.')
-                else:
-                    global ttt_running
-                    if len(ttt_running) > 0:
-                        try:
-                            for ttt_game in ttt_running:
-                                if payload.emoji.name in ttt_game.reactions:
-                                    if payload.message_id == ttt_game.game_msg.id:
-                                        if payload.user_id == ttt_game.turn.id:
-                                            await ttt_game.move(payload.emoji)
-                                elif payload.emoji.name == '🔄':
-                                    if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
-                                        if not ttt_game.whos_turn_msg is None:
-                                            if payload.message_id == ttt_game.whos_turn_msg.id:
-                                                ttt_running.remove(ttt_game)
-                          tictactoe                      await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
-                                                ttt_game.destroy = False
-                        except NameError:
-                            pass"""
+        elif payload.channel_id in self.reactions_command:
+            delete = await self.reactions_command[payload.message_id](payload)
+            
+            if delete is True:
+                del self.reactions_command[payload.channel_id]
 
 
     async def stats(self):
