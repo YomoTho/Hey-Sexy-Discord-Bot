@@ -233,6 +233,7 @@ class Bot(commands.Bot, CBF):
         self.args = args
         self.ttt_running = list()
         self.last_deleted_message = dict()
+        self.reactions_command = {}
 
     @staticmethod
     async def get_prefix(message=None):
@@ -321,6 +322,8 @@ class Bot(commands.Bot, CBF):
             if not 'do_not_raise' in errors:
                 errors['do_not_raise'] = []
 
+        self.reactions_command[ctx.message.id] = self.on_command_error_reaction
+
         await self.command_failed(ctx.message)
 
         if not str(type(exception)) in errors['do_not_raise']:
@@ -365,7 +368,18 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent): # TODO: MAKE IT BETTER!
-        return
+        if payload.user_id == self.user.id:
+            return
+
+        print(len(self.reactions_command))
+
+        if payload.message_id in self.reactions_command:
+            delete = await self.reactions_command[payload.message_id](payload)
+            if delete:
+                del self.reactions_command[payload.message_id]
+
+
+            """
         if not payload.user_id == self.user.id:
             if payload.channel_id == self.server.get_channel(cname='r').id:
                 import json
@@ -432,10 +446,10 @@ class Bot(commands.Bot, CBF):
                                         if not ttt_game.whos_turn_msg is None:
                                             if payload.message_id == ttt_game.whos_turn_msg.id:
                                                 ttt_running.remove(ttt_game)
-                                                await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                          tictactoe                      await tictactoe(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
                                                 ttt_game.destroy = False
                         except NameError:
-                            pass
+                            pass"""
 
 
     async def stats(self):
@@ -502,6 +516,37 @@ class Bot(commands.Bot, CBF):
             embed.set_author(name=message.author, icon_url=message.author.avatar_url, url=message.jump_url)
             msg = await self.server.owner.send(embed=embed)
 
+
+    async def on_command_error_reaction(self, payload:discord.RawReactionActionEvent):
+        if payload.emoji.name == '❌':
+            errors_data_cls = Data.errors()
+            errors_data = errors_data_cls.load()
+
+            if str(payload.message_id) in errors_data['errors']:
+                error_msg = errors_data['errors'][str(payload.message_id)]['error']
+                error_type = errors_data['errors'][str(payload.message_id)]['type']
+
+                embed = self.make_error_message(error_msg)
+                embed.set_footer(text=error_type)
+
+                message = await self.get_channel(payload.channel_id).fetch_message(payload.message_id)
+
+                await message.reply(embed=embed)
+
+                del errors_data['errors'][str(payload.message_id)]
+
+                errors_data_cls.dump(errors_data)
+        
+        return True
+
+
+    def make_error_message(self, error_msg, url='') -> discord.Embed:
+        return discord.Embed(
+            title=':x: Error:',
+            description='> ' + error_msg,
+            url=url,
+            colour=discord.Color.from_rgb(255, 0, 0)
+        )
 
 
     def delete_member_iq(self, member:discord.Member):

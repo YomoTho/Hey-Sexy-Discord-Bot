@@ -1,5 +1,5 @@
 import discord
-from random import choice, uniform, randint
+from random import choice, randint
 import asyncio
 
 
@@ -57,6 +57,8 @@ class TicTacToe:
 
     async def game_end(self):
         self.running = False
+        self.client.reactions_command[self.whos_turn_msg.id] = self.client.reactions_command[self.game_msg.id]
+        del self.client.reactions_command[self.game_msg.id]
         await self.whos_turn_msg.add_reaction('🔄')
         for i in self.make_move_msgs:
             await i.delete()
@@ -65,6 +67,7 @@ class TicTacToe:
             if not self.current_game is None:
                 if self.current_game in self.all_running_ttt:
                     await self.whos_turn_msg.remove_reaction('🔄', self.client.user)
+                    del self.client.reactions_command[self.whos_turn_msg.id]
                     self.all_running_ttt.remove(self.current_game)
 
 
@@ -158,7 +161,7 @@ class TicTacToe:
                 await self.whos_turn_msg.edit(embed=embed)
             
             if self.turn.bot and not self.count >= 9:
-                await asyncio.sleep(uniform(0.5, 5.5))
+                await asyncio.sleep(1.5)
                 if randint(0, 20) == 6:
                     move = choice(self.reactions)
                 else:

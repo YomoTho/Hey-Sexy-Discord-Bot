@@ -5,6 +5,7 @@ import asyncio
 import inspect
 from discord import Color
 from discord import colour
+from discord import player
 from discord.ext import commands
 from games import TicTacToe
 from datetime import datetime
@@ -17,6 +18,8 @@ except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto com
 
 
 class Bot_Commands:
+    class Error(Exception): pass
+
     def __init__(self, client) -> None:
         self.client = client
         self.reference = Reference(client)
@@ -697,23 +700,20 @@ class Fun_Commands(Bot_Commands):
 
 
         @self.command(aliases=['ttt'], help='Tic-tac-toe game')
-        async def tictactoe(ctx, player1, player2 : discord.Member=None):
-            if player1 == 'bvb': # This stands for 'Bot vs Bot'
-                player1 = client.get_user(816668604669755433) # This ID is local bot
-                player2 = client.user
+        async def tictactoe(ctx, player1: Union[discord.Member, str], player2 : discord.Member=None):
+            if isinstance(player1, str):
+                if player1 == 'bvb':
+                    player1 = client.get_user(816668604669755433) # This ID is local bot
+                    player2 = client.user
             else:
-                if type(player1) is str:
-                    try:
-                        player1 = client.get_user(int(player1[2:-1]))
-                    except ValueError:
-                        player1 = client.get_user(int(player1[3:-1]))
                 if player2 is None:
                     player2 = ctx.author
 
+            if not isinstance(player1, discord.Member): 
+                raise Exception("Player 1: **{}** not found.".format(player1))
+            
             if player1 == player2:
                 raise Exception("Player 1 and Player 2, can't be the same.")
-            
-            if player1 is None: raise Exception("**Player 1 ({}) not found.**".format(player1))
             
             ttt_game = TicTacToe(player1, player2, ctx, self.client.ttt_running, client)
             self.client.ttt_running.append(ttt_game)
@@ -722,17 +722,19 @@ class Fun_Commands(Bot_Commands):
             game_msg = await ctx.send(await ttt_game.print())
             ttt_game.game_msg = game_msg
 
+            client.reactions_command[game_msg.id] = self.on_ttt_reaction
+            
             if (player1.bot == False and player2.bot == False) or (not player1.bot or not player2.bot):
                 for emoji in ttt_game.reactions:
-                    await game_msg.add_reaction(emoji=emoji)
-
+                    asyncio.create_task(game_msg.add_reaction(emoji=emoji))
+            
             embed = discord.Embed(description=f"**{ttt_game.turn.name}** turn")
 
             wtit = await ctx.send(embed=embed) # 'wtit' stands for 'whos turn is it'
             ttt_game.whos_turn_msg = wtit
             
             if ttt_game.turn.bot:
-                await asyncio.sleep(2)
+                await asyncio.sleep(2.0)
                 await ttt_game.move(await ttt_game.smart_bot_move())
             
             if not player1.bot or not player2.bot: # This checks if a user didn't make a move for a while
@@ -742,7 +744,7 @@ class Fun_Commands(Bot_Commands):
                     count = ttt_game.count
                     await asyncio.sleep(wait_time)
                     if count == ttt_game.count:
-                        make_move_msg = await ctx.send(f'{ttt_game.turn.mention} make a move!')
+                        make_move_msg = await ttt_game.game_msg.reply(f'{ttt_game.turn.mention} make a move!')
                         make_move_msgs.append(make_move_msg)
                         await asyncio.sleep(wait_time)
                         if count == ttt_game.count:
@@ -799,6 +801,34 @@ class Fun_Commands(Bot_Commands):
     """
     Command functions
     """
+
+    # tic-tac-toe command
+    async def on_ttt_reaction(self, payload:discord.RawReactionActionEvent):
+        ttt_running = self.client.ttt_running
+        if len(ttt_running) > 0:
+            try:
+                print(ttt_running)
+                for ttt_game in ttt_running:
+                    if payload.emoji.name in ttt_game.reactions:
+                        if payload.message_id == ttt_game.game_msg.id:
+                            if payload.user_id == ttt_game.turn.id:
+                                await ttt_game.move(payload.emoji)
+                    elif payload.emoji.name == '🔄':
+                        if (payload.user_id in [ttt_game.player_1.id, ttt_game.player_2.id]) or (ttt_game.player_1.bot and ttt_game.player_2.bot):
+                            if not ttt_game.whos_turn_msg is None:
+                                if payload.message_id == ttt_game.whos_turn_msg.id:
+                                    try:
+                                        del self.client.reactions_command[ttt_game.whos_turn_msg.id]
+                                    except KeyError as e:
+                                        print("Can't delete: %s" % e)
+                                    ttt_running.remove(ttt_game)
+                                    await self.client.all_commands['tictactoe']._callback(ctx=ttt_game.ctx, player1=ttt_game.player_1, player2=ttt_game.player_2)
+                                    ttt_game.destroy = False
+            except NameError:
+                pass
+
+
+
 
 
 class Nc_Commands(Bot_Commands):
