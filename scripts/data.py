@@ -17,9 +17,10 @@ class Data:
         self.write = write
         self.fp = self.data_folder + self.filename
 
-    def load(self):
+    def load(self) -> json:
         with open(self.fp) as f:
-            return json.load(f)
+            content = json.load(f)
+        return content
 
     def dump(self, content):
         with open(self.fp, 'w') as f:

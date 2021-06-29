@@ -233,7 +233,8 @@ class Bot(commands.Bot, CBF):
         self.args = args
         self.ttt_running = list()
         self.last_deleted_message = dict()
-        self.reactions_command = {}
+        self.reactions_command = {823307869746495568: self.on_rules_react}
+        self.reactions_command_remove = {}
 
     @staticmethod
     async def get_prefix(message=None):
@@ -370,8 +371,6 @@ class Bot(commands.Bot, CBF):
     async def on_raw_reaction_add(self, payload : discord.RawReactionActionEvent): # TODO: MAKE IT BETTER!
         if payload.user_id == self.user.id:
             return
-
-        print(len(self.reactions_command))
 
         if payload.message_id in self.reactions_command:
             delete = await self.reactions_command[payload.message_id](payload)
@@ -538,6 +537,12 @@ class Bot(commands.Bot, CBF):
                 errors_data_cls.dump(errors_data)
         
         return True
+
+
+    async def on_rules_react(self, payload:discord.RawReactionActionEvent):
+        user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
+        role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=821839747520528404) # 821839747520528404 is Sexy Human
+        await user.add_roles(role)
 
 
     def make_error_message(self, error_msg, url='') -> discord.Embed:
