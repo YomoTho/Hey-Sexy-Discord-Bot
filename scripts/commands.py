@@ -30,7 +30,7 @@ class Bot_Commands:
 
 
     async def command_success(self, message:discord.Message) -> None:
-        await message.add_reaction('✅')
+        asyncio.create_task(message.add_reaction('✅'))
 
 
 
@@ -703,8 +703,8 @@ class Fun_Commands(Bot_Commands):
         async def tictactoe(ctx, player1: Union[discord.Member, str], player2 : discord.Member=None):
             if isinstance(player1, str):
                 if player1 == 'bvb':
-                    player1 = client.get_user(816668604669755433) # This ID is local bot
-                    player2 = client.user
+                    player1 = discord.utils.get(ctx.guild.members, id=816668604669755433) # This ID is local bot
+                    player2 = discord.utils.get(ctx.guild.members, id=815991197369630730) # This ID is Hey Sexy Bot
             else:
                 if player2 is None:
                     player2 = ctx.author
