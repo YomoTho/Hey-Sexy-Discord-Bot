@@ -30,7 +30,7 @@ class Bot_Commands:
 
 
     async def command_success(self, message:discord.Message) -> None:
-        asyncio.create_task(message.add_reaction('✅'))
+        await message.add_reaction('✅')
 
 
 
@@ -354,39 +354,6 @@ class Owner_Commands(Bot_Commands):
                     await self.command_success(ctx.message)
                 else:
                     await ctx.send("'%s' does not look like an type." % embed_footer)
-
-
-        @client.group()
-        @commands.is_owner()
-        async def config(ctx: commands.Context):
-            if ctx.subcommand_passed is None:
-                print("Nah")
-
-
-        @config.command()
-        async def print(ctx: commands.Context):
-            config = Data.read('config.json')
-
-            config = '\n'.join(['%s  =   %s     [%s]' % (name, val, type(val)) for name, val in config['config'].items()])
-
-            await ctx.send('```%s```' % config)
-
-
-        @config.command()
-        async def change(ctx: commands.Context, name:str, value:Union[int, float, bool, None, str]):
-            with Data.RW('config.json') as config:
-                config['config'][name] = value
-                await self.command_success(ctx.message)
-
-
-        @config.command()
-        async def delete(ctx: commands.Context, name:str):
-            with Data.RW('config.json') as config:
-                if name in config['config']:
-                    del config['config'][name]
-                    await self.command_success(ctx.message)
-                else:
-                    await ctx.send("'%s' not found." % name)
 
 
     """
