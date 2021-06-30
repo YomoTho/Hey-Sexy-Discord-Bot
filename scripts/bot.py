@@ -314,6 +314,7 @@ class Bot(commands.Bot, CBF):
         self.last_deleted_message = dict()
         self.reactions_command = {}
         self.reactions_command_remove = {}
+        self.do_stats = Data.read('config.json')['stats']
 
         reactions_data = Data.read('reactions.json')
         if not len(reactions_data) == 0:
@@ -399,6 +400,10 @@ class Bot(commands.Bot, CBF):
         if isinstance(message.channel, discord.DMChannel):
             await self.on_dm_message(message)
         else:
+            if self.do_stats is True:
+                stats = TimeStats()
+                stats.on_message()
+
             if message.content.startswith('%sr/' % await self.get_prefix()): # This is for the reddit command
                 _content = message.content.split('/')
                 _content[0] = ''.join([_content[0], '/'])
@@ -844,11 +849,14 @@ class Bot(commands.Bot, CBF):
 
             today_date = current_time.strftime('%Y-%m-%d')
 
-            server_stats_alarm = current_time.replace(day=current_time.day+1, hour=00, minute=00)
+            try:
+                server_stats_alarm = current_time.replace(day=current_time.day+1, hour=00, minute=00)
+            except ValueError: # It's probably the end of the month
+                server_stats_alarm = current_time.replace(month=current_time.month+1, day=1, hour=00, minute=00)
             #server_stats_alarm = current_time
 
             wait_time = (server_stats_alarm - current_time).seconds
-
+            
             await asyncio.sleep(wait_time)
 
             await server_stats_channel.send(**self.get_stats(today_date))
