@@ -356,6 +356,45 @@ class Owner_Commands(Bot_Commands):
                     await ctx.send("'%s' does not look like an type." % embed_footer)
 
 
+        @client.group()
+        @commands.is_owner()
+        async def config(ctx: commands.Context):
+            if ctx.subcommand_passed is None:
+                return
+
+
+        @config.command()
+        async def print(ctx: commands.Context, what:str):
+            with Data.R('ids.json') as config:
+                if what in config:
+                    await ctx.send('```%s```' % '\n'.join(['%s = %s' % (name, value) for name, value in config[what].items()]))
+                else:
+                    await ctx.send("'%s' not found." % what)
+                
+
+        
+        @config.command()
+        async def channels(ctx: commands.Context, name:str, value: Union[discord.TextChannel, int]):
+            with Data.RW('ids.json') as config:
+                if name in config['channels']:
+                    if isinstance(value, discord.TextChannel):
+                        value = value.id
+
+                    config['channels'][name] = value
+                    await self.command_success(ctx.message)
+                else:
+                    await ctx.send("'%s' not found." % name)
+
+
+        @config.command()
+        async def msgs(ctx: commands.Context, name:str, value: int):
+            with Data.RW('ids.json') as config:
+                if name in config['msgs']:
+                    config['msgs'][name] = value
+                    await self.command_success(ctx.message)
+                else:
+                    await ctx.send("'%s' not found." % name)
+
     """
     Commands functions:
     """
