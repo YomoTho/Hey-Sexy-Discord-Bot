@@ -311,7 +311,7 @@ class Owner_Commands(Bot_Commands):
                     
                     self.client.reactions_command[message.id] = self.client.on_role_react_add
                     self.client.reactions_command_remove[message.id] = self.client.on_role_react_remove
-                    
+
                     await message.add_reaction(emoji_and_role[0])
                 else:
                     Data('reactions.json').dump(blocks)
@@ -517,6 +517,13 @@ class Admin_Commands(Bot_Commands):
         @self.is_admin()
         async def ban(ctx, member : discord.Member, *, reason=None):
             bans_says = ['**{}** is banned from this server.', 'Yes! That poes **{}** is banned from this server!']
+            
+            embed = discord.Embed(title='!! YOU GOT BANNED !!', colour=Color.from_rgb(255, 0, 0))
+            embed.description = 'Reason: **%s**' % reason
+            embed.set_footer(text='%s - Owner: %s' % (ctx.guild.name, ctx.guild.owner))
+
+            await member.send(embed=embed)
+            
             await member.ban(reason=reason)
             await ctx.message.add_reaction('✅')
             await ctx.send(random.choice(bans_says).format(member))
