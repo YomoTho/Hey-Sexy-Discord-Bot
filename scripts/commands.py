@@ -308,6 +308,10 @@ class Owner_Commands(Bot_Commands):
                 for block in args.split(' / '):
                     emoji_and_role = block.split(' ')
                     blocks[str(message.id)][emoji_and_role[0]] = int(emoji_and_role[1][3:-1])
+                    
+                    self.client.reactions_command[message.id] = self.client.on_role_react_add
+                    self.client.reactions_command_remove[message.id] = self.client.on_role_react_remove
+                    
                     await message.add_reaction(emoji_and_role[0])
                 else:
                     Data('reactions.json').dump(blocks)

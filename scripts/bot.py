@@ -214,6 +214,11 @@ class CBF:
         if message_id in messages:
             del messages[message_id]
 
+            if int(message_id) in self.reactions_command:
+                del self.reactions_command[int(message_id)]
+            if int(message_id) in self.reactions_command_remove:
+                del self.reactions_command_remove[int(message_id)]
+
             Data('reactions.json').dump(messages)
 
 
@@ -221,6 +226,13 @@ class CBF:
         result = Data.read('ids.json')
         result = result['channels'][name]
         return result
+
+
+    def get_msgs(self, name:str):
+        result = Data.read('ids.json')
+        result = result['msgs'][name]
+        return result
+
 
     # return self.get_channel(self.channels(''))
     def get_system_messages_channel(self):
@@ -275,6 +287,10 @@ class CBF:
         return self.get_channel(self.channels('admin_room_channel'))
 
 
+    def get_rules_msg(self):
+        return self.get_msgs('rules_msg')
+
+
     async def commet_lines(self, message_content):
         return '\n'.join(['> %s' % line for line in message_content.split('\n')])
 
@@ -291,8 +307,17 @@ class Bot(commands.Bot, CBF):
         self.args = args
         self.ttt_running = list()
         self.last_deleted_message = dict()
-        self.reactions_command = {823307869746495568: self.on_rules_react}
+        self.reactions_command = {}
         self.reactions_command_remove = {}
+
+        reactions_data = Data.read('reactions.json')
+        if not len(reactions_data) == 0:
+            self.reactions_command = {int(message_id): self.on_role_react_add for message_id in reactions_data}
+            self.reactions_command_remove = {int(message_id): self.on_role_react_remove for message_id in reactions_data}
+
+        self.rules_msg = self.get_rules_msg()
+        if not self.rules_msg is None:
+            self.reactions_command[self.rules_msg] = self.on_rules_react
 
         self.system_messages_channel = None
         self.audit_log_channel = None
@@ -476,6 +501,41 @@ class Bot(commands.Bot, CBF):
                 del self.reactions_command[payload.channel_id]
 
 
+    async def on_raw_reaction_remove(self, payload:discord.RawReactionActionEvent):
+        if self.get_user(payload.user_id).bot is True: # This checking if the user is a bot, if so return.
+            return
+        
+        if payload.message_id in self.reactions_command_remove:
+            delete = await self.reactions_command_remove[payload.message_id](payload)
+
+            if delete is True:
+                del self.reactions_command_remove[payload.message_id]
+        elif payload.channel_id in self.reactions_command_remove:
+            delete = await self.reactions_command_remove[payload.channel_id](payload)
+
+            if delete is True:
+                del self.reactions_command_remove[payload.channel_id]
+
+        
+        """
+        if not payload.user_id == client.user.id:
+            if payload.channel_id == data.get_useful_channel(cname='r').id:
+                with open('%sreactions.json' % data_folder) as f:
+                    messages = json.load(f)
+
+                if str(payload.message_id) in messages:
+                    if str(payload.emoji) in messages[str(payload.message_id)]:
+                        role_id = messages[str(payload.message_id)][str(payload.emoji)]
+                        role = discord.utils.get(client.get_guild(payload.guild_id).roles, id=int(role_id))
+                        user = discord.utils.get(client.get_guild(payload.guild_id).members, id=payload.user_id)
+                        await user.remove_roles(role)
+                else:
+                    pass
+        """
+
+    # TODO: Make all @events 
+
+
     async def stats(self):
         """
         Every day it will post server stats
@@ -568,6 +628,31 @@ class Bot(commands.Bot, CBF):
         user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
         role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=821839747520528404) # 821839747520528404 is Sexy Human
         await user.add_roles(role)
+
+
+    async def on_role_react_add(self, payload:discord.RawReactionActionEvent):
+        data = Data.read('reactions.json')[str(payload.message_id)]
+
+        if payload.emoji.name in data:
+            role_id = data[payload.emoji.name]
+
+            member = discord.utils.get(self.server.guild.members, id=payload.user_id)
+            role = discord.utils.get(self.server.guild.roles, id=role_id)
+
+            await member.add_roles(role)
+
+
+    async def on_role_react_remove(self, payload:discord.RawReactionActionEvent):
+        data = Data.read('reactions.json')[str(payload.message_id)]
+
+        if payload.emoji.name in data:
+            role_id = data[payload.emoji.name]
+            member = self.get_user(payload.user_id)
+
+            member = discord.utils.get(self.server.guild.members, id=payload.user_id)
+            role = discord.utils.get(self.server.guild.roles, id=role_id)
+
+            await member.remove_roles(role)
 
 
     def make_error_message(self, error_msg, url='') -> discord.Embed:
