@@ -640,6 +640,16 @@ class Admin_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
+        @self.command()
+        @self.is_admin()
+        async def ttt_winners_says(ctx: commands.Context, *, say:str=None):
+            with Data.RW('server.json') as f:
+                if say is None:
+                    await ctx.send('\n'.join(f['ttt_winners_says']))
+                else:
+                    f['ttt_winners_says'].append(say)
+            await self.command_success(ctx.message)
+
     """
     Command functions:
     """
