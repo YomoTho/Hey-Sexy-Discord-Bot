@@ -728,10 +728,10 @@ class Fun_Commands(Bot_Commands):
                 for emoji in ttt_game.reactions:
                     asyncio.create_task(game_msg.add_reaction(emoji=emoji))
             
-            embed = discord.Embed(description=f"**{ttt_game.turn.name}** turn")
+            #embed = discord.Embed(description=f"**{ttt_game.turn.name}** turn")
+            embed = discord.Embed(colour=ttt_game.turn_colour[ttt_game.turn.id]).set_author(name='%s - turn' % ttt_game.turn.name, icon_url=ttt_game.turn.avatar_url)
 
-            wtit = await ctx.send(embed=embed) # 'wtit' stands for 'whos turn is it'
-            ttt_game.whos_turn_msg = wtit
+            ttt_game.whos_turn_msg = await ctx.send(embed=embed)
             
             if ttt_game.turn.bot:
                 await asyncio.sleep(2.0)

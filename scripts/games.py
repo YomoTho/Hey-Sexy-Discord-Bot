@@ -1,6 +1,10 @@
+import random
+from data import Data
 import discord
 from random import choice, randint
 import asyncio
+
+from discord import colour
 
 
 class TicTacToe:
@@ -36,6 +40,10 @@ class TicTacToe:
         self.running = True # Then the game ends, it turns false. If false player can't make moves
         self.destroy = True # If True this class object will be removed
         self.make_move_msgs = list() # This is a list of all the message's that says "{player} make a move!"
+        self.turn_colour = {
+            self.player_1.id: colour.Color.from_rgb(255, 0, 0),
+            self.player_2.id: colour.Color.blue()
+        }
 
 
     def __repr__(self):
@@ -135,8 +143,10 @@ class TicTacToe:
                 who_won = await self.check_who_won(self.gameBoard)
                 if who_won[0]:
                     self.someone_won = True
-                    winner_text = f"**{who_won[1]}** won!!!" if not who_won[1].id == self.client.user.id else f"**{who_won[1].name}** won **ez**" if randint(0, 1) == 1 else f"**{who_won[1]}** won!!!" 
-                    embed = discord.Embed(description=winner_text)
+                    winner_says = Data.read('server.json')['ttt_winners_says']
+                    embed = discord.Embed(title='Winner!', colour=colour.Color.from_rgb(0, 255, 0)).set_author(name=who_won[1], icon_url=who_won[1].avatar_url)
+                    embed.set_thumbnail(url=who_won[1].avatar_url)
+                    embed.description = random.choice(winner_says)
                     await self.whos_turn_msg.edit(embed=embed)
                     await self.game_end()
                     return
@@ -157,7 +167,7 @@ class TicTacToe:
                     self.turn = self.player_2
                 else:
                     self.turn = self.player_1
-                embed = discord.Embed(description=f"**{self.turn.name}** turn")
+                embed = discord.Embed(colour=self.turn_colour[self.turn.id]).set_author(name='%s - turn' % self.turn.name, icon_url=self.turn.avatar_url)
                 await self.whos_turn_msg.edit(embed=embed)
             
             if self.turn.bot and not self.count >= 9:
