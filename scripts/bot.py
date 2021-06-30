@@ -217,6 +217,64 @@ class CBF:
             Data('reactions.json').dump(messages)
 
 
+    def channels(self, name:str):
+        result = Data.read('ids.json')
+        result = result['channels'][name]
+        return result
+
+    # return self.get_channel(self.channels(''))
+    def get_system_messages_channel(self):
+        return self.get_channel(self.channels('system_messages_channel'))
+
+    
+    def get_audit_log_channel(self):
+        return self.get_channel(self.channels('audit_log_channel'))
+
+    
+    def get_bot_raised_error_channel(self):
+        return self.get_channel(self.channels('bot_raised_error_channel'))
+
+
+    def get_server_announcement_channel(self):
+        return self.get_channel(self.channels('server_announcement_channel'))
+
+
+    def get_server_stats_channel(self):
+        return self.get_channel(self.channels('server_stats_channel'))
+
+
+    def get_level_ups_channel(self):
+        return self.get_channel(self.channels('level_ups_channel'))
+
+
+    def get_questions_channel(self):
+        return self.get_channel(self.channels('questions_channel'))
+
+
+    def get_member_leave_channel(self):
+        return self.get_channel(self.channels('member_leave_channel'))
+
+
+    def get_roles_channel(self):
+        return self.get_channel(self.channels('roles_channel'))
+
+
+    def get_rules_channel(self):
+        return self.get_channel(self.channels('rules_channel'))
+
+
+    def get_music_commands_channel(self):
+        return self.get_channel(self.channels('music_commands_channel'))
+
+
+    def get_mod_room_channel(self):
+        return self.get_channel(self.channels('mod_room_channel'))
+
+
+    def get_admin_room_channel(self):
+        return self.get_channel(self.channels('admin_room_channel'))
+
+
     async def commet_lines(self, message_content):
         return '\n'.join(['> %s' % line for line in message_content.split('\n')])
 
@@ -235,6 +293,21 @@ class Bot(commands.Bot, CBF):
         self.last_deleted_message = dict()
         self.reactions_command = {823307869746495568: self.on_rules_react}
         self.reactions_command_remove = {}
+
+        self.system_messages_channel = None
+        self.audit_log_channel = None
+        self.bot_raised_error_channel = None
+        self.server_announcement_channel = None
+        self.server_stats_channel = None
+        self.level_ups_channel = None
+        self.questions_channel = None
+        self.member_leave_channel = None
+        self.roles_channel = None
+        self.rules_channel = None
+        self.music_commands_channel = None
+        self.mod_room_channel = None
+        self.admin_room_channel = None
+
 
     @staticmethod
     async def get_prefix(message=None):
@@ -255,6 +328,7 @@ class Bot(commands.Bot, CBF):
         self.prefix = await self.get_prefix()
         self.server = Server(self)        
         self.audit_log_channel = self.server.get_channel(cname='al')
+        self.load_channels()
 
         if not self.args == ():
             try:
@@ -266,6 +340,24 @@ class Bot(commands.Bot, CBF):
         print(self.user, 'is online.')
 
         self.on_ready_time = datetime.now()
+
+
+    def load_channels(self):
+        # This is for the bot to have easy access to this text channels:
+        
+        self.system_messages_channel = self.get_system_messages_channel()
+        self.audit_log_channel = self.get_audit_log_channel()
+        self.bot_raised_error_channel = self.get_bot_raised_error_channel()
+        self.server_announcement_channel = self.get_server_announcement_channel()
+        self.server_stats_channel = self.get_server_stats_channel()
+        self.level_ups_channel = self.get_level_ups_channel()
+        self.questions_channel = self.get_questions_channel()
+        self.member_leave_channel = self.get_member_leave_channel()
+        self.roles_channel = self.get_roles_channel()
+        self.rules_channel = self.get_rules_channel()
+        self.music_commands_channel = self.get_music_commands_channel()
+        self.mod_room_channel = self.get_mod_room_channel()
+        self.admin_room_channel = self.get_admin_room_channel()
 
 
     # event
