@@ -858,6 +858,17 @@ class Fun_Commands(Bot_Commands):
             else:
                 await ctx.send("You must guess between 0-6")
 
+
+        @self.command(aliases=['pp'])
+        async def ppsize(ctx: commands.Context, member:discord.Member=None):
+            member = member or ctx.author
+
+            m = {'mm': 1, 'cm': 2, 'nm': 0, 'm':3, 'km':5}
+
+            # TODO: make pp size command
+
+            await ctx.send(embed=embed)
+
     """
     Command functions
     """

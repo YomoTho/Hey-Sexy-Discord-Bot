@@ -1,4 +1,29 @@
 {
-    "errors": {},
+    "errors": {
+        "859809038631829514": {
+            "error": "Command raised an exception: AttributeError: 'Reddit' object has no attribute 'copy'",
+            "type": "<class 'discord.ext.commands.errors.CommandInvokeError'>"
+        },
+        "859809322299949057": {
+            "error": "Command raised an exception: NameError: name 'reddit' is not defined",
+            "type": "<class 'discord.ext.commands.errors.CommandInvokeError'>"
+        },
+        "859813021478944788": {
+            "error": "Member \"768280948159545364\" not found.",
+            "type": "<class 'discord.ext.commands.errors.MemberNotFound'>"
+        },
+        "859879753652895778": {
+            "error": "Command raised an exception: KeyError: 1",
+            "type": "<class 'discord.ext.commands.errors.CommandInvokeError'>"
+        },
+        "859879937867382794": {
+            "error": "Command raised an exception: TypeError: %i format: a number is required, not str",
+            "type": "<class 'discord.ext.commands.errors.CommandInvokeError'>"
+        },
+        "859880146500321330": {
+            "error": "Command raised an exception: TypeError: %i format: a number is required, not str",
+            "type": "<class 'discord.ext.commands.errors.CommandInvokeError'>"
+        }
+    },
     "do_not_raise": []
 }

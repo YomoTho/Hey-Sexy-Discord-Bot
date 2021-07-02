@@ -27,9 +27,7 @@ class Reddit:
             user_agent="NO"
         )
         self.reddit_json = Data.reddit(True)
-        
         self.nsfw_subreddit = self.reddit_json.load()
-
 
     async def __call__(self, ctx, sub_reddit:str, loop:int=1):
         try:
@@ -66,14 +64,14 @@ class Reddit:
                     video_url = url
 
                     if video_url.endswith('.mp4'):
-                        await ctx.send(f"**{title}**\n{i + 1}/{loop}: {video_url}")
+                        asyncio.create_task(ctx.send(f"**{title}**\n{i + 1}/{loop}: {video_url}"))
                     elif video_url[-4] == '.':
                         embed = discord.Embed(title=title)
                         embed.set_image(url=video_url)
                         embed.set_footer(text=f'{i + 1}/{loop}')
-                        await ctx.send(embed=embed)
+                        asyncio.create_task(ctx.send(embed=embed))
                     else:
-                        await ctx.send(f"**{title}**\n{i + 1}/{loop}: {url}")
+                        asyncio.create_task(ctx.send(f"**{title}**\n{i + 1}/{loop}: {url}"))
         except Exception as e:
             if str(e) == 'Redirect to /subreddits/search':
                 await ctx.send("Sub Reddit not found.")
