@@ -17,5 +17,10 @@
         "mod_room_channel": 818570378048962596,
         "admin_room_channel": 818570317575749652,
         "bot_lab_channel": 818574185088548904
+    },
+    "roles": {
+        "female_role": 848650072898928650,
+        "male_role": 848650148167024651,
+        "transgender_role": 849016282807795732
     }
 }

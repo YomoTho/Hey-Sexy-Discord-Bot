@@ -399,6 +399,19 @@ class Owner_Commands(Bot_Commands):
                 else:
                     await ctx.send("'%s' not found." % name)
 
+
+        @config.command()
+        async def roles(ctx: commands.Context, name:str, value:Union[discord.Role, int]):
+            with Data.RW('ids.json') as config:
+                if isinstance(value, discord.Role):
+                    value = value.id
+
+                if name in config['roles']:
+                    config['roles'][name] = value
+                    await self.command_success(ctx.message)
+                else:
+                    await ctx.send("'%s' not found." % name)
+
     """
     Commands functions:
     """
@@ -862,12 +875,32 @@ class Fun_Commands(Bot_Commands):
         @self.command(aliases=['pp'])
         async def ppsize(ctx: commands.Context, member:discord.Member=None):
             member = member or ctx.author
+            member_roles = [role.id for role in member.roles]
 
-            m = {'mm': 1, 'cm': 2, 'nm': 0, 'm':3, 'km':5}
+            embed = discord.Embed(colour=Color.purple())
+            embed.set_author(name=member, icon_url=member.avatar_url)
+            
+            if client.female_role_id in member_roles: # Checks if that member has a female role
+                pp = "**Females don't have PP!**"
+            elif client.male_role_id in member_roles or client.transgender_role_id in member_roles: # checks if that member has male or transgender role
+                try:
+                    member_iq = Data.read('iq_scores.json')[str(member.id)]
+                except KeyError as e:
+                    member_iq = random.randint(0, 10)
 
-            # TODO: make pp size command
+                pp_size = int(member_iq / (10 if member_iq > 50 else 1.5))
+
+                pp = ('8%sD' % ('=' * pp_size)) if pp_size != 0 else None
+
+                embed.title = "PP size:"
+                embed.set_footer(text="%icm" % pp_size)
+            else:
+                pp = "**I don't know what gender you are.**"
+
+            embed.description = pp
 
             await ctx.send(embed=embed)
+
 
     """
     Command functions
@@ -878,7 +911,6 @@ class Fun_Commands(Bot_Commands):
         ttt_running = self.client.ttt_running
         if len(ttt_running) > 0:
             try:
-                print(ttt_running)
                 for ttt_game in ttt_running:
                     if payload.emoji.name in ttt_game.reactions:
                         if payload.message_id == ttt_game.game_msg.id:
@@ -1079,15 +1111,16 @@ class Nc_Commands(Bot_Commands):
 
         @self.command()
         async def iqlist(ctx):
-            iqscores = Data.read('iq_scores.json')
+            with Data.RW('iq_scores.json') as iqscores:
+                iqscores_copy = iqscores.copy()
 
-            users = []
-            
-            for user_id in iqscores:
-                try:
-                    users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
-                except AttributeError:
-                    users.append(str(client.get_user(int(user_id))))
+                users = []
+
+                for user_id in iqscores_copy:
+                    try:
+                        users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
+                    except AttributeError:
+                        del iqscores[user_id]
 
             embed = discord.Embed(
                 title='%s members IQ:' % ctx.guild,

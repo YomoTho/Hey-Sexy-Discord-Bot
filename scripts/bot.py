@@ -338,6 +338,13 @@ class Bot(commands.Bot, CBF):
         self.admin_room_channel = None
         self.bot_lab_channel = None
 
+        with Data.R('ids.json') as roles_id:
+            roles_id = roles_id['roles']
+
+            self.female_role_id = roles_id['female_role']
+            self.male_role_id = roles_id['male_role']
+            self.transgender_role_id = roles_id['transgender_role']
+
 
     @staticmethod
     async def get_prefix(message=None):
