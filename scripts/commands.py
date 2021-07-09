@@ -368,6 +368,7 @@ class Owner_Commands(Bot_Commands):
 
 
         @config.command()
+        @commands.is_owner()
         async def print(ctx: commands.Context, what:str):
             with Data.R('ids.json') as config:
                 if what in config:
@@ -378,6 +379,7 @@ class Owner_Commands(Bot_Commands):
 
         
         @config.command()
+        @commands.is_owner()
         async def channels(ctx: commands.Context, name:str, value: Union[discord.TextChannel, int]):
             with Data.RW('ids.json') as config:
                 if name in config['channels']:
@@ -391,6 +393,7 @@ class Owner_Commands(Bot_Commands):
 
 
         @config.command()
+        @commands.is_owner()
         async def msgs(ctx: commands.Context, name:str, value: int):
             with Data.RW('ids.json') as config:
                 if name in config['msgs']:
@@ -401,6 +404,7 @@ class Owner_Commands(Bot_Commands):
 
 
         @config.command()
+        @commands.is_owner()
         async def roles(ctx: commands.Context, name:str, value:Union[discord.Role, int]):
             with Data.RW('ids.json') as config:
                 if isinstance(value, discord.Role):
