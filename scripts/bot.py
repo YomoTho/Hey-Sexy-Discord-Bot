@@ -380,7 +380,10 @@ class Bot(commands.Bot, CBF):
         self.audit_log_channel = self.server.get_channel(cname='al')
         self.load_channels()
         
-        self.buy_role_msg = await self.shop_channel.fetch_message(self.buy_role_msg)
+        try:
+            self.buy_role_msg = await self.shop_channel.fetch_message(self.buy_role_msg)
+        except Exception as e:
+            print(e)
 
         if not self.args == ():
             try:

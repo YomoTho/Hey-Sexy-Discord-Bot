@@ -367,9 +367,9 @@ class Owner_Commands(Bot_Commands):
                 return
 
 
-        @config.command()
+        @config.command(name='print')
         @commands.is_owner()
-        async def print(ctx: commands.Context, what:str):
+        async def _print(ctx: commands.Context, what:str):
             with Data.R('ids.json') as config:
                 if what in config:
                     await ctx.send('```%s```' % '\n'.join(['%s = %s' % (name, value) for name, value in config[what].items()]))
@@ -447,6 +447,30 @@ class Owner_Commands(Bot_Commands):
             await client.buy_role_msg.edit(content=buy_role_msg)
 
             await self.command_success(ctx.message)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def todo(ctx: commands.Context, *, TODO:str=None):
+            if TODO is None:
+                with open('todo.txt') as f:
+                    todos = f.readlines()
+
+                if len(todos) == 0:
+                    return await ctx.reply("File empty.")                 
+
+                await ctx.reply(''.join(todos))
+            else:
+                with open('todo.txt') as f:
+                    todos = f.readlines()
+
+                todos.append(TODO)
+
+                with open('todo.txt', 'w') as f:
+                    for todo in todos:
+                        f.write("%s\n" % todo)
+
+                await self.command_success(ctx.message)
 
 
     """
