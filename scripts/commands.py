@@ -1,3 +1,4 @@
+from logging import fatal
 import discord
 import os
 import random
@@ -473,6 +474,19 @@ class Owner_Commands(Bot_Commands):
                 await self.command_success(ctx.message)
 
 
+        @self.command()
+        @commands.is_owner()
+        async def iqtest(ctx: commands.Context, member: discord.Member=None):
+            member = member or ctx.author
+
+            iq = self.client.get_iq(member, see_only=False)
+
+            embed = discord.Embed(description='IQ: **%i**' % iq, colour=Color.blue())
+            embed.set_author(name=member, icon_url=member.avatar_url)
+
+            await ctx.send(embed=embed)
+
+
     """
     Commands functions:
     """
@@ -891,8 +905,8 @@ class Fun_Commands(Bot_Commands):
                             break
 
 
-        @self.command(help="IQ test", aliases=['iq'])
-        async def iqtest(ctx, member:discord.Member=None):
+        @self.command(help="IQ")
+        async def iq(ctx, member:discord.Member=None):
             member = member or ctx.author
             
             iq = self.client.get_iq(member, see_only=True)
