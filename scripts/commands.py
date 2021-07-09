@@ -4,16 +4,16 @@ import random
 import asyncio
 import inspect
 from discord import Color
-from discord import colour
-from discord import player
 from discord.ext import commands
 from games import TicTacToe
 from datetime import datetime
 from typing import Union
 try:
     from scripts.data import Data, MyChannel, Reference
+    from scripts.leveling_system import Leveling_System
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
     from data import Data, MyChannel, Reference
+    from leveling_system import Leveling_System
 
 
 
@@ -411,6 +411,39 @@ class Owner_Commands(Bot_Commands):
                     await self.command_success(ctx.message)
                 else:
                     await ctx.send("'%s' not found." % name)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def remove_exp(ctx: commands.Context, member: discord.Member, exp:int):
+            member_level = await Leveling_System.remove_exp(client, member, exp)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def add_exp(ctx: commands.Context, member: discord.Member, exp:int):
+            member_level = await Leveling_System.add_exp(client, member, exp)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def add_role(ctx: commands.Context, role: discord.Role, price:int, *, description:str):
+            with Data.RW('shop.json') as shop:
+                shop[str(role.id)] = {}
+                shop[str(role.id)]['price'] = price
+                shop[str(role.id)]['description'] = description
+
+                buy_role_msg = []
+
+                for name, value in shop.items():
+                    buy_role_msg.append(f"<@&{name}> - {value['description']}\nPrice: $**{value['price']}**\nTo buy this role: `{client.prefix}buy role {name}`")
+
+            buy_role_msg = '\n\n'.join(buy_role_msg)
+
+            await client.buy_role_msg.edit(content=buy_role_msg)
+
+            await self.command_success(ctx.message)
+
 
     """
     Commands functions:
@@ -1239,6 +1272,56 @@ class Nc_Commands(Bot_Commands):
 
                 with open(source_file, 'w') as f:
                     f.write('')
+
+
+        @client.group()
+        async def buy(ctx: commands.Context):
+            if ctx.channel.id == client.shop_channel.id:
+                if ctx.subcommand_passed is None:
+                    return await ctx.reply("What you gonna buy??")
+            else:
+                return await ctx.reply("You can only buy in %s" % client.shop_channel.mention)
+
+
+        @buy.command()
+        async def role(ctx: commands.Context, role: discord.Role):
+            if ctx.channel.id == client.shop_channel.id:
+                member = ctx.author
+
+                if role in member.roles:
+                    return await ctx.reply("You already have that role. lol")
+
+                roles_to_buy = Data.read('shop.json')
+
+                if str(role.id) in roles_to_buy:
+                    try:
+                        level = Leveling_System(str(member.id), 0) 
+                        before_money = level.money
+                        level.buy(roles_to_buy[str(role.id)]['price'])
+                        after_money = level.money
+                    except Exception as e:
+                        return await ctx.reply(e)
+                    else:
+                        await member.add_roles(role)
+
+                        await ctx.reply("You had $**%i**, now: $**%i**" % (before_money, after_money))
+
+                        await self.command_success(ctx.message)
+                else:
+                    await ctx.send("Can't buy this role.")
+            else:
+                return await ctx.reply("You can only buy in %s" % client.shop_channel.mention)
+
+
+        @self.command()
+        async def rank(ctx: commands.Context, member: discord.Member=None):
+            member = member or ctx.author
+
+            member_levels = Leveling_System(str(member.id), 0)
+            
+            await ctx.send(embed=member_levels.rank_msg(member))
+
+            return 'not_exp'
 
     """
     Commands functions:

@@ -11,8 +11,11 @@ from dotenv import load_dotenv
 from datetime import datetime
 try:
     from scripts.data import Data, MyChannel, Server, TimeStats
+    from scripts.leveling_system import Leveling_System
 except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto complete
     from data import Data, MyChannel, Server, TimeStats
+    from leveling_system import Leveling_System
+
 
 
 
@@ -290,8 +293,16 @@ class CBF:
         return self.get_channel(self.channels('bot_lab_channel'))
 
 
+    def get_shop_channel(self):
+        return self.get_channel(self.channels('shop_channel'))
+
+
     def get_rules_msg(self):
         return self.get_msgs('rules_msg')
+
+
+    def get_role_buy_msg(self):
+        return self.get_msgs('role_buy_msg')
 
 
     async def commet_lines(self, message_content):
@@ -320,6 +331,7 @@ class Bot(commands.Bot, CBF):
             self.reactions_command_remove = {int(message_id): self.on_role_react_remove for message_id in reactions_data}
 
         self.rules_msg = self.get_rules_msg()
+        self.buy_role_msg = self.get_role_buy_msg()
         if not self.rules_msg is None:
             self.reactions_command[self.rules_msg] = self.on_rules_react
 
@@ -337,6 +349,7 @@ class Bot(commands.Bot, CBF):
         self.mod_room_channel = None
         self.admin_room_channel = None
         self.bot_lab_channel = None
+        self.shop_channel = None
 
         with Data.R('ids.json') as roles_id:
             roles_id = roles_id['roles']
@@ -366,6 +379,8 @@ class Bot(commands.Bot, CBF):
         self.server = Server(self)        
         self.audit_log_channel = self.server.get_channel(cname='al')
         self.load_channels()
+        
+        self.buy_role_msg = await self.shop_channel.fetch_message(self.buy_role_msg)
 
         if not self.args == ():
             try:
@@ -396,10 +411,17 @@ class Bot(commands.Bot, CBF):
         self.mod_room_channel = self.get_mod_room_channel()
         self.admin_room_channel = self.get_admin_room_channel()
         self.bot_lab_channel = self.get_bot_lab_channel()
+        self.shop_channel = self.get_shop_channel()
 
 
     # event
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
+        if message.channel == self.shop_channel:
+            if not message.content.startswith('- '):
+                await message.delete(delay=20)
+        
+        asyncio.create_task(Leveling_System.from_message(self, message)) # Adding exp to message's author
+        
         if message.author.bot: return
 
         if isinstance(message.channel, discord.DMChannel):
@@ -415,6 +437,7 @@ class Bot(commands.Bot, CBF):
                 message.content = ' '.join(_content)
 
             await self.process_commands(message)
+
 
 
     # event
@@ -485,6 +508,8 @@ class Bot(commands.Bot, CBF):
         channel = MyChannel(self.server.get_channel(cname='wj'))
         await channel.send(member.mention, embed=embed)
 
+        Leveling_System(str(member.id), 0) # Adding the new member to levels.json
+
 
     # event
     async def on_member_remove(self, member):
@@ -498,7 +523,10 @@ class Bot(commands.Bot, CBF):
         embed = discord.Embed(description=f'**{member.mention}** left **{self.server.name}**.', colour=discord.Color.from_rgb(255, 0, 0))
         embed.set_author(name=member, icon_url=member.avatar_url)
         
-        await MyChannel(self.server.get_channel(cname='ntl')).send(embed=embed)
+        asyncio.create_task(MyChannel(self.server.get_channel(cname='ntl')).send(embed=embed))
+
+        member_levels = Leveling_System(str(member.id), 0)
+        member_levels.remove_member() # Removing the member from levels.json
 
 
     # event
@@ -564,7 +592,7 @@ class Bot(commands.Bot, CBF):
         embed.add_field(name="Before:", value=await self.commet_lines(before.content), inline=False)
         embed.add_field(name="After:", value=await self.commet_lines(after.content), inline=False)
 
-        await channel.send(embed=embed)
+        asyncio.create_task(channel.send(embed=embed))
 
 
     # event
