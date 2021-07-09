@@ -335,8 +335,88 @@
         "member_leaves": 5
     },
     "2021-06-23": {
-        "total_messages": 28,
+        "total_messages": 151,
+        "member_joins": 2,
+        "member_leaves": 1
+    },
+    "2021-06-24": {
+        "total_messages": 232,
+        "member_joins": 8,
+        "member_leaves": 7
+    },
+    "2021-06-25": {
+        "total_messages": 137,
+        "member_joins": 3,
+        "member_leaves": 3
+    },
+    "2021-06-26": {
+        "total_messages": 654,
+        "member_joins": 3,
+        "member_leaves": 3
+    },
+    "2021-06-27": {
+        "total_messages": 202,
+        "member_joins": 5,
+        "member_leaves": 4
+    },
+    "2021-06-28": {
+        "total_messages": 101,
+        "member_joins": 2,
+        "member_leaves": 1
+    },
+    "2021-06-29": {
+        "total_messages": 371,
+        "member_joins": 3,
+        "member_leaves": 3
+    },
+    "2021-06-30": {
+        "total_messages": 299,
+        "member_joins": 8,
+        "member_leaves": 8
+    },
+    "2021-07-01": {
+        "total_messages": 57,
         "member_joins": 1,
         "member_leaves": 1
+    },
+    "2021-07-02": {
+        "total_messages": 424,
+        "member_joins": 5,
+        "member_leaves": 4
+    },
+    "2021-07-03": {
+        "total_messages": 160,
+        "member_joins": 7,
+        "member_leaves": 4
+    },
+    "2021-07-04": {
+        "total_messages": 32,
+        "member_joins": 7,
+        "member_leaves": 6
+    },
+    "2021-07-05": {
+        "total_messages": 35,
+        "member_joins": 3,
+        "member_leaves": 0
+    },
+    "2021-07-06": {
+        "total_messages": 13,
+        "member_joins": 4,
+        "member_leaves": 4
+    },
+    "2021-07-07": {
+        "total_messages": 344,
+        "member_joins": 6,
+        "member_leaves": 1
+    },
+    "2021-07-08": {
+        "total_messages": 326,
+        "member_joins": 10,
+        "member_leaves": 7
+    },
+    "2021-07-09": {
+        "total_messages": 61,
+        "member_joins": 3,
+        "member_leaves": 2
     }
 }

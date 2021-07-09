@@ -6,6 +6,9 @@
         "<class 'discord.ext.commands.errors.CommandNotFound'>",
         "<class 'discord.ext.commands.errors.NotOwner'>",
         "<class 'discord.ext.commands.errors.BadArgument'>",
-        "<class 'discord.ext.commands.errors.CheckFailure'>"
+        "<class 'discord.ext.commands.errors.CheckFailure'>",
+        "<class 'discord.ext.commands.errors.MemberNotFound'>",
+        "<class 'discord.ext.commands.errors.ChannelNotFound'>",
+        "<class 'discord.ext.commands.errors.MissingPermissions'>"
     ]
 }
