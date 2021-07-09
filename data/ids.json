@@ -1,0 +1,28 @@
+{
+    "msgs": {
+        "rules_msg": 823307869746495568,
+        "role_buy_msg": 862822496436879400
+    },
+    "channels": {
+        "system_messages_channel": 818503710602428430,
+        "audit_log_channel": 838035243222564925,
+        "bot_raised_error_channel": 854883960881283103,
+        "server_announcement_channel": 818560379117895740,
+        "server_stats_channel": 818563784103690271,
+        "level_ups_channel": 818559741437542410,
+        "questions_channel": 851428100893048842,
+        "member_leave_channel": 818563821425524776,
+        "roles_channel": 848632564640907337,
+        "rules_channel": 818560649189654589,
+        "music_commands_channel": 818574152758722641,
+        "mod_room_channel": 818570378048962596,
+        "admin_room_channel": 818570317575749652,
+        "bot_lab_channel": 818574185088548904,
+        "shop_channel": 862698139982495774
+    },
+    "roles": {
+        "female_role": 848650072898928650,
+        "male_role": 848650148167024651,
+        "transgender_role": 849016282807795732
+    }
+}
