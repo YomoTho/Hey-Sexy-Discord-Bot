@@ -40,7 +40,7 @@ class Owner_Commands(Bot_Commands):
         super().__init__(client)
 
         
-        @self.command()
+        @self.command(help='Command testing')
         @commands.is_owner()
         async def test(ctx:commands.Context):
             print(ctx.invoked_subcommand)
@@ -112,7 +112,7 @@ class Owner_Commands(Bot_Commands):
             await client._exit()
 
 
-        @self.command()
+        @self.command(help='Removes warns')
         @commands.is_owner()
         async def del_warn(ctx, id):
             warnings = Data.read('warnings.json')
@@ -163,7 +163,7 @@ class Owner_Commands(Bot_Commands):
                 await self.client.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help='Send embed msg')
         @commands.is_owner()
         async def embed(ctx, channel:discord.TextChannel, *, title_msg): # Here i test my embed messages 
             title, msg = title_msg.split('\\')
@@ -176,7 +176,7 @@ class Owner_Commands(Bot_Commands):
             )
 
 
-        @self.command()
+        @self.command(help='DM user as bot')
         @commands.is_owner()
         async def dm(ctx, argument : Union[discord.Member, discord.TextChannel, str], *, args : Union[discord.Member, str]=None):
             def to_(member:discord.Member) -> discord.Embed:
@@ -271,7 +271,7 @@ class Owner_Commands(Bot_Commands):
                     await msg.delete()
 
 
-        @self.command()
+        @self.command(help='Spam user')
         @commands.is_owner()
         async def spam(ctx, member : discord.Member, *args):
             if not member.bot:
@@ -293,7 +293,7 @@ class Owner_Commands(Bot_Commands):
                 await ctx.send("Cannot spam **%s**, because **it's a bot.**" % (member))
 
 
-        @self.command()
+        @self.command(help='New reaction roles')
         @commands.is_owner()
         async def newrr(ctx, *, args:str):
             #roles_channel = self.server_get_channel(cname='r')
@@ -320,7 +320,7 @@ class Owner_Commands(Bot_Commands):
                 await ctx.message.delete()
 
 
-        @self.command()
+        @self.command(help='List all roles | members')
         @commands.is_owner()
         async def listall(ctx, members_or_role:str):
             if members_or_role.lower() == 'roles':
@@ -333,7 +333,7 @@ class Owner_Commands(Bot_Commands):
             await ctx.send(embed=discord.Embed(title='%i total:' % len(the_list), description='\n'.join([thing.mention for thing in the_list])))
 
 
-        @self.command()
+        @self.command(help='Do not raise')
         @commands.is_owner()
         async def dnr(ctx):
             try:
@@ -361,7 +361,7 @@ class Owner_Commands(Bot_Commands):
                     await ctx.send("'%s' does not look like an type." % embed_footer)
 
 
-        @client.group()
+        @client.group(help='Edit ids.json')
         @commands.is_owner()
         async def config(ctx: commands.Context):
             if ctx.subcommand_passed is None:
@@ -418,19 +418,19 @@ class Owner_Commands(Bot_Commands):
                     await ctx.send("'%s' not found." % name)
 
 
-        @self.command()
+        @self.command(help='Remove member exp')
         @commands.is_owner()
         async def remove_exp(ctx: commands.Context, member: discord.Member, exp:int):
             member_level = await Leveling_System.remove_exp(client, member, exp)
 
 
-        @self.command()
+        @self.command(help='Add exp to member')
         @commands.is_owner()
         async def add_exp(ctx: commands.Context, member: discord.Member, exp:int):
             member_level = await Leveling_System.add_exp(client, member, exp)
 
 
-        @self.command()
+        @self.command(help='Add role to shop.json')
         @commands.is_owner()
         async def add_role(ctx: commands.Context, role: discord.Role, price:int, *, description:str):
             with Data.RW('shop.json') as shop:
@@ -450,7 +450,7 @@ class Owner_Commands(Bot_Commands):
             await self.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help='Add TODOs')
         @commands.is_owner()
         async def todo(ctx: commands.Context, *, TODO:str=None):
             if TODO is None:
@@ -474,7 +474,7 @@ class Owner_Commands(Bot_Commands):
                 await self.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help='Do IQ test')
         @commands.is_owner()
         async def iqtest(ctx: commands.Context, member: discord.Member=None):
             member = member or ctx.author
@@ -587,13 +587,13 @@ class Admin_Commands(Bot_Commands):
                 await rmsg.pin()
     
 
-        @self.command()
+        @self.command(help='Clear text channel')
         @self.is_admin()
         async def clear(ctx, amount:int=0):
             await ctx.channel.purge(limit=amount + 1)
 
 
-        @self.command()
+        @self.command(help='Kick member')
         @self.is_admin()
         async def kick(ctx, member : discord.Member, *, reason=None):
             await member.kick(reason=reason)
@@ -601,7 +601,7 @@ class Admin_Commands(Bot_Commands):
             await ctx.send(f'**{member}** kicked!')
 
 
-        @self.command()
+        @self.command(help='Ban member')
         @self.is_admin()
         async def ban(ctx, member : discord.Member, *, reason=None):
             bans_says = ['**{}** is banned from this server.', 'Yes! That poes **{}** is banned from this server!']
@@ -617,7 +617,7 @@ class Admin_Commands(Bot_Commands):
             await ctx.send(random.choice(bans_says).format(member))
 
 
-        @self.command()
+        @self.command(help='List banned members')
         @self.is_admin()
         async def bans(ctx):
             banned_users = await ctx.guild.bans()
@@ -631,7 +631,7 @@ class Admin_Commands(Bot_Commands):
                 await ctx.send("There's nobody banned in this server.")
 
 
-        @self.command()
+        @self.command(help='Unban member')
         @self.is_admin()
         async def unban(ctx, id:int):
             user = await client.fetch_user(id)
@@ -639,7 +639,7 @@ class Admin_Commands(Bot_Commands):
             await self.client.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help='Warn member')
         @self.is_admin()
         async def warn(ctx, user : discord.Member, *, reason=None):
             if user.id == ctx.guild.owner.id:
@@ -677,7 +677,7 @@ class Admin_Commands(Bot_Commands):
                 Data('warnings.json').dump(warnings)
 
 
-        @self.command(aliases=['warns', 'warns_id'])
+        @self.command(aliases=['warns', 'warns_id'], help='List members warns')
         @self.is_admin()
         async def warnings(ctx, member : discord.Member=None):
             warnings = Data.read('warnings.json')
@@ -712,7 +712,7 @@ class Admin_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help='Announce a messsage')
         @self.is_admin()
         async def announce(ctx, *, args=None):
             try:
@@ -730,7 +730,7 @@ class Admin_Commands(Bot_Commands):
                 await self.client.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help='View json')
         @self.is_admin()
         async def view_json(ctx, file_name):
             if file_name.endswith('.json'):
@@ -743,7 +743,7 @@ class Admin_Commands(Bot_Commands):
                 raise Exception("**%s does not end with '.json'**" % (file_name))
 
 
-        @self.command()
+        @self.command(help='List all json files')
         @self.is_admin()
         async def list_json(ctx):
             json_files = []
@@ -778,7 +778,7 @@ class Admin_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help='Tic-tac-toe winner says')
         @self.is_admin()
         async def ttt_winners_says(ctx: commands.Context, *, say:str=None):
             with Data.RW('server.json') as f:
@@ -905,7 +905,7 @@ class Fun_Commands(Bot_Commands):
                             break
 
 
-        @self.command(help="IQ")
+        @self.command(help="Get IQ")
         async def iq(ctx, member:discord.Member=None):
             member = member or ctx.author
             
@@ -947,7 +947,7 @@ class Fun_Commands(Bot_Commands):
                 await ctx.send("You must guess between 0-6")
 
 
-        @self.command(aliases=['pp'])
+        @self.command(aliases=['pp'], help='PP size')
         async def ppsize(ctx: commands.Context, member:discord.Member=None):
             member = member or ctx.author
             member_roles = [role.id for role in member.roles]
@@ -1066,7 +1066,7 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command(help="My latency")
+        @self.command(help="Bot's latency")
         async def ping(ctx):
             return await ctx.message.reply(
                 embed=discord.Embed(
@@ -1076,7 +1076,7 @@ class Nc_Commands(Bot_Commands):
             )
 
 
-        @self.command()
+        @self.command(help='Member info')
         async def mi(ctx, member : discord.Member=None):
             member = member or ctx.author
 
@@ -1098,13 +1098,13 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help='Profile pic')
         async def pfp(ctx, member : discord.Member=None):
             member = member or ctx.author
             await ctx.send(member.avatar_url)
 
 
-        @self.command()
+        @self.command(help='Total lines of code')
         async def lines(ctx):
             lines = 0
 
@@ -1121,19 +1121,19 @@ class Nc_Commands(Bot_Commands):
             )
 
 
-        @self.command()
+        @self.command(help='Get member ID')
         async def id(ctx, member : discord.Member=None):
             member = member or ctx.author
 
             await ctx.message.reply('**%i**' % (member.id))
 
 
-        @self.command()
+        @self.command(help='Get member from ID')
         async def who(ctx, user_id : int):
             await ctx.message.reply('**%s**' % (client.get_user(user_id)))
 
 
-        @self.command()
+        @self.command(help="Member status")
         async def status(ctx: commands.Context, member: Union[discord.Member, str]=None, args=None):
             if isinstance(member, str):
                 args = member
@@ -1184,7 +1184,7 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help="List member's IQ")
         async def iqlist(ctx):
             with Data.RW('iq_scores.json') as iqscores:
                 iqscores_copy = iqscores.copy()
@@ -1204,7 +1204,7 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help="Last deleted message")
         async def snipe(ctx):
             if ctx.channel.id in self.client.last_deleted_message:
                 embed = discord.Embed(
@@ -1220,7 +1220,7 @@ class Nc_Commands(Bot_Commands):
                 await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
 
 
-        @self.command(help='List all json files')
+        @self.command(help='List tic-tac-toe games')
         async def list_ttt(ctx):
             des = str()
             for ttt in self.client.ttt_running:
