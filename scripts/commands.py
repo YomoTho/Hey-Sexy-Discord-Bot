@@ -5,6 +5,7 @@ import random
 import asyncio
 import inspect
 from discord import Color
+from discord import colour
 from discord.ext import commands
 from games import TicTacToe
 from datetime import datetime
@@ -934,7 +935,7 @@ class Fun_Commands(Bot_Commands):
             if user_guess >= 0 and user_guess <= 6:
                 bot_guess = random.randint(0, 6)
                 
-                embed = discord.Embed(description="I guess: **%i**\nYou guessed: **%i**"  % (bot_guess, user_guess))
+                embed = discord.Embed(description="I guess: **%i**\nYou guessed: **%i**"  % (bot_guess, user_guess), colour=Color.blue())
                 await ctx.send(embed=embed)
                 if user_guess == bot_guess:
                     exp = random.choice([600, 1000, 500, 400, 1200, 4000, 10, 1, 69, 666, 777, 999])
