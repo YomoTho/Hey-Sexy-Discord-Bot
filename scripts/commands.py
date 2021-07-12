@@ -1369,9 +1369,8 @@ class Nc_Commands(Bot_Commands):
 
         @self.command(help='Do math')
         async def math(ctx:commands.Context, num1:Union[float, int], op:str, num2:Union[float, int]):
-            print(num1)
             try:
-                math_op = {'+': num1 + num2, '-': num1 - num2, '*': num1 * num2, '/': num1 / num2}
+                math_op = {'+': num1 + num2, '-': num1 - num2, '*': num1 * num2, '/': num1 / num2, '<<': int(num1) << int(num2), '>>': int(num1) >> int(num2), '^': num1**num2, '%': num1 % num2}
 
                 result = math_op[op]
             except ZeroDivisionError as e:
