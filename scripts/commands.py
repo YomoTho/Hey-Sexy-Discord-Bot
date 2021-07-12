@@ -576,7 +576,7 @@ class Admin_Commands(Bot_Commands):
         super().__init__(client)
 
 
-        @self.command()
+        @self.command(help="Pin message")
         @self.is_admin()
         async def pin(ctx):
             try:
@@ -759,7 +759,7 @@ class Admin_Commands(Bot_Commands):
                 )
 
 
-        @self.command()
+        @self.command(help='List all python files')
         @self.is_admin()
         async def list_scripts(ctx):
             py_files = [py_file.name for py_file in os.scandir('scripts/') if py_file.name.endswith('.py')]
@@ -1220,7 +1220,7 @@ class Nc_Commands(Bot_Commands):
                 await ctx.send("There's no recently deleted message in %s" % (ctx.channel.mention))
 
 
-        @self.command()
+        @self.command(help='List all json files')
         async def list_ttt(ctx):
             des = str()
             for ttt in self.client.ttt_running:
@@ -1232,7 +1232,7 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help="Bot's uptime")
         async def uptime(ctx): #TODO: cleanup code
             current_time = datetime.now()
             cal_uptime = current_time - self.client.on_ready_time
@@ -1273,7 +1273,7 @@ class Nc_Commands(Bot_Commands):
                 await ctx.send(embed=embed)
 
 
-        @self.command()
+        @self.command(help='Forward message to someone')
         async def forward(ctx, *members):
             if members == ():
                 members = [str(ctx.author.id)]
@@ -1295,7 +1295,7 @@ class Nc_Commands(Bot_Commands):
                     await self.command_success(ctx.message)
 
 
-        @self.command()
+        @self.command(help="View command source code")
         async def code(ctx, command_name:str):
             try:
                 command = client.all_commands[command_name]._callback
@@ -1316,7 +1316,7 @@ class Nc_Commands(Bot_Commands):
                     f.write('')
 
 
-        @client.group()
+        @client.group(help='Buy stuff')
         async def buy(ctx: commands.Context):
             if ctx.channel.id == client.shop_channel.id:
                 if ctx.subcommand_passed is None:
@@ -1325,7 +1325,7 @@ class Nc_Commands(Bot_Commands):
                 return await ctx.reply("You can only buy in %s" % client.shop_channel.mention)
 
 
-        @buy.command()
+        @buy.command(help='Buy roles')
         async def role(ctx: commands.Context, role: discord.Role):
             if ctx.channel.id == client.shop_channel.id:
                 member = ctx.author
@@ -1355,7 +1355,7 @@ class Nc_Commands(Bot_Commands):
                 return await ctx.reply("You can only buy in %s" % client.shop_channel.mention)
 
 
-        @self.command()
+        @self.command(help='Show rank')
         async def rank(ctx: commands.Context, member: discord.Member=None):
             member = member or ctx.author
 
@@ -1366,7 +1366,7 @@ class Nc_Commands(Bot_Commands):
             return 'not_exp'
 
 
-        @self.command()
+        @self.command(help='Do math')
         async def math(ctx:commands.Context, num1:Union[float, int], op:str, num2:Union[float, int]):
             print(num1)
             try:
@@ -1438,12 +1438,23 @@ class Nc_Commands(Bot_Commands):
 
     # help command
     def left_right(self, left_text:str, right_text:str, space:int=10) -> str:
-        return "%s%s%s" % (left_text, ' ' * (space - len(left_text)), right_text)
+        return "• %s%s%s" % (left_text, ' ' * (space - len(left_text)), right_text)
 
     
+    def get_biggest_num(self, numbers:list) -> int:
+        biggest_num = numbers[0]
+
+        for num in numbers:
+            if num > biggest_num:
+                biggest_num = num
+        
+        return biggest_num + 5
+
     #help command
     def list_commands(self, commands) -> str:
-        return '\n'.join([self.left_right(str(cmd), commands[cmd]['help']) for cmd in commands])
+        space = self.get_biggest_num([len(str(cmd)) for cmd in commands])
+
+        return '\n'.join([self.left_right(str(cmd), commands[cmd]['help'], space) for cmd in commands])
 
 
     def get_member(self, member:str) -> discord.Member:
