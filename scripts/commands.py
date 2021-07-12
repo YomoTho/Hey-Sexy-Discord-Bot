@@ -1365,6 +1365,21 @@ class Nc_Commands(Bot_Commands):
 
             return 'not_exp'
 
+
+        @self.command()
+        async def math(ctx:commands.Context, num1:Union[float, int], op:str, num2:Union[float, int]):
+            print(num1)
+            try:
+                math_op = {'+': num1 + num2, '-': num1 - num2, '*': num1 * num2, '/': num1 / num2}
+
+                result = math_op[op]
+            except ZeroDivisionError as e:
+                return await ctx.send("Error!\n**Can't %s.**" % e)
+            except KeyError as e:
+                return await ctx.send("""Invaild operator: **%s**\nThere's currently only %i operations.""" % (e, len(math_op)))
+            else:
+                return await ctx.send("%s %s %s = **%i**" % (num1, op, num2, result))
+
     """
     Commands functions:
     """
