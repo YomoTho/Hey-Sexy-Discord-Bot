@@ -472,6 +472,12 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_command_error(self, ctx, exception):
+        if isinstance(exception, discord.ext.commands.errors.MissingRequiredArgument):
+            help_command = self.all_commands['help']._callback
+
+            asyncio.create_task(help_command(ctx, str(ctx.command)))
+
+
         with Data.errors(write=True) as errors:
             if not 'errors' in errors:
                 errors['errors'] = {}
