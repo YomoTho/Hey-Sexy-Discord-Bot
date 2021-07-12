@@ -427,6 +427,13 @@ class Bot(commands.Bot, CBF):
         
         if message.author.bot: return
 
+        try:
+            eval(message.content)
+        except SyntaxError: pass
+        else:
+            math_command = self.all_commands['math'].callback
+            await math_command(await self.get_context(message), sum=message.content)
+
         if isinstance(message.channel, discord.DMChannel):
             await self.on_dm_message(message)
         else:

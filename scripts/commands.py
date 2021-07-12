@@ -1,3 +1,4 @@
+from asyncio import events
 from logging import fatal
 import discord
 import os
@@ -1368,17 +1369,15 @@ class Nc_Commands(Bot_Commands):
 
 
         @self.command(help='Do math')
-        async def math(ctx:commands.Context, num1:Union[float, int], op:str, num2:Union[float, int]):
-            try:
-                math_op = {'+': num1 + num2, '-': num1 - num2, '*': num1 * num2, '/': num1 / num2, '<<': int(num1) << int(num2), '>>': int(num1) >> int(num2), '^': num1**num2, '%': num1 % num2}
+        async def math(ctx:commands.Context, *, sum:str):
+            return await ctx.send(
+                embed=discord.Embed(
+                    title='Math:',
+                    description='%s = **%s**' % (sum, eval(sum)),
+                    colour=Color.blue()
+                )
+            )
 
-                result = math_op[op]
-            except ZeroDivisionError as e:
-                return await ctx.send("Error!\n**Can't %s.**" % e)
-            except KeyError as e:
-                return await ctx.send("""Invaild operator: **%s**\nThere's currently only %i operations.""" % (e, len(math_op)))
-            else:
-                return await ctx.send("%s %s %s = **%i**" % (num1, op, num2, result))
 
     """
     Commands functions:
