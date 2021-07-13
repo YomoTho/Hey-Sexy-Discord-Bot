@@ -455,25 +455,31 @@ class Owner_Commands(Bot_Commands):
         @self.command(help='Add TODOs')
         @commands.is_owner()
         async def todo(ctx: commands.Context, *, TODO:str=None):
-            if TODO is None:
-                with open('todo.txt') as f:
-                    todos = f.readlines()
+            with Data.RW('todo.json') as todos:
+                todos_list = todos['todos']
 
-                if len(todos) == 0:
-                    return await ctx.reply("File empty.")                 
+                if TODO is None:
+                    todos_show = []
 
-                await ctx.reply(''.join(todos))
-            else:
-                with open('todo.txt') as f:
-                    todos = f.readlines()
+                    for idx, todo in enumerate(todos_list):
+                        todos_show.append('%i: %s' % (idx, todo))
 
-                todos.append(TODO)
+                    return await ctx.send('\n'.join(todos_show) if len(todos_show) != 0 else "Nothing.")
+                elif TODO.split(' ')[0] in ['del', 'delete']:
+                    try:
+                        idx = int(TODO.split(' ')[1])
 
-                with open('todo.txt', 'w') as f:
-                    for todo in todos:
-                        f.write("%s\n" % todo)
+                        todos['todos'].pop(idx)
+                    except IndexError as e:
+                        return await ctx.send(e)
+                    except ValueError as e:
+                        return await ctx.send(e)
+                    else:
+                        return await self.command_success(ctx.message)
+                else:
+                    todos['todos'].append(TODO)
 
-                await self.command_success(ctx.message)
+                    await self.command_success(ctx.message)
 
 
         @self.command(help='Do IQ test')
