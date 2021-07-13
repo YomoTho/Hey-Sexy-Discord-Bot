@@ -45,7 +45,7 @@ class Owner_Commands(Bot_Commands):
         @self.command(help='Command testing')
         @commands.is_owner()
         async def test(ctx:commands.Context, member:discord.Member=None):
-            pass
+            embed = discord.Embed.from_dict()
 
 
         @self.command(help='Server add text channel')
@@ -176,6 +176,20 @@ class Owner_Commands(Bot_Commands):
                     colour=discord.Color.blue()
                 )
             )
+
+
+        @self.command()
+        @commands.is_owner()
+        async def embed_edit(ctx: commands.Context, channel:discord.TextChannel, id:int, *, content:str):
+            msg = await channel.fetch_message(id)
+
+            msg_embed = msg.embeds[0]
+
+            embed = discord.Embed(title=msg_embed.title, description=content, colour=msg_embed.colour)
+
+            await msg.edit(embed=embed)
+
+            await self.command_success(ctx.message)
 
 
         @self.command(help='DM user as bot')
