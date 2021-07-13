@@ -2,6 +2,7 @@ import discord
 import asyncpraw
 import os
 import random
+from discord.errors import PrivilegedIntentsRequired
 import pytz
 import asyncio
 import inspect
@@ -357,6 +358,10 @@ class Bot(commands.Bot, CBF):
             self.female_role_id = roles_id['female_role']
             self.male_role_id = roles_id['male_role']
             self.transgender_role_id = roles_id['transgender_role']
+            self.reddit_role_id = roles_id['reddit_role']
+            self.nsfw_pp_role_id = roles_id['nsfw++_role']
+            self.anime_role_id = roles_id['anime_role']
+            self.staff_role_id = roles_id['staff_role']
 
 
     @staticmethod
@@ -483,6 +488,15 @@ class Bot(commands.Bot, CBF):
             help_command = self.all_commands['help']._callback
 
             asyncio.create_task(help_command(ctx, str(ctx.command)))
+        elif isinstance(exception, discord.ext.commands.errors.MissingRole):
+            role = discord.utils.get(ctx.guild.roles, id=int(str(exception).split(' ')[1]))
+
+            return await ctx.reply(embed=discord.Embed(
+                description=str(exception).replace(str(role.id), role.mention),
+                colour=colour.Color.from_rgb(255, 0, 0)
+            ).set_footer(
+                text="Look in %s, maybe you can buy it there." % self.shop_channel
+            ))
 
 
         with Data.errors(write=True) as errors:

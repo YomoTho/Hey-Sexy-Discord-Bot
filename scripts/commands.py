@@ -626,7 +626,7 @@ class Admin_Commands(Bot_Commands):
 
 
         @self.command(help='List banned members')
-        @self.is_admin()
+        @commands.has_role(client.staff_role_id)
         async def bans(ctx):
             banned_users = await ctx.guild.bans()
             if len(banned_users) > 0:
@@ -648,7 +648,7 @@ class Admin_Commands(Bot_Commands):
 
 
         @self.command(help='Warn member')
-        @self.is_admin()
+        @commands.has_role(client.staff_role_id)
         async def warn(ctx, user : discord.Member, *, reason=None):
             if user.id == ctx.guild.owner.id:
                 await ctx.send("Fuck you! %s" % ctx.author.mention)
@@ -686,7 +686,7 @@ class Admin_Commands(Bot_Commands):
 
 
         @self.command(aliases=['warns', 'warns_id'], help='List members warns')
-        @self.is_admin()
+        @commands.has_role(client.staff_role_id)
         async def warnings(ctx, member : discord.Member=None):
             warnings = Data.read('warnings.json')
             
@@ -787,7 +787,7 @@ class Admin_Commands(Bot_Commands):
 
 
         @self.command(help='Tic-tac-toe winner says')
-        @self.is_admin()
+        @commands.has_role(client.staff_role_id)
         async def ttt_winners_says(ctx: commands.Context, *, say:str=None):
             with Data.RW('server.json') as f:
                 if say is None:
@@ -822,36 +822,42 @@ class Nsfw_Commands(Bot_Commands):
 
         @self.command(help='r/boobs')
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def boobs(ctx, limit:int=1):
             await self.client.reddit(ctx, 'boobs', limit)
 
 
         @self.command(help='r/ass')
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def ass(ctx, limit:int=1):
             await self.client.reddit(ctx, 'ass', limit)
 
 
         @self.command(help='r/hentai')
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def hentai(ctx: commands.Context, limit:int=1):
             await self.client.reddit(ctx, 'hentai', limit)
 
 
         @self.command(help='r/porn')
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def porn(ctx: commands.Context, limit:int=1):
             await self.client.reddit(ctx, 'porn', limit)
 
 
         @self.command(help='r/rule34')
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def rule34(ctx: commands.Context, limit:int=1):
             await self.client.reddit(ctx, 'rule34', limit)
 
 
         @self.command(help="THE BEST ;)")
         @commands.is_nsfw()
+        @commands.has_role(self.client.nsfw_pp_role_id)
         async def traps(ctx: commands.Context, limit:int=1):
             await self.client.reddit(ctx, 'traps', limit)
 
@@ -865,31 +871,37 @@ class Reddit_Commands(Bot_Commands):
 
 
         @self.command(name='r/', help='Get post from reddit.')
+        @commands.has_role(client.reddit_role_id)
         async def r(ctx, subreddit:str, limit:int=1):
             await self.client.reddit(ctx, subreddit, limit)
 
 
         @self.command(help='Awww so cute!')
+        @commands.has_role(client.reddit_role_id)
         async def awww(ctx, limit:int=1):
             await self.client.reddit(ctx, 'awww', limit)
 
 
         @self.command(help='Yummy!')
+        @commands.has_role(client.reddit_role_id)
         async def food(ctx, limit:int=1):
             await self.client.reddit(ctx, 'foodporn', limit)
 
 
         @self.command(help='r/memes')
+        @commands.has_role(client.reddit_role_id)
         async def memes(ctx, limit:int=1):
             await self.client.reddit(ctx, 'memes', limit)
 
 
         @self.command(help='r/dankmemes')
+        @commands.has_role(client.reddit_role_id)
         async def dankmemes(ctx, limit:int=1):
             await self.client.reddit(ctx, 'dankmemes', limit)
 
 
         @self.command(help='Anime grill')
+        @commands.has_role(client.anime_role_id)
         async def animegirl(ctx, limit:int=1):
             await self.client.reddit(ctx, 'cuteanimegirls', limit)
 
