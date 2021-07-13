@@ -869,6 +869,31 @@ class Reddit_Commands(Bot_Commands):
             await self.client.reddit(ctx, subreddit, limit)
 
 
+        @self.command(help='Awww so cute!')
+        async def awww(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'awww', limit)
+
+
+        @self.command(help='Yummy!')
+        async def food(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'foodporn', limit)
+
+
+        @self.command(help='r/memes')
+        async def memes(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'memes', limit)
+
+
+        @self.command(help='r/dankmemes')
+        async def dankmemes(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'dankmemes', limit)
+
+
+        @self.command(help='Anime grill')
+        async def animegirl(ctx, limit:int=1):
+            await self.client.reddit(ctx, 'cuteanimegirls', limit)
+
+
 
 class Fun_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
