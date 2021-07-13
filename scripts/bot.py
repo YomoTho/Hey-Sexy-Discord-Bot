@@ -426,7 +426,7 @@ class Bot(commands.Bot, CBF):
     async def on_message(self, message: discord.Message):
         if message.channel == self.shop_channel:
             if not message.content.startswith('- '):
-                await message.delete(delay=20)
+                await message.delete(delay=60)
         
         asyncio.create_task(Leveling_System.from_message(self, message)) # Adding exp to message's author
         
