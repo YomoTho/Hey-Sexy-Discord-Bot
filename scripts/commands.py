@@ -44,8 +44,8 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx:commands.Context):
-            print(ctx.invoked_subcommand)
+        async def test(ctx:commands.Context, member:discord.Member=None):
+            pass
 
 
         @self.command(help='Server add text channel')
@@ -1142,9 +1142,7 @@ class Nc_Commands(Bot_Commands):
                 member = ctx.author
             
             def get_nice_type(_type):
-                _type = str(_type).split('.')[1]
-                _type = str(_type[0].upper() + _type[1:])
-                return _type
+                return str(_type[0][0].upper() + _type[0][1:])
 
 
             status_icon = {
@@ -1167,7 +1165,23 @@ class Nc_Commands(Bot_Commands):
             embed.set_footer(text=_status, icon_url=status_icon[str(member.status)])
 
             if args == 'more':
-                status = '\n'.join(['%s **%s**' % (get_nice_type(act.type), act) for act in activities])
+                status = []
+
+                for act in activities:
+                    # TODO: Clean up code
+
+                    if str(type(act)) == "<class 'discord.activity.Activity'>":
+                        details = ''
+                        if act.details is not None:
+                            details = '\n> %s\n> %s\n%s' % (act.details, act.state, act.url or '')
+
+                        status.append("%s **%s**%s" % (get_nice_type(act.type), act.name, details))
+                    elif str(type(act)) == "<class 'discord.activity.Spotify'>": # The user is playing spotify
+                        status.append("%s\n**%s**\n%s" % ('%s To %s' % (get_nice_type(act.type), act), act.title, act.artists))
+                    else:
+                        status.append('%s **%s**' % (get_nice_type(act.type), act))
+
+                status = '\n'.join(status)
 
                 embed.description = status
             elif args == '-d':
