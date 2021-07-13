@@ -116,7 +116,7 @@ class CBF:
                 checks = vars(command)['checks']
 
                 if len(checks) == 0:
-                    self.categories['NC'][str(command)] = {'help': help, 'args': command_args}
+                    self.categories['MISC'][str(command)] = {'help': help, 'args': command_args}
 
                 for check in checks:
                     if 'is_owner' in str(check):
@@ -313,7 +313,7 @@ class CBF:
 class Bot(commands.Bot, CBF):
     def __init__(self, command_prefix, args:tuple, **options):
         super().__init__(command_prefix, **options)
-        self.categories = {'OWNER': {}, 'NSFW': {}, 'NC': {}, 'ADMIN': {}}
+        self.categories = {'OWNER': {}, 'NSFW': {}, 'MISC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
         self.prefix = None
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')

@@ -1431,7 +1431,7 @@ class Nc_Commands(Bot_Commands):
         """
 
         for category_name, commands in categories.items():
-            embed.add_field(name=category_name, value='`%i commands`' % len(commands), inline=False)
+            embed.add_field(name=category_name, value='`%shelp %s`' % (self.client.prefix, category_name.lower()), inline=True)
 
         return embed
 
