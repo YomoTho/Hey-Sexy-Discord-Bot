@@ -832,6 +832,29 @@ class Nsfw_Commands(Bot_Commands):
             await self.client.reddit(ctx, 'ass', limit)
 
 
+        @self.command(help='r/hentai')
+        @commands.is_nsfw()
+        async def hentai(ctx: commands.Context, limit:int=1):
+            await self.client.reddit(ctx, 'hentai', limit)
+
+
+        @self.command(help='r/porn')
+        @commands.is_nsfw()
+        async def porn(ctx: commands.Context, limit:int=1):
+            await self.client.reddit(ctx, 'porn', limit)
+
+
+        @self.command(help='r/rule34')
+        @commands.is_nsfw()
+        async def rule34(ctx: commands.Context, limit:int=1):
+            await self.client.reddit(ctx, 'rule34', limit)
+
+
+        @self.command(help="THE BEST ;)")
+        @commands.is_nsfw()
+        async def traps(ctx: commands.Context, limit:int=1):
+            await self.client.reddit(ctx, 'traps', limit)
+
 
 class Reddit_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
