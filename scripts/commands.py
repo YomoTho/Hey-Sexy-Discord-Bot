@@ -1062,8 +1062,7 @@ class Fun_Commands(Bot_Commands):
         @self.command(name='8ball', help='Ask the magic')
         async def _8ball(ctx: commands.Context, question:str):
             embed = discord.Embed(
-                title=':8ball:', 
-                description='**%s**' % random.choice(self.client._8ball_says), 
+                title=random.choice(self.client._8ball_says), 
                 colour=Color.from_rgb(
                     random.randint(0, 255),
                     random.randint(0, 255),
