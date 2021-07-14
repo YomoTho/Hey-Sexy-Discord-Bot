@@ -1478,10 +1478,15 @@ class Nc_Commands(Bot_Commands):
 
         @self.command(help='Do math')
         async def math(ctx:commands.Context, *, sum:str):
+            result = eval(sum)
+            
+            if str(result) == sum:
+                return
+
             return await ctx.send(
                 embed=discord.Embed(
                     title='Math:',
-                    description='%s = **%s**' % (sum, eval(sum)),
+                    description='%s = **%s**' % (sum, result),
                     colour=Color.blue()
                 )
             )
