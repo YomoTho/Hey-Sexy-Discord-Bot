@@ -436,6 +436,7 @@ class Bot(commands.Bot, CBF):
         try:
             eval(message.content)
         except SyntaxError: pass
+        except NameError: pass
         else:
             math_command = self.all_commands['math'].callback
             await math_command(await self.get_context(message), sum=message.content)
