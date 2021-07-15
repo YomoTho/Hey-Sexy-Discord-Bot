@@ -1277,7 +1277,8 @@ class Nc_Commands(Bot_Commands):
 
                         status.append("%s **%s**%s" % (get_nice_type(act.type), act.name, details))
                     elif str(type(act)) == "<class 'discord.activity.Spotify'>": # The user is playing spotify
-                        status.append("%s\n**%s**\n%s" % ('%s To %s' % (get_nice_type(act.type), act), act.title, act.artists))
+                        embed.set_thumbnail(url=act.album_cover_url)
+                        status.append("%s\n> **%s** - by __%s__\n> on __%s__" % ('%s To %s' % (get_nice_type(act.type), act), act.title, ', '.join(act.artists), act.album))
                     else:
                         status.append('%s **%s**' % (get_nice_type(act.type), act))
 
