@@ -1249,8 +1249,14 @@ class Nc_Commands(Bot_Commands):
             member = member or ctx.author
             _status = member.status
 
+            status_platform = member._client_status.copy()
+
+            del status_platform[None]
+
             if str(_status) == 'dnd':
                 _status = 'Do Not Disturb'
+
+            _status = '%s  -  %s' % (_status, ', '.join(list(status_platform)))
 
             activities = member.activities
 
