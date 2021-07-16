@@ -1,5 +1,14 @@
 {
-    "errors": {},
+    "errors": {
+        "865383712686473237": {
+            "error": "Command \"source\" is not found",
+            "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        },
+        "865385913931792404": {
+            "error": "Command \"statu\" is not found",
+            "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        }
+    },
     "do_not_raise": [
         "<class 'discord.ext.commands.errors.CommandInvokeError'>",
         "<class 'discord.ext.commands.errors.MissingRequiredArgument'>",

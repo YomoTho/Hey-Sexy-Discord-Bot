@@ -415,8 +415,43 @@
         "member_leaves": 7
     },
     "2021-07-09": {
-        "total_messages": 61,
-        "member_joins": 3,
-        "member_leaves": 2
+        "total_messages": 220,
+        "member_joins": 4,
+        "member_leaves": 3
+    },
+    "2021-07-10": {
+        "total_messages": 10,
+        "member_joins": 1,
+        "member_leaves": 1
+    },
+    "2021-07-11": {
+        "total_messages": 14,
+        "member_joins": 1,
+        "member_leaves": 1
+    },
+    "2021-07-12": {
+        "total_messages": 748,
+        "member_joins": 5,
+        "member_leaves": 1
+    },
+    "2021-07-13": {
+        "total_messages": 474,
+        "member_joins": 6,
+        "member_leaves": 4
+    },
+    "2021-07-14": {
+        "total_messages": 525,
+        "member_joins": 6,
+        "member_leaves": 3
+    },
+    "2021-07-15": {
+        "total_messages": 265,
+        "member_joins": 7,
+        "member_leaves": 6
+    },
+    "2021-07-16": {
+        "total_messages": 102,
+        "member_joins": 0,
+        "member_leaves": 0
     }
 }
