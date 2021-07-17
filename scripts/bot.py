@@ -2,7 +2,6 @@ import discord
 import asyncpraw
 import os
 import random
-from discord.errors import PrivilegedIntentsRequired
 import pytz
 import asyncio
 import inspect
@@ -22,18 +21,28 @@ except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto com
 
 class Reddit:
     def __init__(self) -> None:
+        self.loggend_in = False
         load_dotenv()
-        self.reddit = asyncpraw.Reddit(
-            client_id=os.getenv('CLIENT_ID'), 
-            client_secret=os.getenv('CLIENT_SECRET'), 
-            username=os.getenv('USERNAME'), 
-            password=os.getenv('PASSWORD'), 
-            user_agent="NO"
-        )
-        self.reddit_json = Data.reddit(True)
-        self.nsfw_subreddit = self.reddit_json.load()
+        try:
+            self.reddit = asyncpraw.Reddit(
+                client_id=os.getenv('CLIENT_ID'), 
+                client_secret=os.getenv('CLIENT_SECRET'), 
+                username=os.getenv('USERNAME'), 
+                password=os.getenv('PASSWORD'), 
+                user_agent="NO"
+            )
+            self.reddit_json = Data.reddit(True)
+            self.nsfw_subreddit = self.reddit_json.load()
+
+            self.loggend_in = True
+        except Exception as e:
+            self.loggend_in = False
+            print(e)
 
     async def __call__(self, ctx, sub_reddit:str, loop:int=1):
+        if not self.loggend_in:
+            return print("Didn't logged in reddit.")
+
         try:
             self.nsfw_subreddit = self.reddit_json.load()
 
