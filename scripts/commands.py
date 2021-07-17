@@ -1299,6 +1299,7 @@ class Nc_Commands(Bot_Commands):
                 embed.description = status
             elif args == '-d':
                 embed.description = str(activities)
+                embed.set_footer(text=str(member._client_status))
             else:
                 if not len(activities) == 0:
                     _type = get_nice_type(activities[0].type)
