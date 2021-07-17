@@ -1200,11 +1200,15 @@ class Nc_Commands(Bot_Commands):
             _pfp = member.avatar_url
 
             embed = discord.Embed(colour=Color.blue())
-            embed.set_author(name=member, icon_url=_pfp)
+            embed.set_author(name=member.display_name + '  -  profile pic:', icon_url=_pfp)
             embed.set_image(url=_pfp)
-            embed.set_footer(text=random.choice(self.client.pfp_says) or '')
 
-            await ctx.send(embed=embed)
+            msg = await ctx.send(embed=embed)
+        
+            opinion = random.choice(self.client.pfp_says)
+
+            if opinion is not None:
+                await msg.reply(opinion)
 
 
 
