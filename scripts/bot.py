@@ -313,7 +313,7 @@ class CBF:
 
 class Bot(commands.Bot, CBF):
     def __init__(self, command_prefix, args:tuple, **options):
-        super().__init__(command_prefix, **options)
+        super().__init__(command_prefix, intents=discord.Intents().all(), **options)
         self.categories = {'OWNER': {}, 'NSFW': {}, 'MISC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
         self.prefix = None
@@ -326,6 +326,7 @@ class Bot(commands.Bot, CBF):
         self.reactions_command_remove = {}
         self.do_stats = Data.read('config.json')['stats']
         self._8ball_says = ['no.', 'no???', 'Hell NO!', 'Bruh, you know its a NO', 'yes.', 'Yes??', 'ok, yea', 'Ugg, yes...', 'Tbh, no.', 'Tbh, yes', 'can you not', "ask again later when I'm less busy with ur daddy", 'sure, why not', "heck off, you know that's a no"]
+        self.pfp_says = ['Cool', "Damn, that's one ugly pfp you have there", None, 'The best pfp!', None, None, None, None, None]
 
         reactions_data = Data.read('reactions.json')
         if not len(reactions_data) == 0:

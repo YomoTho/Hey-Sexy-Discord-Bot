@@ -1194,10 +1194,18 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command(help='Profile pic')
-        async def pfp(ctx, member : discord.Member=None):
+        @self.command(help='Profile pic', aliases=['av'])
+        async def pfp(ctx: commands.Context, member : discord.Member=None):
             member = member or ctx.author
-            await ctx.send(member.avatar_url)
+            _pfp = member.avatar_url
+
+            embed = discord.Embed(colour=Color.blue())
+            embed.set_author(name=member, icon_url=_pfp)
+            embed.set_image(url=_pfp)
+            embed.set_footer(text=random.choice(self.client.pfp_says) or '')
+
+            await ctx.send(embed=embed)
+
 
 
         @self.command(help='Total lines of code')
