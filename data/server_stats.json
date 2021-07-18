@@ -450,8 +450,18 @@
         "member_leaves": 6
     },
     "2021-07-16": {
-        "total_messages": 102,
-        "member_joins": 0,
-        "member_leaves": 0
+        "total_messages": 529,
+        "member_joins": 6,
+        "member_leaves": 4
+    },
+    "2021-07-17": {
+        "total_messages": 386,
+        "member_joins": 2,
+        "member_leaves": 2
+    },
+    "2021-07-18": {
+        "total_messages": 552,
+        "member_joins": 12,
+        "member_leaves": 9
     }
 }
