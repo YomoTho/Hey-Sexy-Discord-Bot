@@ -9,7 +9,7 @@ from discord.ext import commands
 from games import TicTacToe
 from datetime import datetime
 from typing import Union
-from google_search import search
+from my_googlesearch import search
 try:
     from scripts.data import Data, MyChannel, Reference
     from scripts.leveling_system import Leveling_System
