@@ -1,5 +1,3 @@
-from asyncio import events
-from logging import fatal
 import discord
 import os
 import random
@@ -11,6 +9,7 @@ from discord.ext import commands
 from games import TicTacToe
 from datetime import datetime
 from typing import Union
+from googlesearch import search
 try:
     from scripts.data import Data, MyChannel, Reference
     from scripts.leveling_system import Leveling_System
@@ -1444,6 +1443,13 @@ class Nc_Commands(Bot_Commands):
 
                 with open(source_file, 'w') as f:
                     f.write('')
+
+
+        @self.command()
+        async def google(ctx, *, google_search:str):
+            _5_searchs = [link for link in search(google_search, stop=5, pause=0.1)]
+
+            await ctx.send(random.choice(_5_searchs))
 
 
 
