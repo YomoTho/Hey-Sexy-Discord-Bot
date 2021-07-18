@@ -480,8 +480,10 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_message_delete(self, message):
+    async def on_message_delete(self, message: discord.Message):
         self.check_if_reaction_role_message(str(message.id))
+
+        print(message.content)
 
         channel = MyChannel(self.audit_log_channel)
 
@@ -507,7 +509,7 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_command_error(self, ctx, exception):
+    async def on_command_error(self, ctx, exception: BaseException):
         if isinstance(exception, discord.ext.commands.errors.MissingRequiredArgument):
             help_command = self.all_commands['help']._callback
 
@@ -529,7 +531,7 @@ class Bot(commands.Bot, CBF):
 
             errors['errors'][str(ctx.message.id)] = {}
             errors['errors'][str(ctx.message.id)]['error'] = str(exception)
-            errors['errors'][str(ctx.message.id)]['type'] = str(type(exception))
+            errors['errors'][str(ctx.message.id)]['type'] = type(exception).__name__
 
             if not 'do_not_raise' in errors:
                 errors['do_not_raise'] = []

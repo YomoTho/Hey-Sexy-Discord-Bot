@@ -1426,11 +1426,11 @@ class Nc_Commands(Bot_Commands):
 
 
         @self.command(help="View command source code")
-        async def code(ctx, command_name:str):
+        async def code(ctx, *, command_name:str):
             try:
                 command = client.all_commands[command_name]._callback
-            except KeyError as e:
-                raise Exception("Command %s not found." % e)
+            except KeyError:
+                raise discord.ext.commands.errors.CommandNotFound("Command **%s** not found." % command_name)
             else:
                 _source_code = inspect.getsource(command)
 
@@ -1444,6 +1444,7 @@ class Nc_Commands(Bot_Commands):
 
                 with open(source_file, 'w') as f:
                     f.write('')
+
 
 
         @client.group(help='Buy stuff')
