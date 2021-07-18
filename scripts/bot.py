@@ -6,7 +6,7 @@ import pytz
 import asyncio
 import inspect
 from discord import colour
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 from datetime import datetime
 try:
@@ -314,6 +314,10 @@ class CBF:
     def get_role_buy_msg(self):
         return self.get_msgs('role_buy_msg')
 
+    
+    def get_bump_channel(self):
+        return self.get_channel(self.channels('bump_channel'))
+
 
     async def commet_lines(self, message_content):
         return '\n'.join(['> %s' % line for line in message_content.split('\n')])
@@ -362,6 +366,7 @@ class Bot(commands.Bot, CBF):
         self.admin_room_channel = None
         self.bot_lab_channel = None
         self.shop_channel = None
+        self.bump_channel = None
 
         with Data.R('ids.json') as roles_id:
             roles_id = roles_id['roles']
@@ -431,6 +436,12 @@ class Bot(commands.Bot, CBF):
         self.admin_room_channel = self.get_admin_room_channel()
         self.bot_lab_channel = self.get_bot_lab_channel()
         self.shop_channel = self.get_shop_channel()
+        self.bump_channel = self.get_bump_channel()
+
+
+    @tasks.loop(hours=2)
+    async def remind_to_bump(self):
+        await self.bump_channel.send("bump!")
 
 
     # event
@@ -914,6 +925,8 @@ class Bot(commands.Bot, CBF):
             return
 
         await self.wait_until_ready()
+
+        self.remind_to_bump.start()
 
         await asyncio.sleep(1) # Just waiting for on_ready() to finnish
 
