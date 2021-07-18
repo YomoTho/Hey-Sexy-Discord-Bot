@@ -378,6 +378,7 @@ class Bot(commands.Bot, CBF):
             self.nsfw_pp_role_id = roles_id['nsfw++_role']
             self.anime_role_id = roles_id['anime_role']
             self.staff_role_id = roles_id['staff_role']
+            self.human_role_id = roles_id['human_role']
 
 
     @staticmethod
@@ -542,7 +543,7 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: discord.Member):
         stats = TimeStats()
         stats.member_join()
 
@@ -562,6 +563,25 @@ class Bot(commands.Bot, CBF):
         await channel.send(member.mention, embed=embed)
 
         Leveling_System(str(member.id), 0) # Adding the new member to levels.json
+
+        if member.bot:
+            return
+
+        await asyncio.sleep(120) # Waiting for 2 minutes and still didn't react in rules, then send message
+
+        try:
+            if not self.human_role_id in [role.id for role in member.roles]:
+                _rules_msg = await rules_channel.fetch_message(self.rules_msg)
+
+                embed_2 = discord.Embed(title='Welcome to %s' % self.server.name, description='**To have more access to the server, react in %s**' % rules_channel.mention, colour=discord.Color.from_rgb(0, 255, 0), url=_rules_msg.jump_url)
+                embed_2.set_thumbnail(url=self.server.icon_url)
+                embed_2.set_footer(text='Owner: %s' % self.server.owner, icon_url=self.server.owner.avatar_url)
+
+                await member.send(embed=embed_2)
+            else:
+                print(member, 'already reacted.')
+        except Exception as e:
+            await self.server.owner.send("Error in on_member_join: **%s**" % e)
 
 
     # event
