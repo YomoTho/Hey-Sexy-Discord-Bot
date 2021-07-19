@@ -6,6 +6,7 @@ import inspect
 from discord import Color
 from discord import colour
 from discord.ext import commands
+from discord.ext.commands.context import Context
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
 from datetime import datetime
@@ -508,6 +509,13 @@ class Owner_Commands(Bot_Commands):
             embed.set_author(name=member, icon_url=member.avatar_url)
 
             await ctx.send(embed=embed)
+
+
+        @self.command()
+        @commands.is_owner()
+        async def price_for_iq(ctx: commands.Context, new_price_for_iq: int) -> None:
+            with Data.RW('config.json') as config:
+                config['price_for_iq'] = new_price_for_iq
 
 
     """
@@ -1512,6 +1520,43 @@ class Nc_Commands(Bot_Commands):
                     await ctx.send("Can't buy this role.")
             else:
                 return await ctx.reply("You can only buy in %s" % client.shop_channel.mention)
+
+
+        @buy.command(help="Increase IQ")
+        async def iq(ctx: commands.Context, amount_of_iq: int) -> None:
+            member = ctx.author
+            
+            member_rank = Leveling_System(str(member.id), 0)
+            member_money = member_rank.money
+            member_iq = self.client.get_iq(member, see_only=True)
+            iq_to_add = 0
+
+            price_for_iq = Data.read('config.json')['price_for_iq']
+
+            if member_money >= price_for_iq:
+                before_money = member_money
+
+                while (member_money >= price_for_iq and amount_of_iq != 0):
+                    iq_to_add += 1
+                    member_money -= price_for_iq
+                    amount_of_iq -= 1
+
+                member_iq += iq_to_add
+                
+                self.client.set_iq(member, member_iq)
+                member_rank.money = member_money
+                member_rank.set_money()
+                
+                await ctx.reply(
+                    embed=discord.Embed(
+                        title='+ %i IQ!' % iq_to_add,
+                        description="You had $**%i**, now $**%i**" % (before_money, member_money),
+                        colour=Color.blue()
+                    )
+                )
+            else:
+                await ctx.send("You don't have enough money to buy **1** IQ.")
+
 
 
         @self.command(help='Show rank')

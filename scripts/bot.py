@@ -211,6 +211,11 @@ class CBF:
 
         return iq
 
+    
+    def set_iq(self, member: discord.Member, iq: int):
+        with Data.RW('iq_scores.json') as iq_list:
+            iq_list[str(member.id)] = iq
+
 
     def get_gay_test(self):
         says = random.choice(['**100%** GAY!', 'yea kinda gay', 'nope! **100%** straight', '**69%** gay'])

@@ -66,6 +66,11 @@ class Leveling_System:
             del levels[self.member_id]
 
 
+    def set_money(self):
+        with Data.RW(self.filename) as levels:
+            levels[self.member_id]['money'] = self.money
+
+
     def remove(self) -> None:
         """
         Removing exp from member
