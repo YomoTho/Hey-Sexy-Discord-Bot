@@ -450,7 +450,7 @@ class Bot(commands.Bot, CBF):
     async def remind_to_bump(self):
         while True:
             current_hour = int(datetime.now().hour)
-            current_time = datetime.now()
+            current_time = datetime.now().astimezone(self.sa_timezone)
 
             if ((current_hour + 1) % 2 == 0):
                 next_hour = current_time.replace(hour=current_time.hour)
