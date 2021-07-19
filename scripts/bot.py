@@ -455,6 +455,9 @@ class Bot(commands.Bot, CBF):
         Every 2 hours it will send a message in self.bump_channel
         Messgage: Bump!
         """
+
+        print("Starting remind_to_bump...")
+
         while True:
             current_hour = int(datetime.now().hour)
             current_time = datetime.now().astimezone(self.sa_timezone)
@@ -474,6 +477,8 @@ class Bot(commands.Bot, CBF):
             await asyncio.sleep(wait_time)
 
             await self.bump_channel.send("Bump!")
+
+        print("Done remind_to_bump")
 
 
     # event
