@@ -1,3 +1,5 @@
+from asyncio.tasks import create_task
+from time import sleep
 import discord
 import asyncpraw
 import os
@@ -440,9 +442,25 @@ class Bot(commands.Bot, CBF):
         self.bump_channel = self.get_bump_channel()
 
 
-    @tasks.loop(hours=2)
     async def remind_to_bump(self):
-        await self.bump_channel.send("bump!")
+        while True:
+            current_hour = int(datetime.now().hour)
+            current_time = datetime.now()
+
+            if ((current_hour + 1) % 2 == 0):
+                next_hour = current_time.replace(hour=current_time.hour)
+            else:
+                next_hour = 2
+
+            next_time = current_time.replace(hour=current_time.hour + next_hour, minute=00)
+
+            wait_time = (next_time - current_time).seconds
+
+            print("remind_to_bump: %im" % (wait_time / 60))
+
+            await asyncio.sleep(wait_time)
+
+            await self.bump_channel("Bump!")
 
 
     # event
@@ -956,7 +974,7 @@ class Bot(commands.Bot, CBF):
 
         await self.wait_until_ready()
 
-        self.remind_to_bump.start()
+        asyncio.create_task(self.remind_to_bump())
 
         await asyncio.sleep(1) # Just waiting for on_ready() to finnish
 
