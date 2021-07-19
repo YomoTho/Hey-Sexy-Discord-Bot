@@ -483,28 +483,32 @@ class Bot(commands.Bot, CBF):
     async def on_message_delete(self, message: discord.Message):
         self.check_if_reaction_role_message(str(message.id))
 
-        print(message.content)
-
         channel = MyChannel(self.audit_log_channel)
-
-        embed = discord.Embed(
-            description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention),
-            colour=discord.Color.from_rgb(255, 0, 0)
-        )
-        embed.add_field(name='Message:', value=message.content, inline=False)
-        current_time = str(datetime.now(self.sa_timezone).strftime('%H:%M'))
-        if int(current_time.split(':')[0]) > 12:
-            current_time = '%i:%i %s' % (int(current_time.split(':')[0]) - 12, int(current_time.split(':')[1]), 'PM')
-        else:
-            current_time = '%s %s' % (current_time, 'AM')
-
-        embed.set_footer(text=current_time)
-        
-        await channel.send(embed=embed)
         
         self.last_deleted_message[message.channel.id] = {}
+        current_time = str(datetime.now(self.sa_timezone).strftime('%H:%M'))
+
+        if message.content == '' and len(message.embeds) != 0:
+            await channel.send("**%s** embed was deleted in %s\nEmbed:" % (message.author, message.channel.mention), embed=message.embeds[0])
+            self.last_deleted_message[message.channel.id]['content'] = "%s\n\nTile: **%s**\nDescription: %s" % (str(message.embeds), message.embeds[0].title, message.embeds[0].description)
+        else:
+            embed = discord.Embed(
+                description="**%s**'s message deleted in %s\n" % (message.author.mention, message.channel.mention),
+                colour=discord.Color.from_rgb(255, 0, 0)
+            )
+            embed.add_field(name='Message:', value=message.content, inline=False)
+            if int(current_time.split(':')[0]) > 12:
+                current_time = '%i:%i %s' % (int(current_time.split(':')[0]) - 12, int(current_time.split(':')[1]), 'PM')
+            else:
+                current_time = '%s %s' % (current_time, 'AM')
+
+            embed.set_footer(text=current_time)
+
+            await channel.send(embed=embed)
+            
+            self.last_deleted_message[message.channel.id]['content'] = message.content
+        
         self.last_deleted_message[message.channel.id]['user'] = message.author.id
-        self.last_deleted_message[message.channel.id]['content'] = message.content
         self.last_deleted_message[message.channel.id]['time'] = current_time
 
 
