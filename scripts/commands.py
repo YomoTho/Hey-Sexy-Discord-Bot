@@ -1194,6 +1194,27 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
+        @self.command()
+        async def server(ctx: commands.Context):
+            server = ctx.guild
+
+            embed = discord.Embed(description='**%s**' % server.description, colour=Color.from_rgb(255,105,180))
+            embed.set_author(name=server, icon_url=server.icon_url)
+            embed.set_thumbnail(url=server.icon_url)
+
+            embed.add_field(name='ID:', value='`%i`' % server.id)
+            embed.add_field(name='Owner:', value='`%s`' % server.owner, inline=False)
+            embed.add_field(name='Member count:', value='`%i`' % server.member_count)
+            embed.add_field(name='Role count:', value='`%i`' % len(server.roles))
+            embed.add_field(name='Bans:', value='`%i`' % len(await server.bans()))
+            embed.add_field(name='Region:', value='%s`' % ':flag_za: `South Africa' if str(server.region) == 'southafrica' else server.region, inline=False)
+            embed.add_field(name='Rules channel:', value=server.rules_channel.mention, inline=False)
+            embed.add_field(name='AFK channel:', value=server.afk_channel.mention)
+            embed.set_footer(text='Created at: %s' % server.created_at.date())
+            
+            await ctx.send(embed=embed)
+
+
         @self.command(help='Profile pic', aliases=['av'])
         async def pfp(ctx: commands.Context, member : discord.Member=None):
             member = member or ctx.author
