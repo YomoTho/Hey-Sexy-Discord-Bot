@@ -6,6 +6,7 @@ import inspect
 from discord import Color
 from discord import colour
 from discord.ext import commands
+from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
 from datetime import datetime
 from typing import Union
@@ -103,7 +104,7 @@ class Owner_Commands(Bot_Commands):
                 try:
                     await arguments[arg](ctx)
                 except KeyError as e:
-                    raise Exception("Argument %s not found." % e)
+                    raise BadArgument("Argument %s not found." % e)
             
             await ctx.send("Rebooting...")
             
@@ -538,7 +539,7 @@ class Owner_Commands(Bot_Commands):
             if channel.startswith('<#') and channel.endswith('>'):
                 _channels.append(self.client.get_channel(int(channel[2:-1])))
             else:
-                raise Exception("%s is not a channel." % channel)
+                raise ChannelNotFound("%s is not a channel." % channel)
         else:
             return _channels
 
@@ -939,10 +940,10 @@ class Fun_Commands(Bot_Commands):
                     player2 = ctx.author
 
             if not isinstance(player1, discord.Member): 
-                raise Exception("Player 1: **{}** not found.".format(player1))
+                raise discord.ext.commands.MemberNotFound("**{}**".format(player1))
             
             if player1 == player2:
-                raise Exception("Player 1 and Player 2, can't be the same.")
+                raise discord.ext.commands.BadArgument("Player 1 and Player 2, can't be the same.")
             
             ttt_game = TicTacToe(player1, player2, ctx, self.client.ttt_running, client)
             self.client.ttt_running.append(ttt_game)
@@ -1603,7 +1604,7 @@ class Nc_Commands(Bot_Commands):
             if member.startswith('<@!'): # Its a member
                 return self.client.get_user(int(member[3:-1]))
             else:
-                raise Exception("'%s' member not found." % member)
+                raise MemberNotFound('**%s**' % member)
 
 
 
