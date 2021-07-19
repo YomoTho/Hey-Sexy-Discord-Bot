@@ -513,7 +513,9 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_command_error(self, ctx, exception: BaseException):
+    async def on_command_error(self, ctx: commands.Context, exception: BaseException):
+        error = str(exception)
+        
         if isinstance(exception, discord.ext.commands.errors.MissingRequiredArgument):
             help_command = self.all_commands['help']._callback
 
@@ -522,11 +524,13 @@ class Bot(commands.Bot, CBF):
             role = discord.utils.get(ctx.guild.roles, id=int(str(exception).split(' ')[1]))
 
             return await ctx.reply(embed=discord.Embed(
-                description=str(exception).replace(str(role.id), role.mention),
+                description=error.replace(str(role.id), role.mention),
                 colour=colour.Color.from_rgb(255, 0, 0)
             ).set_footer(
                 text="Look in %s, maybe you can buy it there." % self.shop_channel
             ))
+        elif isinstance(exception, discord.ext.commands.CommandNotFound):
+            error = 'Command **%s** not found.' % str(ctx.message.content).replace(self.prefix, '')
 
 
         with Data.errors(write=True) as errors:
@@ -534,7 +538,7 @@ class Bot(commands.Bot, CBF):
                 errors['errors'] = {}
 
             errors['errors'][str(ctx.message.id)] = {}
-            errors['errors'][str(ctx.message.id)]['error'] = str(exception)
+            errors['errors'][str(ctx.message.id)]['error'] = error
             errors['errors'][str(ctx.message.id)]['type'] = type(exception).__name__
 
             if not 'do_not_raise' in errors:
