@@ -481,6 +481,7 @@ class Bot(commands.Bot, CBF):
         try:
             eval(message.content)
         except SyntaxError: pass
+        except ZeroDivisionError: pass
         except NameError: pass
         else:
             if not message.content[0] in ['"', "'", '.'] and not message.content[-1] in ['"', "'", '.']:
