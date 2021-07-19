@@ -1524,6 +1524,9 @@ class Nc_Commands(Bot_Commands):
 
         @buy.command(help="Increase IQ")
         async def iq(ctx: commands.Context, amount_of_iq: int) -> None:
+            if not ctx.channel.id == client.shop_channel.id:
+                return
+
             member = ctx.author
             
             member_rank = Leveling_System(str(member.id), 0)
