@@ -460,7 +460,7 @@ class Bot(commands.Bot, CBF):
 
             await asyncio.sleep(wait_time)
 
-            await self.bump_channel("Bump!")
+            await self.bump_channel.send("Bump!")
 
 
     # event
