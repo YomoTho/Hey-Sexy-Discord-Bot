@@ -11,7 +11,7 @@ if __name__ == '__main__':
 
         config = dict()
 
-        config['disable_channels'] = []
+        config['disabled_channels'] = []
         config['stats'] = False
         config['prefix'] = '.'
 

@@ -1,12 +1,44 @@
 {
     "errors": {
-        "865383712686473237": {
+        "866170231236067379": {
+            "error": "Command \"server\" is not found",
+            "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        },
+        "866170258825281556": {
+            "error": "Command \"link\" is not found",
+            "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        },
+        "866296984931270706": {
+            "error": "Command \"github\" is not found",
+            "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        },
+        "866345833917186048": {
+            "error": "Expected space after closing quotation but received 'p'",
+            "type": "<class 'discord.ext.commands.errors.InvalidEndOfQuotedStringError'>"
+        },
+        "866389585792729150": {
             "error": "Command \"source\" is not found",
             "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
         },
-        "865385913931792404": {
-            "error": "Command \"statu\" is not found",
+        "866424454547767336": {
+            "error": "Command \"clerar\" is not found",
             "type": "<class 'discord.ext.commands.errors.CommandNotFound'>"
+        },
+        "866442918529204274": {
+            "error": "Command raised an exception: HTTPError: HTTP Error 429: Too Many Requests",
+            "type": "CommandInvokeError"
+        },
+        "866443337576873985": {
+            "error": "Command raised an exception: HTTPError: HTTP Error 429: Too Many Requests",
+            "type": "CommandInvokeError"
+        },
+        "866484542842994708": {
+            "error": "Command raised an exception: HTTPError: HTTP Error 429: Too Many Requests",
+            "type": "CommandInvokeError"
+        },
+        "866486220238356480": {
+            "error": "Command **fun** not found.",
+            "type": "CommandNotFound"
         }
     },
     "do_not_raise": [
