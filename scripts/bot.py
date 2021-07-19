@@ -336,6 +336,7 @@ class Bot(commands.Bot, CBF):
         super().__init__(command_prefix, intents=discord.Intents().all(), **options)
         self.categories = {'OWNER': {}, 'NSFW': {}, 'MISC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
+        self.server_stats = TimeStats()
         self.prefix = None
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')
         self.server = None
@@ -427,7 +428,9 @@ class Bot(commands.Bot, CBF):
 
 
     def load_channels(self):
-        # This is for the bot to have easy access to this text channels:
+        """
+        This is for the bot to have easy access to this text channels:
+        """
         
         self.system_messages_channel = self.get_system_messages_channel()
         self.audit_log_channel = self.get_audit_log_channel()
@@ -448,15 +451,20 @@ class Bot(commands.Bot, CBF):
 
 
     async def remind_to_bump(self):
+        """
+        Every 2 hours it will send a message in self.bump_channel
+        Messgage: Bump!
+        """
         while True:
             current_hour = int(datetime.now().hour)
             current_time = datetime.now().astimezone(self.sa_timezone)
 
-            if ((current_hour + 1) % 2 == 0):
+            if ((current_hour + 1) % 2 == 0): # Checks if the next hour is an equal number, if not then next_hour = 2
                 next_hour = current_time.replace(hour=current_time.hour)
             else:
                 next_hour = 2
 
+            # This will be the next time when the bot will send message
             next_time = current_time.replace(hour=current_time.hour + next_hour, minute=00)
 
             wait_time = (next_time - current_time).seconds
@@ -469,15 +477,37 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: discord.Message) -> None:
+        """
+        1:  First it checks if the message.channel == self.shop_channel -
+        if so, delete the message after 69 seconds 
+
+        2: Then it will add exp to member - Leveling_System
+
+        3: Then checks if member is a bot, if so return out of this function
+
+        4: Then it try if the message is math, if so call the math command
+
+        5: checks if the message is in a DM channel, if so call on_dm_message, else -
+        if do_stats is True, then add 1 to 'totday_total_messages' 
+
+        6: Then if checks if the message.content starts with ";r/", then modify the string a bit
+
+        7: Then process commands.
+        """
+
+        # 1
         if message.channel == self.shop_channel:
             if not message.content.startswith('- '):
                 await message.delete(delay=60)
         
+        # 2
         asyncio.create_task(Leveling_System.from_message(self, message)) # Adding exp to message's author
-        
+
+        # 3
         if message.author.bot: return
 
+        # 4
         try:
             eval(message.content)
         except SyntaxError: pass
@@ -488,18 +518,20 @@ class Bot(commands.Bot, CBF):
                 math_command = self.all_commands['math'].callback
                 await math_command(await self.get_context(message), sum=message.content)
 
+        # 5
         if isinstance(message.channel, discord.DMChannel):
             await self.on_dm_message(message)
         else:
             if self.do_stats is True:
-                stats = TimeStats()
-                stats.on_message()
+                self.server_stats.on_message()
 
+            # 6
             if message.content.startswith('%sr/' % await self.get_prefix()): # This is for the reddit command
                 _content = message.content.split('/')
                 _content[0] = ''.join([_content[0], '/'])
                 message.content = ' '.join(_content)
 
+            # 7
             await self.process_commands(message)
 
 
@@ -966,10 +998,8 @@ class Bot(commands.Bot, CBF):
         await a_channel.send(embed=embed)    
 
 
-    # TODO: Make all @events 
 
-
-    async def stats(self):
+    async def stats(self) -> None:
         """
         Every day it will post server stats
         """
@@ -1005,6 +1035,7 @@ class Bot(commands.Bot, CBF):
             await server_stats_channel.send(**self.get_stats(today_date))
 
             Data.errors().clean_erros()
+            self.server_stats.update_date()
 
             await asyncio.sleep(66)
  

@@ -222,6 +222,10 @@ class TimeStats:
         self.data = self.get_data()
         self.add_date()
 
+
+    def update_date(self):
+        self.current_date = self.get_current_date()
+
     
     def get_current_date(self): # This will return the current date
         return datetime.now().date()
