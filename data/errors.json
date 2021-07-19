@@ -31,6 +31,14 @@
         "866443337576873985": {
             "error": "Command raised an exception: HTTPError: HTTP Error 429: Too Many Requests",
             "type": "CommandInvokeError"
+        },
+        "866484542842994708": {
+            "error": "Command raised an exception: HTTPError: HTTP Error 429: Too Many Requests",
+            "type": "CommandInvokeError"
+        },
+        "866486220238356480": {
+            "error": "Command **fun** not found.",
+            "type": "CommandNotFound"
         }
     },
     "do_not_raise": [
