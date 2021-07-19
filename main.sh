@@ -11,7 +11,7 @@ function main()
             reboot_id=$(cat reboot_id)
             echo "" > reboot_id
             python3 scripts/main.py $reboot_id
-            sleep 1
+            # sleep 1
         done
     else
         echo "Normal Mode."

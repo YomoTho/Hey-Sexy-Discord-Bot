@@ -106,6 +106,7 @@ class Owner_Commands(Bot_Commands):
                 except KeyError as e:
                     raise BadArgument("Argument %s not found." % e)
             
+            print('Rebooting...')
             await ctx.send("Rebooting...")
             
             with open('reboot_id', 'w') as f:
@@ -529,7 +530,6 @@ class Owner_Commands(Bot_Commands):
     # reboot command
     async def clear_sceen(self, ctx):
         os.system('clear')
-        print(ctx.channel, ctx.author)
 
 
     # enable disable commands
