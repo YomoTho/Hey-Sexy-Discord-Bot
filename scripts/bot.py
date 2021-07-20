@@ -513,15 +513,15 @@ class Bot(commands.Bot, CBF):
         if message.author.bot: return
 
         # 4
-        try:
-            eval(message.content)
-        except SyntaxError: pass
-        except ZeroDivisionError: pass
-        except NameError: pass
-        else:
-            if not message.content[0] in ['"', "'", '.'] and not message.content[-1] in ['"', "'", '.']:
-                math_command = self.all_commands['math'].callback
-                await math_command(await self.get_context(message), sum=message.content)
+#        try:
+#            eval(message.content)
+#        except SyntaxError: pass
+#        except ZeroDivisionError: pass
+#        except NameError: pass
+#        else:
+#            if not message.content[0] in ['"', "'", '.'] and not message.content[-1] in ['"', "'", '.']:
+#                math_command = self.all_commands['math'].callback
+#                await math_command(await self.get_context(message), sum=message.content)
 
         # 5
         if isinstance(message.channel, discord.DMChannel):
