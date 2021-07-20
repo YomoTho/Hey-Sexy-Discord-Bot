@@ -1575,7 +1575,7 @@ class Nc_Commands(Bot_Commands):
 
         @self.command(help='Do math')
         async def math(ctx:commands.Context, *, sum:str):
-            regex = '1234567890/*-+%!.()= '
+            regex = '1234567890/*-+%!.()=<> '
 
             for char in sum:
                 if not char in regex:
