@@ -1573,20 +1573,25 @@ class Nc_Commands(Bot_Commands):
             return 'not_exp'
 
 
-#        @self.command(help='Do math')
-#        async def math(ctx:commands.Context, *, sum:str):
-#            result = eval(sum)
-#            
-#            if str(result) == sum:
-#                return
-#
-#            return await ctx.send(
-#                embed=discord.Embed(
-#                    title='Math:',
-#                    description='%s = **%s**' % (sum, result),
-#                    colour=Color.blue()
-#                )
-#            )
+        @self.command(help='Do math')
+        async def math(ctx:commands.Context, *, sum:str):
+            regex = '1234567890/*-+%!.()= '
+
+            for char in sum:
+                if not char in regex:
+                    await ctx.send("Invalid char: **%s**" % char)
+                    break
+            else:
+                result = eval(sum)
+
+                return await ctx.send(
+                    embed=discord.Embed(
+                        title='Math:',
+                        description='%s = **%s**' % (sum, result),
+                        colour=Color.blue()
+                    )
+                )
+
 
 
     """
