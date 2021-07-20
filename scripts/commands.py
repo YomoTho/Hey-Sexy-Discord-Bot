@@ -1579,18 +1579,17 @@ class Nc_Commands(Bot_Commands):
 
             for char in sum:
                 if not char in regex:
-                    await ctx.send("Invalid char: **%s**" % char)
-                    break
-            else:
-                result = eval(sum)
+                    return await ctx.send("Invalid char: **%s**" % char)
+            
+            result = eval(sum)
 
-                return await ctx.send(
-                    embed=discord.Embed(
-                        title='Math:',
-                        description='%s = **%s**' % (sum, result),
-                        colour=Color.blue()
-                    )
+            await ctx.send(
+                embed=discord.Embed(
+                    title='Math:',
+                    description='%s = **%s**' % (sum, result),
+                    colour=Color.blue()
                 )
+            )
 
 
 
