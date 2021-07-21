@@ -3,10 +3,9 @@ import os
 import random
 import asyncio
 import inspect
+import signal
 from discord import Color
-from discord import colour
 from discord.ext import commands
-from discord.ext.commands.context import Context
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
 from datetime import datetime
@@ -45,8 +44,8 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx:commands.Context, member:discord.Member=None):
-            embed = discord.Embed.from_dict()
+        async def test(ctx:commands.Context, num: str):
+            pass
 
 
         @self.command(help='Server add text channel')
@@ -1581,6 +1580,12 @@ class Nc_Commands(Bot_Commands):
                 if not char in regex:
                     return await ctx.send("Invalid char: **%s**" % char)
             
+            def timeout(signum, frame):
+                raise TimeoutError
+
+            signal.signal(signal.SIGALRM, timeout)
+            signal.alarm(1)
+
             result = eval(sum)
 
             await ctx.send(
