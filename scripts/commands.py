@@ -1597,6 +1597,11 @@ class Nc_Commands(Bot_Commands):
             await ctx.reply(' '.join(self.str_to_bin(text)))
 
 
+        @self.command()
+        async def hex(ctx: commands.Context, text: str):
+            await ctx.reply(text.encode().hex())
+
+
     """
     Commands functions:
     """
