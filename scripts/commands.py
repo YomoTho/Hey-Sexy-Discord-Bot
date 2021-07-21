@@ -1592,10 +1592,28 @@ class Nc_Commands(Bot_Commands):
             )
 
 
+        @self.command(aliases=['bin'], help='Binary converter')
+        async def binary(ctx: commands.Context, *, text: str):
+            await ctx.reply(' '.join(self.str_to_bin(text)))
+
 
     """
     Commands functions:
     """
+
+
+    def str_to_bin(self, a_string) -> list:
+        a_byte_array = bytearray(a_string, "utf8")
+
+        byte_list = []
+
+        for byte in a_byte_array:
+            binary_representation = bin(byte)
+
+            byte_list.append(binary_representation)
+
+        return byte_list
+
 
     # help command
     def help_category_check(self, ctx, member:discord.Member, categories:dict) -> dict:
