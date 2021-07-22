@@ -301,24 +301,23 @@ class Owner_Commands(Bot_Commands):
 
         @self.command(help='Spam user')
         @commands.is_owner()
-        async def spam(ctx, member : Union[discord.Member, discord.TextChannel], *args):
-            if isinstance(member, discord.TextChannel) or not member.bot:
-                if args[0] == 'file':
-                    file_content = None
-                    with open(args[1]) as f:
-                        file_content = f.readlines()
-                    await ctx.send("Going to spam **%s**\nFile: **%s**, **%i** lines." % (member.name, args[1], len(file_content)))
-                    for line in file_content:
-                        try:
-                            await member.send(line)
-                        except discord.errors.HTTPException:
-                            pass
+        async def spam(ctx, spam_to : Union[discord.Member, discord.TextChannel], *, message: str):
+            try:
+                loop = int(message.split(' ')[-1])
+            except ValueError:
+                loop = 1
+            finally:
+                if isinstance(spam_to, discord.Member) and spam_to.bot:
+                    return await ctx.send("Can't spam bot.")
+
+                message = message[:-1]
+
+                for _ in range(loop):
+                    await spam_to.send(message)
                 else:
-                    for _ in range(int(args[1])):
-                        await member.send(args[0])
-                await ctx.send('Done spamming **%s**' % member)
-            else:
-                await ctx.send("Cannot spam **%s**, because **it's a bot.**" % (member))
+                    await ctx.reply("Done spamming **%s**." % spam_to)
+            
+            
 
 
         @self.command(help='New reaction roles')
