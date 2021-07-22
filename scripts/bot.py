@@ -55,6 +55,10 @@ class Reddit:
                 if sub_reddit in self.nsfw_subreddit['nsfw']:
                     return await ctx.send("This is not a NSFW text channel.")
 
+            if 'gay' in sub_reddit:
+                if not 'gay' in ctx.channel.name:
+                    return await ctx.send('Not gay channel')
+
             limit = (loop * 10) if loop > 10 else 50
             self.subreddit = await self.reddit.subreddit(sub_reddit)
 

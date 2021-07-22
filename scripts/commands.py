@@ -3,10 +3,9 @@ import os
 import random
 import asyncio
 import inspect
+import signal
 from discord import Color
-from discord import colour
 from discord.ext import commands
-from discord.ext.commands.context import Context
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
 from datetime import datetime
@@ -45,8 +44,8 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx:commands.Context, member:discord.Member=None):
-            embed = discord.Embed.from_dict()
+        async def test(ctx:commands.Context, num: str):
+            pass
 
 
         @self.command(help='Server add text channel')
@@ -1028,10 +1027,10 @@ class Fun_Commands(Bot_Commands):
                 await ctx.send(embed=embed)
                 if user_guess == bot_guess:
                     exp = random.choice([600, 1000, 500, 400, 1200, 4000, 10, 1, 69, 666, 777, 999])
-                    #user = Leveling_System(ctx.author)
-                    #leveled_up = user + exp
-                    #if leveled_up[0]: # Check if user leveled up
-                    #    await send_lvl_up_msg(leveled_up)
+                    
+                    member_levels = Leveling_System(str(ctx.author.id), exp)
+                    member_levels.add()
+
                     await ctx.send("Wow! + **%i** exp" % exp)
             else:
                 await ctx.send("You must guess between 0-6")
@@ -1581,6 +1580,12 @@ class Nc_Commands(Bot_Commands):
                 if not char in regex:
                     return await ctx.send("Invalid char: **%s**" % char)
             
+            def timeout(signum, frame):
+                raise TimeoutError
+
+            signal.signal(signal.SIGALRM, timeout)
+            signal.alarm(1)
+
             result = eval(sum)
 
             await ctx.send(
@@ -1592,10 +1597,33 @@ class Nc_Commands(Bot_Commands):
             )
 
 
+        @self.command(aliases=['bin'], help='Binary converter')
+        async def binary(ctx: commands.Context, *, text: str):
+            await ctx.reply(' '.join(self.str_to_bin(text)))
+
+
+        @self.command()
+        async def hex(ctx: commands.Context, text: str):
+            await ctx.reply(text.encode().hex())
+
 
     """
     Commands functions:
     """
+
+
+    def str_to_bin(self, a_string) -> list:
+        a_byte_array = bytearray(a_string, "utf8")
+
+        byte_list = []
+
+        for byte in a_byte_array:
+            binary_representation = bin(byte)
+
+            byte_list.append(binary_representation)
+
+        return byte_list
+
 
     # help command
     def help_category_check(self, ctx, member:discord.Member, categories:dict) -> dict:
