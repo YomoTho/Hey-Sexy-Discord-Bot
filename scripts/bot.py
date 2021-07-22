@@ -405,30 +405,6 @@ class Bot(commands.Bot, CBF):
         load_dotenv()
         return super().run(os.getenv('TOKEN'), **kwargs)
 
-
-    def do_math(self, a_string: str) -> discord.Embed or None:
-        if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", a_string):
-            def timeout(signum, frame):
-                raise Exception("Time out")
-
-            signal.signal(signal.SIGALRM, timeout)
-            signal.alarm(1)
-        
-            calc = eval(a_string)
-
-            if str(calc) == a_string:
-                return None
-
-            embed = discord.Embed(
-                title='Math:',
-                description="%s = **%s**" % (a_string, calc),
-                colour=Colour.blue()
-            )
-
-            return embed
-        else:
-            return None
-
     
     # event
     async def on_ready(self):
@@ -541,13 +517,11 @@ class Bot(commands.Bot, CBF):
         if message.author.bot: return
 
         # 4
-        try:
-            math = self.do_math(message.content)
-        except Exception:
-            print(message.content, "- To big number")
-        else:
-            if math:
-                await message.reply(embed=math)
+        # math_command = self.all_commands['math'].callback
+        # try:
+        #     await math_command(message, sum=message.content)
+        # except Exception:
+        #     pass
 
         # 5
         if isinstance(message.channel, discord.DMChannel):

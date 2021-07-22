@@ -1,10 +1,13 @@
+from sre_compile import dis
 import discord
 import os
 import random
 import asyncio
 import inspect
 import signal
+import re
 from discord import Color
+from discord.colour import Colour
 from discord.ext import commands
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
@@ -45,7 +48,7 @@ class Owner_Commands(Bot_Commands):
         @self.command(help='Command testing')
         @commands.is_owner()
         async def test(ctx:commands.Context, num: str):
-            pass
+            raise Exception
 
 
         
@@ -1592,17 +1595,30 @@ class Nc_Commands(Bot_Commands):
             return 'not_exp'
 
 
-        @self.command(help='Do math')
-        async def math(ctx:commands.Context, *, sum:str):
-            try:
-                is_math = self.client.do_math(sum)
-            except Exception:
-                await ctx.reply("To big number.")
-            else:
-                if is_math:
-                    await ctx.reply(embed=is_math)
-                else:
-                    await ctx.reply("Nah, WTF?? **%s**" % sum)
+#        @self.command(help='Do math')
+#        async def math(ctx: Union[commands.Context, discord.Message], *, sum:str):
+#            if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", sum):
+#                def timeout(signum, frame):
+#                    print(signum, frame)
+#
+#                signal.signal(signal.SIGALRM, timeout)
+#                signal.alarm(1)
+#                
+#                calc = eval(sum)
+#
+#                if str(calc) == sum:
+#                    return await ctx.reply('Nah, do real math.') if isinstance(ctx, commands.Context) else None
+#
+#                embed = discord.Embed(
+#                    title='Math:',
+#                    description="%s = **%s**" % (sum, calc),
+#                    colour=Colour.blue()
+#                )
+#
+#                await ctx.reply(embed=embed)
+#            else:
+#                if isinstance(ctx, commands.Context):
+#                    await ctx.reply("**%s** - ????" % sum)
 
 
 
