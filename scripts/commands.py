@@ -1594,27 +1594,13 @@ class Nc_Commands(Bot_Commands):
 
         @self.command(help='Do math')
         async def math(ctx:commands.Context, *, sum:str):
-            regex = '1234567890/*-+%!.()=<> '
+            is_math = self.client.do_math(sum)
 
-            for char in sum:
-                if not char in regex:
-                    return await ctx.send("Invalid char: **%s**" % char)
-            
-            def timeout(signum, frame):
-                raise TimeoutError
+            if is_math:
+                await ctx.reply(embed=is_math)
+            else:
+                await ctx.reply("Nah, WTF?? **%s**" % sum)
 
-            signal.signal(signal.SIGALRM, timeout)
-            signal.alarm(1)
-
-            result = eval(sum)
-
-            await ctx.send(
-                embed=discord.Embed(
-                    title='Math:',
-                    description='%s = **%s**' % (sum, result),
-                    colour=Color.blue()
-                )
-            )
 
 
         @self.command(aliases=['bin'], help='Binary converter')

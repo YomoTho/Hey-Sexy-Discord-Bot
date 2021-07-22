@@ -1,5 +1,3 @@
-from asyncio.tasks import create_task
-from time import sleep
 import discord
 import asyncpraw
 import os
@@ -7,8 +5,9 @@ import random
 import pytz
 import asyncio
 import inspect
-from discord import colour
-from discord.ext import commands, tasks
+import re
+from discord import Colour
+from discord.ext import commands
 from dotenv import load_dotenv
 from datetime import datetime
 try:
@@ -405,6 +404,24 @@ class Bot(commands.Bot, CBF):
         load_dotenv()
         return super().run(os.getenv('TOKEN'), **kwargs)
 
+
+    def do_math(self, a_string: str) -> discord.Embed or None:
+        if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", a_string):
+            calc = eval(a_string)
+
+            if str(calc) == a_string:
+                return None
+
+            embed = discord.Embed(
+                title='Math:',
+                description="%s = **%s**" % (a_string, calc),
+                colour=Colour.blue()
+            )
+
+            return embed
+        else:
+            return None
+
     
     # event
     async def on_ready(self):
@@ -517,15 +534,11 @@ class Bot(commands.Bot, CBF):
         if message.author.bot: return
 
         # 4
-#        try:
-#            eval(message.content)
-#        except SyntaxError: pass
-#        except ZeroDivisionError: pass
-#        except NameError: pass
-#        else:
-#            if not message.content[0] in ['"', "'", '.'] and not message.content[-1] in ['"', "'", '.']:
-#                math_command = self.all_commands['math'].callback
-#                await math_command(await self.get_context(message), sum=message.content)
+
+        math = self.do_math(message.content)
+
+        if math:
+            await message.reply(embed=math)
 
         # 5
         if isinstance(message.channel, discord.DMChannel):
