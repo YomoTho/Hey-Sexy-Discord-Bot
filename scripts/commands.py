@@ -457,6 +457,16 @@ class Owner_Commands(Bot_Commands):
             member_level = await Leveling_System.add_exp(client, member, exp)
 
 
+        @self.command()
+        @commands.is_owner()
+        async def add_money(ctx: commands.Context, member: discord.Member, money: int):
+            member_rank = Leveling_System(str(member.id), 0)
+            member_rank.money += money
+            member_rank.set_money()
+
+            await self.command_success(ctx.message)
+
+
         @self.command(help='Add role to shop.json')
         @commands.is_owner()
         async def add_role(ctx: commands.Context, role: discord.Role, price:int, *, description:str):
