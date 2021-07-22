@@ -1027,10 +1027,10 @@ class Fun_Commands(Bot_Commands):
                 await ctx.send(embed=embed)
                 if user_guess == bot_guess:
                     exp = random.choice([600, 1000, 500, 400, 1200, 4000, 10, 1, 69, 666, 777, 999])
-                    #user = Leveling_System(ctx.author)
-                    #leveled_up = user + exp
-                    #if leveled_up[0]: # Check if user leveled up
-                    #    await send_lvl_up_msg(leveled_up)
+                    
+                    member_levels = Leveling_System(str(ctx.author.id), exp)
+                    member_levels.add()
+
                     await ctx.send("Wow! + **%i** exp" % exp)
             else:
                 await ctx.send("You must guess between 0-6")
