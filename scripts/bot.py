@@ -409,7 +409,7 @@ class Bot(commands.Bot, CBF):
     def do_math(self, a_string: str) -> discord.Embed or None:
         if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", a_string):
             def timeout(signum, frame):
-                raise TimeoutError
+                raise Exception("Time out")
 
             signal.signal(signal.SIGALRM, timeout)
             signal.alarm(1)
@@ -543,7 +543,7 @@ class Bot(commands.Bot, CBF):
         # 4
         try:
             math = self.do_math(message.content)
-        except TimeoutError:
+        except Exception:
             print(message.content, "- To big number")
         else:
             if math:

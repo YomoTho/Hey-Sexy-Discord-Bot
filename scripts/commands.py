@@ -1596,8 +1596,8 @@ class Nc_Commands(Bot_Commands):
         async def math(ctx:commands.Context, *, sum:str):
             try:
                 is_math = self.client.do_math(sum)
-            except TimeoutError:
-                await ctx.reply("Too big number.")
+            except Exception:
+                await ctx.reply("To big number.")
             else:
                 if is_math:
                     await ctx.reply(embed=is_math)
