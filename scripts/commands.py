@@ -301,8 +301,8 @@ class Owner_Commands(Bot_Commands):
 
         @self.command(help='Spam user')
         @commands.is_owner()
-        async def spam(ctx, member : discord.Member, *args):
-            if not member.bot:
+        async def spam(ctx, member : Union[discord.Member, discord.TextChannel], *args):
+            if isinstance(member, discord.TextChannel) or not member.bot:
                 if args[0] == 'file':
                     file_content = None
                     with open(args[1]) as f:
