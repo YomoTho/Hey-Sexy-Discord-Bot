@@ -6,6 +6,7 @@ import pytz
 import asyncio
 import inspect
 import re
+import signal
 from discord import Colour
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -407,6 +408,12 @@ class Bot(commands.Bot, CBF):
 
     def do_math(self, a_string: str) -> discord.Embed or None:
         if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", a_string):
+            def timeout(signum, frame):
+                raise TimeoutError
+
+            signal.signal(signal.SIGALRM, timeout)
+            signal.alarm(1)
+        
             calc = eval(a_string)
 
             if str(calc) == a_string:
@@ -534,11 +541,13 @@ class Bot(commands.Bot, CBF):
         if message.author.bot: return
 
         # 4
-
-        math = self.do_math(message.content)
-
-        if math:
-            await message.reply(embed=math)
+        try:
+            math = self.do_math(message.content)
+        except TimeoutError:
+            print(message.content, "- To big number")
+        else:
+            if math:
+                await message.reply(embed=math)
 
         # 5
         if isinstance(message.channel, discord.DMChannel):
