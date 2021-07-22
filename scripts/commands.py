@@ -48,6 +48,17 @@ class Owner_Commands(Bot_Commands):
             pass
 
 
+        
+        @self.command()
+        @commands.is_owner()
+        async def set_iq(ctx: commands.Context, member: discord.Member, new_iq: int):
+            with Data.RW('iq_scores.json') as iqs:
+                iqs[str(member.id)] = new_iq
+
+            await self.command_success(ctx.message)
+
+
+
         @self.command(help='Server add text channel')
         @commands.is_owner()
         async def sat(ctx, channel:discord.TextChannel, cname:str):
