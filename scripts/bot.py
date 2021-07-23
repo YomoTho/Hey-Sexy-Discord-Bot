@@ -1033,7 +1033,7 @@ class Bot(commands.Bot, CBF):
         while True:
             current_time = datetime.today().astimezone(self.sa_timezone)
 
-            today_date = current_time.strftime('%Y-%m-%d')
+            today_date = current_time.strftime('%Y-%m-23')
 
             try:
                 server_stats_alarm = current_time.replace(day=current_time.day+1, hour=00, minute=00)
