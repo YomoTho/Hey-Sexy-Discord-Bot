@@ -9,7 +9,7 @@ function main()
         while [[ : ]]
         do
             reboot_id=$(cat reboot_id)
-            > reboot_id
+            /dev/null > reboot_id
             python3 scripts/main.py $reboot_id
             sleep 0.5
         done
