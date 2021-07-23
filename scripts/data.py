@@ -249,16 +249,19 @@ class TimeStats:
 
 
     def member_join(self): # This will add 1 when a member joins the server
+        self.data = self.get_data()
         self.data[str(self.current_date)]['member_joins'] += 1
         self.save_data(self.data)
 
     
     def member_leave(self): # This will add 1 when a member leaves the serevr
+        self.data = self.get_data()
         self.data[str(self.current_date)]['member_leaves'] += 1
         self.save_data(self.data)
 
 
     def on_message(self): # This will add 1 when a message been send
+        self.data = self.get_data()
         self.data[str(self.current_date)]['total_messages'] += 1
         self.save_data(self.data)
 
