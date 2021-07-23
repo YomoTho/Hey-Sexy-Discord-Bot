@@ -735,10 +735,6 @@ class Admin_Commands(Bot_Commands):
                     staff_role = discord.utils.get(ctx.guild.roles, id=self.client.staff_role_id)
                     await self.client.staff_room_channel.send("%s\n%s have %i warnings, kick, ban or what?" % (staff_role.mention, user.mention, warn_amount))
                 elif warn_amount >= 6:
-                    if self.client.staff_role_id in [role.id for role in user.roles]:
-                        await ctx.reply("%s wont be banned. By you." % user)
-                        return
-
                     ban_command = client.all_commands['ban'].callback
                     await ban_command(ctx, user, reason="You we're warned 6 times!")
 
