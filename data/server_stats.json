@@ -465,8 +465,28 @@
         "member_leaves": 9
     },
     "2021-07-19": {
-        "total_messages": 198,
-        "member_joins": 2,
-        "member_leaves": 1
+        "total_messages": 2296,
+        "member_joins": 6,
+        "member_leaves": 5
+    },
+    "2021-07-20": {
+        "total_messages": 1945,
+        "member_joins": 0,
+        "member_leaves": 0
+    },
+    "2021-07-21": {
+        "total_messages": 569,
+        "member_joins": 0,
+        "member_leaves": 0
+    },
+    "2021-07-22": {
+        "total_messages": 3236,
+        "member_joins": 0,
+        "member_leaves": 0
+    },
+    "2021-07-23": {
+        "total_messages": 86,
+        "member_joins": 0,
+        "member_leaves": 0
     }
 }
