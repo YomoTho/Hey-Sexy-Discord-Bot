@@ -1,5 +1,6 @@
 import random
 from data import Data
+from leveling_system import Leveling_System
 import discord
 from random import choice, randint
 import asyncio
@@ -44,6 +45,11 @@ class TicTacToe:
             self.player_1.id: colour.Color.from_rgb(255, 0, 0),
             self.player_2.id: colour.Color.blue()
         }
+
+        # This levels are for bots, how lower the level higher the change to do random move
+        self.player_1_level = 0 if not self.player_1.bot else Leveling_System(str(self.player_1.id), 0).current_level
+        self.player_2_level = 0 if not self.player_2.bot else Leveling_System(str(self.player_2.id), 0).current_level
+        self.levels = {self.player_1.name: self.player_1_level, self.player_2.name: self.player_2_level}
 
 
     def __repr__(self):
@@ -172,7 +178,7 @@ class TicTacToe:
             
             if self.turn.bot and not self.count >= 9:
                 await asyncio.sleep(1.5)
-                if randint(0, 20) == 6:
+                if randint(0, self.levels[self.turn.name]) == self.levels[self.turn.name]:
                     move = choice(self.reactions)
                 else:
                     move = await self.smart_bot_move()
