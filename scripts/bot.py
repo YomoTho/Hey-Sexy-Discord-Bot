@@ -460,8 +460,6 @@ class Bot(commands.Bot, CBF):
         Messgage: Bump!
         """
 
-        print("Starting remind_to_bump...")
-
         hrs_to_send = [00, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]
 
         while True:
@@ -1039,6 +1037,8 @@ class Bot(commands.Bot, CBF):
 
             wait_time = (server_stats_alarm - current_time).seconds
             
+            print('Stats: %im' % (wait_time / 60))
+
             await asyncio.sleep(wait_time)
 
             await server_stats_channel.send(**self.get_stats(today_date))
