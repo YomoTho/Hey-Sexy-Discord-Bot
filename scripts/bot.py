@@ -168,7 +168,7 @@ class CBF:
 
 
     def get_stats(self, td_date) -> dict:
-        embed = discord.Embed(title=td_date, colour=colour.Color.purple())
+        embed = discord.Embed(title=td_date, colour=Colour.purple())
         embed.set_author(name=self.server.name, icon_url=self.server.icon_url)
         embed.set_thumbnail(url=self.server.icon_url)
 
@@ -1045,7 +1045,7 @@ class Bot(commands.Bot, CBF):
             
             print('Stats: %im' % (wait_time / 60))
 
-            await asyncio.sleep(wait_time)
+            #await asyncio.sleep(wait_time)
 
             await server_stats_channel.send(**self.get_stats(today_date))
 
