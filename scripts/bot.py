@@ -462,17 +462,21 @@ class Bot(commands.Bot, CBF):
 
         print("Starting remind_to_bump...")
 
+        hrs_to_send = [00, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22]
+
         while True:
             current_hour = int(datetime.now().hour)
             current_time = datetime.now().astimezone(self.sa_timezone)
 
-            if ((current_hour + 1) % 2 == 0): # Checks if the next hour is an equal number, if not then next_hour = 2
-                next_hour = current_time.replace(hour=current_time.hour)
-            else:
-                next_hour = 2
+            if current_hour in [22, 23]:
+                next_hour = 00
+            elif (current_hour + 1) in hrs_to_send:
+                next_hour = current_hour + 1
+            elif (current_hour + 2) in hrs_to_send:
+                next_hour = current_hour + 2
 
             # This will be the next time when the bot will send message
-            next_time = current_time.replace(hour=current_time.hour + next_hour, minute=00)
+            next_time = current_time.replace(hour=next_hour, minute=00)
 
             wait_time = (next_time - current_time).seconds
 
