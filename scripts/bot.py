@@ -468,6 +468,8 @@ class Bot(commands.Bot, CBF):
             current_hour = int(datetime.now().hour)
             current_time = datetime.now().astimezone(self.sa_timezone)
 
+            print(current_time)
+
             if current_hour in [22, 23]:
                 next_hour = 00
             elif (current_hour + 1) in hrs_to_send:
