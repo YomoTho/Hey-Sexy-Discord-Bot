@@ -7,6 +7,7 @@ import inspect
 import signal
 import re
 from discord import Color
+from discord import colour
 from discord.colour import Colour
 from discord.ext import commands
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
@@ -642,6 +643,9 @@ class Admin_Commands(Bot_Commands):
         @self.command(help='Clear text channel')
         @self.is_admin()
         async def clear(ctx, amount:int=0):
+            if amount > 10:
+                await self.client.audit_log_channel.send(embed=discord.Embed(title="Messages deleted!", description="%s cleared **%i** messages in %s" % (ctx.author.mention, amount, ctx.channel.mention), colour=Color.from_rgb(255, 0, 0)))
+
             await ctx.channel.purge(limit=amount + 1)
 
 
