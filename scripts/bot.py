@@ -1024,7 +1024,7 @@ class Bot(commands.Bot, CBF):
 
         server_stats_channel = MyChannel(self.server.get_channel(cname='ss'))
             
-        while self.is_closed:
+        while True:
             current_time = datetime.today().astimezone(self.sa_timezone)
 
             today_date = current_time.strftime('%Y-%m-%d')
