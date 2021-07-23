@@ -1033,7 +1033,7 @@ class Bot(commands.Bot, CBF):
         while True:
             current_time = datetime.today().astimezone(self.sa_timezone)
 
-            today_date = current_time.strftime('%Y-%m-23')
+            today_date = current_time.strftime('%Y-%m-%d')
 
             try:
                 server_stats_alarm = current_time.replace(day=current_time.day+1, hour=00, minute=00)
@@ -1045,7 +1045,7 @@ class Bot(commands.Bot, CBF):
             
             print('Stats: %im' % (wait_time / 60))
 
-            #await asyncio.sleep(wait_time)
+            await asyncio.sleep(wait_time)
 
             await server_stats_channel.send(**self.get_stats(today_date))
 
