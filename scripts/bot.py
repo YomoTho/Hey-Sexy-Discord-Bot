@@ -330,6 +330,10 @@ class CBF:
         return self.get_channel(self.channels('bump_channel'))
 
 
+    def get_staff_room_channel(self):
+        return self.get_channel(self.channels('staff_room'))
+
+
     async def commet_lines(self, message_content):
         return '\n'.join(['> %s' % line for line in message_content.split('\n')])
 
@@ -379,6 +383,7 @@ class Bot(commands.Bot, CBF):
         self.bot_lab_channel = None
         self.shop_channel = None
         self.bump_channel = None
+        self.staff_room_channel = None
 
         with Data.R('ids.json') as roles_id:
             roles_id = roles_id['roles']
@@ -452,6 +457,7 @@ class Bot(commands.Bot, CBF):
         self.bot_lab_channel = self.get_bot_lab_channel()
         self.shop_channel = self.get_shop_channel()
         self.bump_channel = self.get_bump_channel()
+        self.staff_room_channel = self.get_staff_room_channel()
 
 
     async def remind_to_bump(self):

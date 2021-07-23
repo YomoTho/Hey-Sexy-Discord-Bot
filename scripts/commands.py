@@ -722,15 +722,21 @@ class Admin_Commands(Bot_Commands):
             except discord.errors.HTTPException as e:
                 raise Exception('**%s**' % (e))
             else:
-                try:
-                    await ctx.send('Warning sent.')
-                except:
-                    pass
+                await ctx.send('Warning sent.')
 
                 if not str(user.id) in warnings: warnings[str(user.id)] = {}
                 warnings[str(user.id)][str(warning_message.id)] = reason
 
                 Data('warnings.json').dump(warnings)
+
+                warn_amount = len(warnings[str(user.id)])
+
+                if warn_amount == 5:
+                    staff_role = discord.utils.get(ctx.guild.roles, id=self.client.staff_role_id)
+                    await self.client.staff_room_channel.send("%s\n%s have %i warnings, kick, ban or what?" % (staff_role.mention, user.mention, warn_amount))
+                elif warn_amount >= 6:
+                    ban_command = client.all_commands['ban'].callback
+                    await ban_command(ctx, user, reason="You we're warned 6 times!")
 
 
         @self.command(aliases=['warns', 'warns_id'], help='List members warns')
