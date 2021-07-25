@@ -1053,6 +1053,7 @@ class Bot(commands.Bot, CBF):
 
             Data.errors().clean_erros()
             self.server_stats.update_date()
+            self.server_stats.add_date()
 
             await asyncio.sleep(66)
  
