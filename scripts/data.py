@@ -217,7 +217,8 @@ class Reference:
 
 
 class TimeStats:
-    def __init__(self):
+    def __init__(self, timezone):
+        self.timezone = timezone
         self.current_date = self.get_current_date()
         self.data = self.get_data()
         self.add_date()
@@ -228,7 +229,7 @@ class TimeStats:
 
     
     def get_current_date(self): # This will return the current date
-        return datetime.now().date()
+        return datetime.now(self.timezone).date()
 
 
     def add_date(self): # If it's a new date then it will create the date

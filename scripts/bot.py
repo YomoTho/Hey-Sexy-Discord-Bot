@@ -344,9 +344,9 @@ class Bot(commands.Bot, CBF):
         super().__init__(command_prefix, intents=discord.Intents().all(), **options)
         self.categories = {'OWNER': {}, 'NSFW': {}, 'MISC': {}, 'ADMIN': {}}
         self.reddit = Reddit()
-        self.server_stats = TimeStats()
         self.prefix = None
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')
+        self.server_stats = TimeStats(self.sa_timezone)
         self.server = None
         self.args = args
         self.ttt_running = list()
@@ -624,8 +624,7 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_member_join(self, member: discord.Member):
-        stats = TimeStats()
-        stats.member_join()
+        self.server_stats.member_join()
 
         rules_channel = self.rules_channel
         if member.bot:
@@ -666,8 +665,7 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_member_remove(self, member):
-        stats = TimeStats()
-        stats.member_leave()
+        self.server_stats.member_leave()
 
         self.delete_member_iq(member)
 

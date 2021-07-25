@@ -61,7 +61,6 @@ class Owner_Commands(Bot_Commands):
             await self.command_success(ctx.message)
 
 
-
         @self.command(help='Server add text channel')
         @commands.is_owner()
         async def sat(ctx, channel:discord.TextChannel, cname:str):
