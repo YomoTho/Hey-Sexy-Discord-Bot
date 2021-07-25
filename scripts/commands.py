@@ -48,9 +48,8 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx:commands.Context, num: str):
-            raise Exception
-
+        async def test(ctx:commands.Context, *, date: str=None):
+            await ctx.send(**self.client.get_stats(date or client.today_date))
 
         
         @self.command()
