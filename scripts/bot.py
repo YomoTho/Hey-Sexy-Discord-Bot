@@ -586,6 +586,12 @@ class Bot(commands.Bot, CBF):
         self.last_deleted_message[message.channel.id]['time'] = current_time
 
 
+    async def on_error(self, event_method, *args, **kwargs):
+        await self.server.owner.send(f"**Error!**\n{event_method}\n{args}\n{kwargs}")
+
+        return await super().on_error(event_method, *args, **kwargs)
+
+
     # event
     async def on_command_error(self, ctx: commands.Context, exception: BaseException):
         error = str(exception)
