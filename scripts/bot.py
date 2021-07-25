@@ -1,7 +1,9 @@
+from json import load
 import discord
 import asyncpraw
 import os
 import random
+from discord import channel
 import pytz
 import asyncio
 import inspect
@@ -41,7 +43,13 @@ class Reddit:
             self.loggend_in = False
             print(e)
 
-    async def __call__(self, ctx, sub_reddit:str, loop:int=1):
+
+    def even_chunks(self, l: list, n: int=5):
+        for i in range(0, len(l), n):
+            yield l[i:i + n]
+
+
+    async def __call__(self: commands.Context, ctx, sub_reddit:str, loop:int=1):
         if not self.loggend_in:
             return print("Didn't logged in reddit.")
 
@@ -64,33 +72,29 @@ class Reddit:
 
             self.all_post = []
 
-            async for submission in self.subreddit.top(limit=limit):
-                self.all_post.append(submission)
-            else:
-                if self.all_post[0].over_18:
-                    if not sub_reddit in self.nsfw_subreddit['nsfw']:
-                        self.nsfw_subreddit['nsfw'].append(sub_reddit)
-                        self.reddit_json.dump(self.nsfw_subreddit)
-                    if not ctx.channel.is_nsfw():
-                        return await ctx.send("This is not a NSFW text channel.")
-                
-                for i in range(loop):
-                    subm = random.choice(self.all_post)
-                    self.all_post.remove(subm)
-                    
-                    url, title = subm.url, subm.title
-                
-                    video_url = url
+            load_msg = await ctx.reply("Loading... Might take a sec.")
+            self.all_post = [submission async for submission in self.subreddit.top(limit=limit)]
+            await load_msg.delete()
 
-                    if video_url.endswith('.mp4'):
-                        asyncio.create_task(ctx.send(f"**{title}**\n{i + 1}/{loop}: {video_url}"))
-                    elif video_url[-4] == '.':
-                        embed = discord.Embed(title=title)
-                        embed.set_image(url=video_url)
-                        embed.set_footer(text=f'{i + 1}/{loop}')
-                        asyncio.create_task(ctx.send(embed=embed))
-                    else:
-                        asyncio.create_task(ctx.send(f"**{title}**\n{i + 1}/{loop}: {url}"))
+            if self.all_post[0].over_18:
+                if not sub_reddit in self.nsfw_subreddit['nsfw']:
+                    self.nsfw_subreddit['nsfw'].append(sub_reddit)
+                    self.reddit_json.dump(self.nsfw_subreddit)
+                if not ctx.channel.is_nsfw():
+                    return await ctx.send("This is not a NSFW text channel.")
+            
+            self.selected_urls = []
+
+            for _ in range(loop):
+                sel = random.choice(self.all_post)
+                self.all_post.remove(sel)
+                self.selected_urls.append(sel.url)
+
+            self.selected_urls = list(self.even_chunks(self.selected_urls))
+
+            for chuck in self.selected_urls:
+                asyncio.create_task(ctx.send('\n'.join(chuck)))
+
         except Exception as e:
             if str(e) == 'Redirect to /subreddits/search':
                 await ctx.send("Sub Reddit not found.")
