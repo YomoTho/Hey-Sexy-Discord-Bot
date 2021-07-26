@@ -1,12 +1,12 @@
-from json import load
 import discord
 import asyncpraw
 import os
 import random
-from discord import channel
+from discord.ext.commands.core import Command
 import pytz
 import asyncio
 import inspect
+import aioconsole
 import re
 import signal
 from discord import Colour
@@ -20,6 +20,26 @@ except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto com
     from data import Data, MyChannel, Server, TimeStats
     from leveling_system import Leveling_System
 
+
+
+class ConsoleCommand:
+    def __init__(self) -> None:
+        self.all_console_commands = {}
+
+
+    async def command_line(self, cmd_line: str) -> None:
+        if cmd_line:
+            cmd, args = cmd_line.split(' ')[0], tuple(cmd_line.split(' ')[1:])
+
+            await self.all_console_commands[cmd](*args)
+
+
+    def command(self, *args, **kwargs):
+        print(args, kwargs)
+        def wrapper(func):
+            self.all_console_commands[kwargs.get('name') or func.__name__] = func
+        
+        return wrapper
 
 
 
@@ -351,6 +371,7 @@ class Bot(commands.Bot, CBF):
         self.prefix = None
         self.sa_timezone = pytz.timezone('Africa/Johannesburg')
         self.server_stats = TimeStats(self.sa_timezone)
+        self.command_line = ConsoleCommand()
         self.server = None
         self.args = args
         self.ttt_running = list()
@@ -402,6 +423,28 @@ class Bot(commands.Bot, CBF):
             self.human_role_id = roles_id['human_role']
 
 
+        self.command_line.command(name='ls')(self.list_channels)
+        self.command_line.command(name='cd')(self.change_channel)
+        self.command_line.command(name='send')(self.channel_send)
+        
+
+    async def list_channels(self):
+        for channel in self.server.guild.channels:
+            await aioconsole.aprint(channel.name)
+
+
+    async def change_channel(self, channel_name: str):
+        for channel in self.server.guild.channels:
+            if channel_name.lower() in channel.name:
+                self.current_channel = channel
+
+
+    async def channel_send(self, *message):
+        message = ' '.join(message)
+
+        await self.current_channel.send(message)
+
+
     @staticmethod
     async def get_prefix(message=None):
         with Data.R('config') as config:
@@ -422,6 +465,7 @@ class Bot(commands.Bot, CBF):
         self.server = Server(self)        
         self.audit_log_channel = self.server.get_channel(cname='al')
         self.load_channels()
+        self.current_channel = self.get_channel(818574185088548904)
         
         try:
             self.buy_role_msg = await self.shop_channel.fetch_message(self.buy_role_msg)
@@ -438,6 +482,8 @@ class Bot(commands.Bot, CBF):
         print(self.user, 'is online.')
 
         self.on_ready_time = datetime.now()
+
+        asyncio.create_task(self.console())
 
 
     def load_channels(self):
@@ -499,7 +545,7 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_message(self, message: discord.Message) -> None:
-        """
+        """print(self.all_cmd_commands)
         1:  First it checks if the message.channel == self.shop_channel -
         if so, delete the message after 69 seconds 
 
@@ -1211,3 +1257,13 @@ class Bot(commands.Bot, CBF):
                 del data[str(member.id)]
             except KeyError as e:
                 print("%s  %s has no IQ" % (member, e))
+
+
+    async def console(self):
+        while True:
+            full_cmd = await aioconsole.ainput("%s: " % self.current_channel.name)
+
+            try:
+                await self.command_line.command_line(full_cmd)
+            except KeyError as e:
+                print("Error", e)
