@@ -426,7 +426,8 @@ class Bot(commands.Bot, CBF):
         self.command_line.command(name='ls')(self.list_channels)
         self.command_line.command(name='cd')(self.change_channel)
         self.command_line.command(name='send')(self.channel_send)
-        
+        self.command_line.command(name='google')(self._google)
+
 
     async def list_channels(self):
         for channel in self.server.guild.channels:
@@ -437,6 +438,14 @@ class Bot(commands.Bot, CBF):
         for channel in self.server.guild.channels:
             if channel_name.lower() in channel.name:
                 self.current_channel = channel
+
+
+    async def _google(self, *search):
+        command = self.all_commands['google'].callback
+
+        search = ' '.join(search)
+
+        await command(self.current_channel, google_search=search)
 
 
     async def channel_send(self, *message):
