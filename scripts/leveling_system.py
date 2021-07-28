@@ -179,11 +179,7 @@ class Leveling_System:
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_thumbnail(url=member.avatar_url)
         return embed
-
-
-    # TODO: Add rank command, and get feedback of shop
-
-
+        
 
     async def send_level_up_msg(self, client, member: discord.Member, title='Level up!'):
         channel = MyChannel(client.level_ups_channel)

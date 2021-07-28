@@ -2,17 +2,16 @@ print("Starting...")
 
 import sys
 from bot import Bot
-from commands import Owner_Commands, Nc_Commands, Nsfw_Commands, Reddit_Commands, Admin_Commands, Fun_Commands
+from commands import commands_classes # `commands_classes` - is a list of classes
 
 
-
-def main(*args):
+def main(*args) -> None:
     client = Bot(
         command_prefix=Bot.get_prefix, 
         args=args,
         help_command=None, 
     )
-    client.load_commands(Owner_Commands, Nc_Commands, Nsfw_Commands, Reddit_Commands, Admin_Commands, Fun_Commands)    
+    client.load_commands(*commands_classes)
     
     client.loop.create_task(client.stats())
 

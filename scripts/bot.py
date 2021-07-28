@@ -2,7 +2,6 @@ import discord
 import asyncpraw
 import os
 import random
-from discord.ext.commands.core import Command
 import pytz
 import asyncio
 import inspect
@@ -131,7 +130,13 @@ class CBF:
         pass
 
 
-    def load_commands(self, *command_classes):
+    def load_commands(self, *command_classes) -> None:
+        """
+        `command_classes` is a tuple of classes -
+        inside each class in `command_classes` inside the __init__ -
+        there's functions in the __init__ that's decorated `@self.command()` -
+        so it will "load" each command inside the __init__
+        """
         for cmd_cls in command_classes:
             cmd_cls(self)
 
@@ -144,7 +149,13 @@ class CBF:
         await message.add_reaction('✅')
 
 
-    def load_categories(self):
+    def load_categories(self) -> None:
+        """
+        I made my own categories var -
+        So it loop for each command in self.walk_commands -
+        And check it's category & permissions -
+        then but it in the self.category
+        """
         for command in self.walk_commands():
             _kwargs = vars(command)['__original_kwargs__']
             category = _kwargs.get('category')
@@ -455,7 +466,7 @@ class Bot(commands.Bot, CBF):
 
 
     @staticmethod
-    async def get_prefix(message=None):
+    async def get_prefix(message=None) -> str:
         with Data.R('config') as config:
             prefix = config['prefix']
         
@@ -495,7 +506,7 @@ class Bot(commands.Bot, CBF):
         asyncio.create_task(self.console())
 
 
-    def load_channels(self):
+    def load_channels(self) -> None:
         """
         This is for the bot to have easy access to this text channels:
         """

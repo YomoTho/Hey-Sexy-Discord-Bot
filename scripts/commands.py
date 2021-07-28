@@ -1,4 +1,3 @@
-from sre_compile import dis
 import discord
 import os
 import random
@@ -6,8 +5,8 @@ import asyncio
 import inspect
 import signal
 import re
+import aiohttp
 from discord import Color
-from discord import colour
 from discord.colour import Colour
 from discord.ext import commands
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
@@ -23,6 +22,18 @@ except ModuleNotFoundError: # I do this, bc then I can see the vscode's auto com
     from leveling_system import Leveling_System
 
 
+commands_classes = []
+
+def add_commands(cls):
+    """
+    `commands_classes` is a list of all the classes that decorated with @add_commands -
+    so in main.py: `from commands import commands_classes` -
+    then it will have all the classes in `commands_classes`
+    """
+    commands_classes.append(cls)
+
+    return cls
+
 
 class Bot_Commands:
     class Error(Exception): pass
@@ -37,10 +48,10 @@ class Bot_Commands:
 
 
     async def command_success(self, message:discord.Message) -> None:
-        asyncio.create_task(message.add_reaction('✅'))
+        await message.add_reaction('✅')
 
 
-
+@add_commands
 class Owner_Commands(Bot_Commands):
     def __init__(self, client) -> None:
         super().__init__(client)
@@ -48,8 +59,20 @@ class Owner_Commands(Bot_Commands):
         
         @self.command(help='Command testing')
         @commands.is_owner()
-        async def test(ctx:commands.Context, *, date: str=None):
-            await ctx.send(**self.client.get_stats(date or client.today_date))
+        async def test(ctx:commands.Context, subreddit: str):
+            pass
+#            embed = discord.Embed()
+#
+#            print('a')
+#            async with aiohttp.ClientSession() as cs:
+#                print('b')
+#                async with cs.get('https://www.reddit.com/r/%s/new.json?sort=new' % subreddit) as r:
+#                    print('c')
+#                    for _ in range(5):
+#                        res = await r.json()
+#                        embed.set_image(url=res['data']['children'] [random.randint(0, 25)]['data']['url'])
+#                        await ctx.send(embed=embed)
+#                    print('d')
 
         
         @self.command()
@@ -622,6 +645,7 @@ class Owner_Commands(Bot_Commands):
             await ctx.message.reply(str(message))
 
 
+@add_commands
 class Admin_Commands(Bot_Commands):
     def __init__(self, client) -> None:
         super().__init__(client)
@@ -863,7 +887,7 @@ class Admin_Commands(Bot_Commands):
         return super().command(*args, category='ADMIN', **kwargs)
 
 
-
+@add_commands
 class Nsfw_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
         return super().command(*args, category='NSFW', **kwargs)
@@ -914,6 +938,7 @@ class Nsfw_Commands(Bot_Commands):
             await self.client.reddit(ctx, 'traps', limit)
 
 
+@add_commands
 class Reddit_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
         return super().command(*args, category='REDDIT', **kwargs)
@@ -958,7 +983,7 @@ class Reddit_Commands(Bot_Commands):
             await self.client.reddit(ctx, 'cuteanimegirls', limit)
 
 
-
+@add_commands
 class Fun_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
         return super().command(*args, category='FUN', **kwargs)
@@ -1140,9 +1165,7 @@ class Fun_Commands(Bot_Commands):
                 pass
 
 
-
-
-
+@add_commands
 class Nc_Commands(Bot_Commands):
     def __init__(self, client) -> None:
         super().__init__(client)
