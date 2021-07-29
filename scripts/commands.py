@@ -1149,7 +1149,7 @@ class Fun_Commands(Bot_Commands):
                 if member_iq <= 10: 
                     cup = 'F' # F
                 elif member_iq >= 11 and member_iq <= 50:
-                    cup = 'G' # G
+                    cup = 'E' # E
                 elif member_iq >= 51 and member_iq <= 100:
                     cup = 'D' # D
                 elif member_iq >= 101 and member_iq <= 200:
