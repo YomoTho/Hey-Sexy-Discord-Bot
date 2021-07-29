@@ -7,8 +7,10 @@ import signal
 import re
 import aiohttp
 from discord import Color
+from discord import colour
 from discord.colour import Colour
 from discord.ext import commands
+from bot import Bot
 from discord.ext.commands.errors import BadArgument, ChannelNotFound, MemberNotFound
 from games import TicTacToe
 from datetime import datetime
@@ -988,7 +990,7 @@ class Fun_Commands(Bot_Commands):
     def command(self, *args, **kwargs):
         return super().command(*args, category='FUN', **kwargs)
 
-    def __init__(self, client) -> None:
+    def __init__(self, client: Bot) -> None:
         super().__init__(client)
 
 
@@ -1120,6 +1122,53 @@ class Fun_Commands(Bot_Commands):
             embed.description = pp
 
             await ctx.send(embed=embed)
+
+
+        @self.command(aliases=['bb', 'bsize'])
+        async def boobssize(ctx: commands.Context, member: discord.Member=None):
+            member: discord.Member = member or ctx.author
+            member_roles: list[int] = [role.id for role in member.roles]
+
+            embed: discord.Embed = discord.Embed(colour=Colour.purple())
+            embed.set_author(name=member, icon_url=member.avatar_url)
+
+            if client.male_role_id in member_roles:
+                bb = "**Males don't have boobs!**"
+            elif (client.female_role_id in member_roles) or (client.transgender_role_id in member_roles):
+                cup = None
+                band = None
+                
+                try:
+                    member_iq = Data.read('iq_scores.json')[str(member.id)]
+                except KeyError:
+                    member_iq = random.randint(0, 10)
+
+                if member_iq == 0:
+                    member_iq = 1
+
+                if member_iq <= 10: 
+                    cup = 'F' # F
+                elif member_iq >= 11 and member_iq <= 50:
+                    cup = 'G' # G
+                elif member_iq >= 51 and member_iq <= 100:
+                    cup = 'D' # D
+                elif member_iq >= 101 and member_iq <= 200:
+                    cup = 'C' # C
+                elif member_iq >= 201 and member_iq <= 300:
+                    cup = 'B' # B
+                elif member_iq >= 301:
+                    cup = 'A'
+
+                band = (111 / member_iq) + 15
+
+                bb = 'Boobs size: **%i%s**' % (band, cup)
+            else:
+                bb = "I don't know what gender you are."
+
+            embed.description = bb
+
+            await ctx.reply(embed=embed)
+
 
 
         @self.command(name='8ball', help='Ask the magic')
