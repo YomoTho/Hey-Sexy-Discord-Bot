@@ -1689,7 +1689,8 @@ class Nc_Commands(Bot_Commands):
             embed.set_author(name=ctx.guild, icon_url=ctx.guild.icon_url)
 
             for members_lvl in levels[:top]:
-                embed.add_field(name=members_lvl[0], value='Level: **`%i`**' % members_lvl[1], inline=False)
+                if members_lvl[0]:
+                    embed.add_field(name=members_lvl[0], value='Level: **`%i`**' % members_lvl[1], inline=False)
 
             await ctx.send(embed=embed)
 
