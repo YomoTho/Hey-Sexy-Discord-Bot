@@ -439,6 +439,13 @@ class Bot(commands.Bot, CBF):
         self.command_line.command(name='cd')(self.change_channel)
         self.command_line.command(name='send')(self.channel_send)
         self.command_line.command(name='google')(self._google)
+        self.command_line.command(name='eval')(self._eval)
+
+
+    async def _eval(self, *string):
+        string = ' '.join(string)
+
+        await self.current_channel.send("%s = %s" % (string, eval(string)))
 
 
     async def list_channels(self):
