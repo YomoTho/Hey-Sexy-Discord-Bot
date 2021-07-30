@@ -85,9 +85,12 @@ class Reddit:
 
             self.all_post = []
 
+            loading_msg = await ctx.reply("Loading... Might take a sec")
             async for submission in self.subreddit.top(limit=limit):
                 self.all_post.append(submission)
             else:
+                await loading_msg.delete()
+                
                 if self.all_post[0].over_18:
                     if not sub_reddit in self.nsfw_subreddit['nsfw']:
                         self.nsfw_subreddit['nsfw'].append(sub_reddit)
