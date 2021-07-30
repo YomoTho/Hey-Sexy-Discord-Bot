@@ -8,6 +8,7 @@ import re
 import aiohttp
 from discord import Color
 from discord import colour
+from discord import member
 from discord.colour import Colour
 from discord.ext import commands
 from bot import Bot
@@ -1673,6 +1674,25 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=member_levels.rank_msg(member))
 
             return 'not_exp'
+
+
+        @self.command()
+        async def ranks(ctx: commands.Context, top: int=10) -> None:
+            with Data.R('levels.json') as server_levels:
+                server_levels: dict = server_levels
+            
+            levels = [[client.get_user(int(name)), value['lvl']] for name, value in server_levels.items()]
+
+            levels.sort(key=lambda x: x[1], reverse=True)
+
+            embed = discord.Embed(title='Top %i highest level members' % top, colour=discord.Color.blue())
+            embed.set_author(name=ctx.guild, icon_url=ctx.guild.icon_url)
+
+            for members_lvl in levels[:top]:
+                embed.add_field(name=members_lvl[0], value='Level: **`%i`**' % members_lvl[1], inline=False)
+
+            await ctx.send(embed=embed)
+
 
 
 #        @self.command(help='Do math')
