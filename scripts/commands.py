@@ -1682,6 +1682,7 @@ class Nc_Commands(Bot_Commands):
                 server_levels: dict = server_levels
             
             levels = [[client.get_user(int(name)), value['lvl']] for name, value in server_levels.items()]
+            levels = [level for level in levels if level[0]]
 
             levels.sort(key=lambda x: x[1], reverse=True)
 
@@ -1689,8 +1690,7 @@ class Nc_Commands(Bot_Commands):
             embed.set_author(name=ctx.guild, icon_url=ctx.guild.icon_url)
 
             for members_lvl in levels[:top]:
-                if members_lvl[0]:
-                    embed.add_field(name=members_lvl[0], value='Level: **`%i`**' % members_lvl[1], inline=False)
+                embed.add_field(name=members_lvl[0], value='Level: **`%i`**' % members_lvl[1], inline=False)
 
             await ctx.send(embed=embed)
 
