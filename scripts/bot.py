@@ -591,6 +591,7 @@ class Bot(commands.Bot, CBF):
         """
 
         if message.author.id == 813888951818780783:
+            print(message.author, message.content)
             return
 
 
