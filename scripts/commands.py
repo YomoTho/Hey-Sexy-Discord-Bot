@@ -1196,6 +1196,9 @@ class Fun_Commands(Bot_Commands):
         async def slap(ctx: commands.Context, member: discord.Member, *, reason: str=None) -> None:
             reason = reason or 'NO reason'
 
+            if reason.startswith('for'):
+                reason = reason[3:]
+
             await ctx.send(
                 embed=discord.Embed(
                     description='**%s slaps %s for %s**' % (ctx.author.mention, member.mention, reason),
