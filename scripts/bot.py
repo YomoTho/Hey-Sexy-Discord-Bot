@@ -485,6 +485,14 @@ class Bot(commands.Bot, CBF):
         load_dotenv()
         return super().run(os.getenv('TOKEN'), **kwargs)
 
+
+    def random_colour(self) -> discord.Colour:
+        return discord.Colour.from_rgb(
+            *[
+                random.randint(0, 255) for _ in range(3)
+            ]
+        )
+
     
     # event
     async def on_ready(self):

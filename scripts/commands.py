@@ -1182,11 +1182,7 @@ class Fun_Commands(Bot_Commands):
         async def _8ball(ctx: commands.Context, question:str):
             embed = discord.Embed(
                 title=random.choice(self.client._8ball_says), 
-                colour=Color.from_rgb(
-                    random.randint(0, 255),
-                    random.randint(0, 255),
-                    random.randint(0, 255)
-                )
+                colour=client.random_colour()
             )
 
             await ctx.reply(embed=embed)
@@ -1237,11 +1233,7 @@ class Fun_Commands(Bot_Commands):
             await ctx.send(
                 embed=discord.Embed(
                     description=description,
-                    colour=discord.Colour.from_rgb(
-                        random.randint(0, 255),
-                        random.randint(0, 255),
-                        random.randint(0, 255)
-                    )
+                    colour=client.random_colour()
                 ).set_image(url=gif_url)
             )
 
@@ -1276,7 +1268,7 @@ class Fun_Commands(Bot_Commands):
 
 @add_commands
 class Nc_Commands(Bot_Commands):
-    def __init__(self, client) -> None:
+    def __init__(self, client: Bot) -> None:
         super().__init__(client)
         
         """
@@ -1390,7 +1382,7 @@ class Nc_Commands(Bot_Commands):
             member = member or ctx.author
             _pfp = member.avatar_url
 
-            embed = discord.Embed(colour=Color.blue())
+            embed = discord.Embed(colour=client.random_colour())
             embed.set_author(name=member.display_name + '  -  profile pic:', icon_url=_pfp)
             embed.set_image(url=_pfp)
 
