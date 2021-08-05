@@ -722,10 +722,13 @@ class Admin_Commands(Bot_Commands):
 
         @self.command(help='Warn member')
         @commands.has_role(client.staff_role_id)
-        async def warn(ctx, user : discord.Member, *, reason=None):
+        async def warn(ctx: commands.Context, user : discord.Member, *, reason=None):
             if user.id == ctx.guild.owner.id:
                 await ctx.send("Fuck you! %s" % ctx.author.mention)
                 return 
+            elif user.guild_permissions.administrator and not ctx.author.guild_permissions.administrator:
+                await ctx.reply("You can't warn Admins.")
+                return
             
             warnings = Data.read('warnings.json')
             
