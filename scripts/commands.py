@@ -1199,32 +1199,50 @@ class Fun_Commands(Bot_Commands):
             if reason.startswith('for'):
                 reason = reason[3:]
 
+            if ctx.author.id == member.id:
+                description = '**%s just slap itself for %s**' % (member.mention, reason)
+                gif_url = random.choice(
+                    [
+                        'https://media.tenor.com/images/8108527305b7c370c768594a000baa58/tenor.gif',
+                        'https://media1.tenor.com/images/d72b068b940b6a10520c7021d028a274/tenor.gif?itemid=4970584',
+                        'https://media.tenor.com/images/9ae66933a1853b48cd197ec554ee0b5c/tenor.gif',
+                        'https://media.tenor.com/images/0f2948dfe418ab9cb1d01df1bc250ea1/tenor.gif',
+                        'https://media.tenor.com/images/0a5067ca387493abb212858dc4ebb075/tenor.gif',
+                        'https://media.tenor.com/images/73ebf80a652f50dc87da9443918c6814/tenor.gif',
+                        'https://media1.tenor.com/images/6e73f00df5a8ce24fdaff1f4bf278182/tenor.gif?itemid=12840606',
+                        'https://media.tenor.com/images/83b1b2dd24e98e085cf55f2a3fe1e507/tenor.gif',
+                        'https://media.tenor.com/images/33c34b54dae9509b6439434002a8b13a/tenor.gif',
+                        'https://media.tenor.com/images/be439014223d3ed5e0f29bcb0aca7698/tenor.gif'
+                    ]
+                )
+            else:
+                description = '**%s slaps %s for %s**' % (ctx.author.mention, member.mention, reason)
+                gif_url = random.choice(
+                    [
+                        'https://media.tenor.com/images/4d64fda8c8f9e10f2beaa8729872b1e5/tenor.gif',
+                        'https://media.tenor.com/images/a1c3dfd707f83075511efa5de3ddf2c8/tenor.gif',
+                        'https://media1.tenor.com/images/49de17c6f21172b3abfaf5972fddf6d6/tenor.gif?itemid=10206784',
+                        'https://media1.tenor.com/images/42621cf33b44ca6a717d448b1223bccc/tenor.gif?itemid=15696850',
+                        'https://media.tenor.com/images/e20ef3e529049c979d644f5c5e49d93e/tenor.gif',
+                        'https://media.tenor.com/images/bcad34abff7a247cf08587e1429f4152/tenor.gif',
+                        'https://media1.tenor.com/images/b402a8e048dc9b092afaf886695b8d44/tenor.gif?itemid=14667643',
+                        'https://media1.tenor.com/images/71977e210574f341193b31a694b1a2eb/tenor.gif?itemid=15310661',
+                        'https://media.tenor.com/images/6bf0270cbedd15643129d20ef4570587/tenor.gif',
+                        'https://media1.tenor.com/images/204dc002cab486541636f163a73c796f/tenor.gif',
+                        'https://media.tenor.com/images/accfdf4c326e751ee86ac10caf820fdd/tenor.gif',
+                        'https://media.tenor.com/images/54c4b8bf5f7ee3f21e22f01967369d5e/tenor.gif'
+                    ]
+                )
+
             await ctx.send(
                 embed=discord.Embed(
-                    description='**%s slaps %s for %s**' % (ctx.author.mention, member.mention, reason),
+                    description=description,
                     colour=discord.Colour.from_rgb(
                         random.randint(0, 255),
                         random.randint(0, 255),
                         random.randint(0, 255)
                     )
-                ).set_image(
-                    url=random.choice(
-                        [
-                            'https://media.tenor.com/images/4d64fda8c8f9e10f2beaa8729872b1e5/tenor.gif',
-                            'https://media.tenor.com/images/a1c3dfd707f83075511efa5de3ddf2c8/tenor.gif',
-                            'https://media1.tenor.com/images/49de17c6f21172b3abfaf5972fddf6d6/tenor.gif?itemid=10206784',
-                            'https://media1.tenor.com/images/42621cf33b44ca6a717d448b1223bccc/tenor.gif?itemid=15696850',
-                            'https://media.tenor.com/images/e20ef3e529049c979d644f5c5e49d93e/tenor.gif',
-                            'https://media.tenor.com/images/bcad34abff7a247cf08587e1429f4152/tenor.gif',
-                            'https://media1.tenor.com/images/b402a8e048dc9b092afaf886695b8d44/tenor.gif?itemid=14667643',
-                            'https://media1.tenor.com/images/71977e210574f341193b31a694b1a2eb/tenor.gif?itemid=15310661',
-                            'https://media.tenor.com/images/6bf0270cbedd15643129d20ef4570587/tenor.gif',
-                            'https://media1.tenor.com/images/204dc002cab486541636f163a73c796f/tenor.gif',
-                            'https://media.tenor.com/images/accfdf4c326e751ee86ac10caf820fdd/tenor.gif',
-                            'https://media.tenor.com/images/54c4b8bf5f7ee3f21e22f01967369d5e/tenor.gif'
-                        ]
-                    )
-                )
+                ).set_image(url=gif_url)
             )
 
     """
