@@ -1186,6 +1186,36 @@ class Fun_Commands(Bot_Commands):
             await ctx.reply(embed=embed)
 
 
+        @self.command()
+        async def slap(ctx: commands.Context, member: discord.Member, *, reason: str=None) -> None:
+            reason = reason or 'NO reason'
+
+            await ctx.send(
+                embed=discord.Embed(
+                    description='**%s slaps %s for %s**' % (ctx.author.mention, member.mention, reason),
+                    colour=discord.Colour.from_rgb(
+                        random.randint(0, 255),
+                        random.randint(0, 255),
+                        random.randint(0, 255)
+                    )
+                ).set_image(
+                    url=random.choice(
+                        [
+                            'https://media.tenor.com/images/4d64fda8c8f9e10f2beaa8729872b1e5/tenor.gif',
+                            'https://media.tenor.com/images/a1c3dfd707f83075511efa5de3ddf2c8/tenor.gif',
+                            'https://media1.tenor.com/images/49de17c6f21172b3abfaf5972fddf6d6/tenor.gif?itemid=10206784',
+                            'https://media1.tenor.com/images/42621cf33b44ca6a717d448b1223bccc/tenor.gif?itemid=15696850',
+                            'https://media.tenor.com/images/e20ef3e529049c979d644f5c5e49d93e/tenor.gif',
+                            'https://media.tenor.com/images/bcad34abff7a247cf08587e1429f4152/tenor.gif',
+                            'https://media1.tenor.com/images/b402a8e048dc9b092afaf886695b8d44/tenor.gif?itemid=14667643',
+                            'https://media1.tenor.com/images/71977e210574f341193b31a694b1a2eb/tenor.gif?itemid=15310661',
+                            'https://media.tenor.com/images/6bf0270cbedd15643129d20ef4570587/tenor.gif',
+                            'https://media1.tenor.com/images/204dc002cab486541636f163a73c796f/tenor.gif'
+                        ]
+                    )
+                )
+            )
+
     """
     Command functions
     """
