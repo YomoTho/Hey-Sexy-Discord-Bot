@@ -391,6 +391,7 @@ class Bot(commands.Bot, CBF):
         self.reactions_command = {}
         self.reactions_command_remove = {}
         self.do_stats = Data.read('config.json')['stats']
+        self._8ball_says = ['no.', 'no???', 'Hell NO!', 'Bruh, you know its a NO', 'yes.', 'Yes??', 'ok, yea', 'Ugg, yes...', 'Tbh, no.', 'Tbh, yes', 'can you not', "ask again later when I'm less busy with ur daddy", 'sure, why not', "heck off, you know that's a no"]
         self.pfp_says = ['Cool', "Damn, that's one ugly pfp you have there", None, 'The best pfp!', None, None, None, None, None, "WTF is this??", "????", 'Who this?', 'Hmmmm, wtf??!']
 
         reactions_data = Data.read('reactions.json')
