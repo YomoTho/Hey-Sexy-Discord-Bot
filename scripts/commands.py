@@ -1219,7 +1219,9 @@ class Fun_Commands(Bot_Commands):
                             'https://media1.tenor.com/images/b402a8e048dc9b092afaf886695b8d44/tenor.gif?itemid=14667643',
                             'https://media1.tenor.com/images/71977e210574f341193b31a694b1a2eb/tenor.gif?itemid=15310661',
                             'https://media.tenor.com/images/6bf0270cbedd15643129d20ef4570587/tenor.gif',
-                            'https://media1.tenor.com/images/204dc002cab486541636f163a73c796f/tenor.gif'
+                            'https://media1.tenor.com/images/204dc002cab486541636f163a73c796f/tenor.gif',
+                            'https://media.tenor.com/images/accfdf4c326e751ee86ac10caf820fdd/tenor.gif',
+                            'https://media.tenor.com/images/54c4b8bf5f7ee3f21e22f01967369d5e/tenor.gif'
                         ]
                     )
                 )
