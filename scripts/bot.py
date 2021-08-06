@@ -1210,7 +1210,7 @@ class Bot(commands.Bot, CBF):
 
         if not role in member.roles:
             await member.add_roles(role)
-            await asyncio.sleep(random.randint(2, 10))
+            await asyncio.sleep(random.randint(7, 20))
             channel: discord.TextChannel = self.get_channel(818547292357394453) # 818547292357394453 is general-chat
             await channel.send("Welcome %s :heart:" % member.mention)
             
