@@ -1318,7 +1318,8 @@ class Fun_Commands(Bot_Commands):
                         'https://media1.tenor.com/images/900c0ef99c095a6a42eef2cb465a1610/tenor.gif?itemid=17991101',
                         'https://media1.tenor.com/images/b62f047f8ed11b832cb6c0d8ec30687b/tenor.gif?itemid=12668480',
                         'https://media.tenor.com/images/61a0ac1ef5e627e0059a4d2840064ac4/tenor.gif',
-                        'https://media.tenor.com/images/3fee65e2492bce550221cc04a05a7a24/tenor.gif'
+                        'https://media.tenor.com/images/3fee65e2492bce550221cc04a05a7a24/tenor.gif',
+                        'https://media.tenor.com/images/23103019bd22f2ec3111c495ab16173e/tenor.gif'
                     ] if author != member else
                     [
                         'https://media.tenor.com/images/fd651803c69828ff6504274889c207f2/tenor.gif',
