@@ -1237,6 +1237,73 @@ class Fun_Commands(Bot_Commands):
                 ).set_image(url=gif_url)
             )
 
+
+        @self.command()
+        async def kiss(ctx: commands.Context, member: discord.Member) -> None:
+            author: discord.Member = ctx.author
+
+            des = "**%s** gives **%s** a kiss. :kiss:" % (author.display_name, member.display_name) if member != author else "***Kissing yourself? Kinda sus, ngl***"
+
+            msg: discord.Message = await ctx.send(
+                embed=discord.Embed(
+                    description=des,
+                    colour=discord.Colour.from_rgb(255, 0, 0)
+                ).set_image(
+                    url=random.choice(
+                        [
+                            'https://media.tenor.com/images/b660f99f8a9475d660206a79094a54f0/tenor.gif',
+                            'https://media.tenor.com/images/77096b85d940437af4a2ec60ede031cf/tenor.gif',
+                            'https://media.tenor.com/images/ceb1a9ec214078306b7a9c71feb45db5/tenor.gif',
+                            'https://media.tenor.com/images/8480b0f31a25719404270d88c1d1b726/tenor.gif',
+                            'https://media.tenor.com/images/e5aea3ce41ccba63f9157ecf8ec6346d/tenor.gif',
+                            'https://media.tenor.com/images/f9a5267fab11a306509228f8492d3234/tenor.gif',
+                            'https://media.tenor.com/images/621912e684bc65744c305b87d6321fcd/tenor.gif',
+                            'https://media.tenor.com/images/f07912128d9c744806f757909c72ae8f/tenor.gif',
+                            'https://media.tenor.com/images/6b31f08d1c5b4227ae4a310d73b3bfba/tenor.gif',
+                            'https://media.tenor.com/images/27b6ca3c89c647f090338dc2ccd52950/tenor.gif',
+                            'https://media.tenor.com/images/e586a43cb0063da32ff977bd269e5aa2/tenor.gif'
+                        ] if member != author else 
+                        [
+                            'https://media1.tenor.com/images/286975586187c57377efcbeb829560be/tenor.gif?itemid=15910503',
+                            'https://media.tenor.com/images/19dbdacc1474abc975e40c290d27a257/tenor.gif',
+                            'https://media.tenor.com/images/503fba32bfc7c96de15d8f937bacd53b/tenor.gif',
+                            'https://media.tenor.com/images/718d3fb4cd38abe6bdfcb9b1ff3468d6/tenor.gif'
+                        ]
+                    )
+                )
+            )
+
+            if (random.randint(0, 1) == 1) and (member != author):
+                await asyncio.sleep(random.randint(0, 2))
+
+                await msg.reply(
+                    random.choice(
+                        [
+                            "WoW! So *Romantic* :heart:",
+                            "Gay??",
+                            "sus",
+                            "Sussy!",
+                            ":heart:",
+                            ":heart: :heart:",
+                            "Hmmm :unamused:",
+                            ":unamused:",
+                            "Hmmmm",
+                            "Damn! That's *`real gay`*",
+                            ":angry:",
+                            ":zipper_mouth:",
+                            ":rainbow_flag:",
+                            ":flushed:"
+                        ]
+                    )
+                )
+
+
+        @self.command()
+        async def hug(ctx: commands.Context, member: discord.Member) -> None:
+            pass
+
+
+
     """
     Command functions
     """
