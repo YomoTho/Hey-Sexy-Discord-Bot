@@ -1205,9 +1205,19 @@ class Bot(commands.Bot, CBF):
 
 
     async def on_rules_react(self, payload:discord.RawReactionActionEvent):
-        user = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
-        role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=821839747520528404) # 821839747520528404 is Sexy Human
-        await user.add_roles(role)
+        member: discord.Member = discord.utils.get(self.get_guild(payload.guild_id).members, id=payload.user_id)
+        role: discord.Role = discord.utils.get(self.get_guild(payload.guild_id).roles, id=821839747520528404) # 821839747520528404 is Sexy Human
+
+        if not role in member.roles:
+            await member.add_roles(role)
+            await asyncio.sleep(random.randint(2, 10))
+            channel: discord.TextChannel = self.get_channel(818547292357394453) # 818547292357394453 is general-chat
+            await channel.send("Welcome %s :heart:" % member.mention)
+            
+            await asyncio.sleep(random.randint(30, 100))
+
+            if len(member.roles) == 2:
+                await channel.send("You can react in %s, to have more access to this server" % self.get_channel(848632564640907337).mention) # 848632564640907337 is roles channel
 
 
     async def on_role_react_add(self, payload:discord.RawReactionActionEvent):
