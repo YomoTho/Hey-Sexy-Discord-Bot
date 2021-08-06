@@ -1382,7 +1382,7 @@ class Nc_Commands(Bot_Commands):
             member = member or ctx.author
             _pfp = member.avatar_url
 
-            embed = discord.Embed(colour=client.random_colour())
+            embed = discord.Embed(colour=member.colour)
             embed.set_author(name=member.display_name + '  -  profile pic:', icon_url=_pfp)
             embed.set_image(url=_pfp)
 
