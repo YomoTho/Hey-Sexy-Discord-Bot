@@ -1,3 +1,4 @@
+from typing import Union
 import discord
 import asyncpraw
 import os
@@ -851,10 +852,17 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_private_channel_create(self, channel):
+    async def on_private_channel_create(self, channel: discord.DMChannel):
         a_channel = MyChannel(self.audit_log_channel)
 
-        asyncio.create_task(a_channel.send(embed=await self.channel_create_embed(channel)))
+        asyncio.create_task(
+            a_channel.send(
+                embed=discord.Embed(
+                    title='on_private_channel_create',
+                    description='Channel recipient: **%s**' % channel.recipient
+                )
+            )
+        )
 
 
     # event
