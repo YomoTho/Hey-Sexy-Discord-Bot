@@ -1093,7 +1093,7 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_voice_state_update(self, member, before, after):
+    async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         a_channel = MyChannel(self.audit_log_channel)
 
         embed = discord.Embed()
@@ -1105,6 +1105,13 @@ class Bot(commands.Bot, CBF):
         elif after.channel is None:
             des = "Left %s" % before.channel.mention
             embed.color = discord.Color.from_rgb(255, 0, 0)
+        elif before.channel == after.channel:
+            changes = await self.get_changes(before, after)
+            
+            des = '\n'.join(
+                ['%s:\n> %s -> **%s**' % (name, value[0], value[1]) for name, value in changes.items()]
+            )
+            embed.color = discord.Color.blue()
         else:
             des = "%s moved to -> %s" % (before.channel.mention, after.channel.mention)
             embed.color = discord.Color.blue()
