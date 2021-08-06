@@ -1300,7 +1300,37 @@ class Fun_Commands(Bot_Commands):
 
         @self.command()
         async def hug(ctx: commands.Context, member: discord.Member) -> None:
-            pass
+            author: discord.Member = ctx.author
+
+            embed = discord.Embed(
+                description='%s gives %s a hug!' % (author.mention, member.mention) if author != member else '%s hug itself' % author.mention,
+                colour=client.random_colour()
+            )
+            embed.set_image(
+                url=random.choice(
+                    [
+                        'https://media.tenor.com/images/e30378022d0ff231b77993b791c07070/tenor.gif',
+                        'https://media1.tenor.com/images/969f0f462e4b7350da543f0231ba94cb/tenor.gif?itemid=14246498',
+                        'https://media1.tenor.com/images/e9d7da26f8b2adbb8aa99cfd48c58c3e/tenor.gif?itemid=14721541',
+                        'https://media1.tenor.com/images/5ccc34d0e6f1dccba5b1c13f8539db77/tenor.gif?itemid=17694740',
+                        'https://media1.tenor.com/images/18474dc6afa97cef50ad53cf84e37d08/tenor.gif?itemid=12375072',
+                        'https://media1.tenor.com/images/21ed61a5f10121c402e4a221bb4355b3/tenor.gif?itemid=16131468',
+                        'https://media1.tenor.com/images/900c0ef99c095a6a42eef2cb465a1610/tenor.gif?itemid=17991101',
+                        'https://media1.tenor.com/images/b62f047f8ed11b832cb6c0d8ec30687b/tenor.gif?itemid=12668480',
+                        'https://media.tenor.com/images/61a0ac1ef5e627e0059a4d2840064ac4/tenor.gif',
+                        'https://media.tenor.com/images/3fee65e2492bce550221cc04a05a7a24/tenor.gif'
+                    ] if author != member else
+                    [
+                        'https://media.tenor.com/images/fd651803c69828ff6504274889c207f2/tenor.gif',
+                        'https://media.tenor.com/images/7e4cb5e55091024574a35539d6abc655/tenor.gif',
+                        'https://media.tenor.com/images/bc8659f0102dff7234aca1f780c413b4/tenor.gif',
+                        'https://media.tenor.com/images/e472b2a7c66f23800cb3f41e70c18c9a/tenor.gif',
+                        'https://media.tenor.com/images/8ba6b32eacd7a1845e66675b04aa9b74/tenor.gif',
+                        'https://media.tenor.com/images/621214aead386e57c2b5dca1dab71321/tenor.gif'
+                    ]
+                )
+            )
+            await ctx.send(embed=embed)
 
 
 
