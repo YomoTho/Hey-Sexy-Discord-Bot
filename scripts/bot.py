@@ -643,6 +643,12 @@ class Bot(commands.Bot, CBF):
 
     # event
     async def on_message_delete(self, message: discord.Message):
+        if isinstance(message.channel, discord.DMChannel):
+            if message.author.id == self.server.owner.id:
+                return
+                
+            return await self.server.owner.send("Message deleted in **%s**\nMessage:\n> %s" % (message.author, message.content))
+
         self.check_if_reaction_role_message(str(message.id))
 
         channel = MyChannel(self.audit_log_channel)
