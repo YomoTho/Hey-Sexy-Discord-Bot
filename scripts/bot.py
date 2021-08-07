@@ -757,6 +757,8 @@ class Bot(commands.Bot, CBF):
                 await member.send(embed=embed_2)
             else:
                 print(member, 'already reacted.')
+        except discord.errors.Forbidden:
+            pass
         except Exception as e:
             await self.server.owner.send("Error in on_member_join: **%s**" % e)
 
