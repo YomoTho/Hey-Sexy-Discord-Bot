@@ -912,19 +912,19 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_user_update(self, before, after):
+    async def on_user_update(self, before: discord.User, after: discord.User) -> None:
         a_channel = MyChannel(self.audit_log_channel)
 
-        embed = discord.Embed(colour=discord.Color.blue())
+        embed = discord.Embed(colour=discord.Colour.blue())
         embed.set_author(name=after, icon_url=after.avatar_url)
 
-        if before.avatar != after.avatar:
+        if before.avatar_url != after.avatar_url:
             embed.description = "**Avatar change:**"
             embed.add_field(name='Old avatar:', value=before.avatar_url, inline=False)
             embed.add_field(name='New avatar:', value=after.avatar_url, inline=False)
         
         if before.name != after.name:
-            embed.add_field(name='Username change:', value="%s -> **%s**" % (before.username, after.avusernameatar), inline=False)
+            embed.add_field(name='Username change:', value="%s -> **%s**" % (before.name, after.name), inline=False)
         
         if before.discriminator != after.discriminator:
             embed.add_field(name='Discriminator change:', value="%s -> **%s**" % (before.discriminator, after.discriminator), inline=False)
