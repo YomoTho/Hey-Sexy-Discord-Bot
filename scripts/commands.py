@@ -1844,32 +1844,37 @@ class Nc_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
+        @self.command()
+        async def math(ctx: commands.Context, *, sum: str) -> None:
+            if not re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", sum):
+                return await ctx.reply("Invalid.")
 
-#        @self.command(help='Do math')
-#        async def math(ctx: Union[commands.Context, discord.Message], *, sum:str):
-#            if re.match("^[0-9\+\-\*\/\ \%\>\<\()]+$", sum):
-#                def timeout(signum, frame):
-#                    print(signum, frame)
-#
-#                signal.signal(signal.SIGALRM, timeout)
-#                signal.alarm(1)
-#                
-#                calc = eval(sum)
-#
-#                if str(calc) == sum:
-#                    return await ctx.reply('Nah, do real math.') if isinstance(ctx, commands.Context) else None
-#
-#                embed = discord.Embed(
-#                    title='Math:',
-#                    description="%s = **%s**" % (sum, calc),
-#                    colour=Colour.blue()
-#                )
-#
-#                await ctx.reply(embed=embed)
-#            else:
-#                if isinstance(ctx, commands.Context):
-#                    await ctx.reply("**%s** - ????" % sum)
+            done = False
 
+            def timeout(signum, frame):
+                if not done:
+                    raise TimeoutError
+
+            signal.signal(signal.SIGALRM, timeout)
+            signal.alarm(1)
+
+            try:
+                calc = eval(sum)
+            except ZeroDivisionError as e:
+                done = True # This setting this to True to not raise TimeoutError
+                raise ZeroDivisionError(e)
+            done = True
+
+            if str(calc) == sum:
+                return await ctx.reply('Nah, do real math.')
+
+            embed = discord.Embed(
+                title='Math',
+                description="%s = **%s**" % (sum, calc),
+                colour=Colour.blue()
+            )
+
+            await ctx.reply(embed=embed)
 
 
         @self.command(aliases=['bin'], help='Binary converter')
