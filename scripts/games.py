@@ -153,6 +153,12 @@ class TicTacToe:
                     embed = discord.Embed(title='Winner!', colour=colour.Color.from_rgb(0, 255, 0)).set_author(name=who_won[1], icon_url=who_won[1].avatar_url)
                     embed.set_thumbnail(url=who_won[1].avatar_url)
                     embed.description = random.choice(winner_says)
+
+                    exp_to_add = 500
+
+                    member_exp = Leveling_System(str(who_won[1].id), exp_to_add)
+                    member_exp.add()
+
                     await self.whos_turn_msg.edit(embed=embed)
                     await self.game_end()
                     return
