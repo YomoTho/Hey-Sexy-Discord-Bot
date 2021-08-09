@@ -1644,7 +1644,7 @@ class Nc_Commands(Bot_Commands):
 
 
         @self.command(help="Bot's uptime")
-        async def uptime(ctx): #TODO: cleanup code
+        async def uptime(ctx):
             current_time = datetime.now()
             
             cal_uptime = (current_time - self.client.on_ready_time)
