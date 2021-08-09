@@ -1463,7 +1463,7 @@ class Nc_Commands(Bot_Commands):
             embed.set_thumbnail(url=server.icon_url)
 
             embed.add_field(name='ID:', value='`%i`' % server.id)
-            embed.add_field(name='Owner:', value='`%s`' % server.owner, inline=False)
+            embed.add_field(name='Owner:', value='%s' % server.owner.mention, inline=False)
             embed.add_field(name='Member count:', value='`%i`' % server.member_count)
             embed.add_field(name='Role count:', value='`%i`' % len(server.roles))
             embed.add_field(name='Bans:', value='`%i`' % len(await server.bans()))
