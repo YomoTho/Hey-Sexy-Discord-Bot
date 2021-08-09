@@ -770,14 +770,18 @@ class Bot(commands.Bot, CBF):
 
 
     # event
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: discord.Member) -> None:
         self.server_stats.member_leave()
 
         self.delete_member_iq(member)
 
         print(f"{member} has left the server.")
+
+        joined_at: datetime = member.joined_at
+
+        time = (datetime.now() - joined_at)
         
-        embed = discord.Embed(description=f'**{member.mention}** left **{self.server.name}**.', colour=discord.Color.from_rgb(255, 0, 0))
+        embed = discord.Embed(description=f'**{member.mention}** left **{member.guild}**.\n\nHas been here for **`{time}`**.', colour=discord.Color.from_rgb(255, 0, 0))
         embed.set_author(name=member, icon_url=member.avatar_url)
         
         asyncio.create_task(MyChannel(self.server.get_channel(cname='ntl')).send(embed=embed))
