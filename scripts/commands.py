@@ -1646,42 +1646,13 @@ class Nc_Commands(Bot_Commands):
         @self.command(help="Bot's uptime")
         async def uptime(ctx): #TODO: cleanup code
             current_time = datetime.now()
-            cal_uptime = current_time - self.client.on_ready_time
             
-            async def over_a_day(cal):
-                cal = str(cal).split(', ')
-                if len(cal) == 1: 
-                    raise AttributeError
-                cal[1] = cal[1].split('.')[0].split(':')
-                cal[1][0] = '**%s**hrs' % str(cal[1][0])
-                cal[1][1] = '**%s**m' % str(cal[1][1])
-                cal[1][2] = '& **%s**s' % str(cal[1][2])
-                cal[1] = ', '.join(cal[1])
-                cal = ', '.join(cal)
-                return cal
-
-            async def less_than_a_day(cal):
-                cal = str(cal).split('.')[0].split(':')
-                if cal[0] == '0' and cal[1] == '00':
-                    return '**%s** seconds' % (cal[2])
-                elif cal[0] == '0':
-                    return '**%s**m & **%s**s' % (cal[1], cal[2])
-                else:
-                    cal[0] = '**%s**hrs' % (cal[0])
-                    cal[1] = '**%s**m' % (cal[1])
-                    cal[2] = '& **%s**s' % (cal[2])
-                    cal = ', '.join(cal)
-                    return cal
+            cal_uptime = (current_time - self.client.on_ready_time)
             
-            try:
-                cal_uptime = await over_a_day(str(cal_uptime))
-            except AttributeError:
-                cal_uptime = await less_than_a_day(str(cal_uptime))
-            finally:
-                embed = discord.Embed(colour=Color.blue())
-                embed.set_author(name=client.user, icon_url=client.user.avatar_url)
-                embed.add_field(name='Uptime:', value=cal_uptime)
-                await ctx.send(embed=embed)
+            embed = discord.Embed(colour=Color.blue())
+            embed.set_author(name=client.user, icon_url=client.user.avatar_url)
+            embed.add_field(name='Uptime:', value='**`%s`**' % cal_uptime)
+            await ctx.send(embed=embed)
 
 
         @self.command(help='Forward message to someone')
