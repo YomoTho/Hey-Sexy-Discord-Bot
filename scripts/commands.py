@@ -1131,7 +1131,7 @@ class Fun_Commands(Bot_Commands):
             await ctx.send(embed=embed)
 
 
-        @self.command(aliases=['bb', 'bsize'])
+        @self.command(aliases=['bb', 'bsize'], help='Boobs size :|')
         async def boobssize(ctx: commands.Context, member: discord.Member=None):
             member: discord.Member = member or ctx.author
             member_roles: list[int] = [role.id for role in member.roles]
@@ -1188,7 +1188,7 @@ class Fun_Commands(Bot_Commands):
             await ctx.reply(embed=embed)
 
 
-        @self.command()
+        @self.command(help='Slap someone')
         async def slap(ctx: commands.Context, member: discord.Member, *, reason: str=None) -> None:
             reason = reason or 'NO reason'
 
@@ -1238,7 +1238,7 @@ class Fun_Commands(Bot_Commands):
             )
 
 
-        @self.command()
+        @self.command(help='Kiss someone')
         async def kiss(ctx: commands.Context, member: discord.Member) -> None:
             author: discord.Member = ctx.author
 
@@ -1298,7 +1298,7 @@ class Fun_Commands(Bot_Commands):
                 )
 
 
-        @self.command()
+        @self.command(help='Hug someone')
         async def hug(ctx: commands.Context, member: discord.Member) -> None:
             author: discord.Member = ctx.author
 
