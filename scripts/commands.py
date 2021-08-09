@@ -1596,14 +1596,14 @@ class Nc_Commands(Bot_Commands):
 
 
         @self.command(help="List member's IQ")
-        async def iqlist(ctx: commands.Context, amout: int=10):
+        async def iqlist(ctx: commands.Context, amount: int=10):
             with Data.RW('iq_scores.json') as iqscores:
                 iqscores_copy = iqscores.copy()
 
                 users = []
 
                 for idx, user_id in enumerate(iqscores_copy):
-                    if idx == amout:
+                    if idx == amount:
                         break
                     try:
                         users.append('%s IQ score: **%i**' % (client.get_user(int(user_id)).mention, iqscores[user_id]))
