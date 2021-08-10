@@ -485,7 +485,102 @@
         "member_leaves": 0
     },
     "2021-07-23": {
-        "total_messages": 86,
+        "total_messages": 3008,
+        "member_joins": 4,
+        "member_leaves": 3
+    },
+    "2021-07-24": {
+        "total_messages": 791,
+        "member_joins": 8,
+        "member_leaves": 5
+    },
+    "2021-07-25": {
+        "total_messages": 614,
+        "member_joins": 3,
+        "member_leaves": 1
+    },
+    "2021-07-26": {
+        "total_messages": 870,
+        "member_joins": 4,
+        "member_leaves": 3
+    },
+    "2021-07-27": {
+        "total_messages": 1372,
+        "member_joins": 1,
+        "member_leaves": 3
+    },
+    "2021-07-28": {
+        "total_messages": 1262,
+        "member_joins": 6,
+        "member_leaves": 6
+    },
+    "2021-07-29": {
+        "total_messages": 1603,
+        "member_joins": 4,
+        "member_leaves": 2
+    },
+    "2021-07-30": {
+        "total_messages": 1442,
+        "member_joins": 4,
+        "member_leaves": 1
+    },
+    "2021-07-31": {
+        "total_messages": 598,
+        "member_joins": 4,
+        "member_leaves": 6
+    },
+    "2021-08-01": {
+        "total_messages": 396,
+        "member_joins": 6,
+        "member_leaves": 4
+    },
+    "2021-08-02": {
+        "total_messages": 994,
+        "member_joins": 5,
+        "member_leaves": 7
+    },
+    "2021-08-03": {
+        "total_messages": 240,
+        "member_joins": 2,
+        "member_leaves": 3
+    },
+    "2021-08-04": {
+        "total_messages": 723,
+        "member_joins": 4,
+        "member_leaves": 2
+    },
+    "2021-08-05": {
+        "total_messages": 1096,
+        "member_joins": 13,
+        "member_leaves": 14
+    },
+    "2021-08-06": {
+        "total_messages": 784,
+        "member_joins": 4,
+        "member_leaves": 3
+    },
+    "2021-08-07": {
+        "total_messages": 1380,
+        "member_joins": 5,
+        "member_leaves": 4
+    },
+    "2021-08-08": {
+        "total_messages": 470,
+        "member_joins": 1,
+        "member_leaves": 2
+    },
+    "2021-08-09": {
+        "total_messages": 236,
+        "member_joins": 4,
+        "member_leaves": 3
+    },
+    "2021-08-10": {
+        "total_messages": 174,
+        "member_joins": 3,
+        "member_leaves": 4
+    },
+    "2021-08-11": {
+        "total_messages": 0,
         "member_joins": 0,
         "member_leaves": 0
     }
