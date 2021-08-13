@@ -7,6 +7,8 @@ function pip_installs()
     pip install asyncpraw
     pip install pytz
     pip install python-dotenv
+    pip install aioconsole
+    pip install BeautifulSoup4
 }
 
 
